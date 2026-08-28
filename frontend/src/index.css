@@ -2,7 +2,8 @@
 
 /* ── Tailwind v4 theme tokens ─────────────────────────────────────────────── */
 @theme {
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-serif: 'Newsreader', Georgia, serif;
 
   /* Brand / indigo */
   --color-brand-50:  #eef2ff;
