@@ -1,11 +1,14 @@
 import axios from 'axios';
 
 /**
- * Axios instance pre-configured for the LMS API.
- * baseURL uses Vite's proxy so requests go to /api/... -> http://localhost:5000/api/...
+ * API Base URL:
+ * - In Development (default): Falls back to '/api' and uses Vite's dev proxy to http://localhost:5000/api
+ * - In Production (Vercel): Uses the VITE_API_URL environment variable (e.g. https://your-backend.onrender.com/api)
  */
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -46,7 +49,7 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       try {
-        const { data } = await axios.post('/api/auth/refresh', { refreshToken });
+        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
