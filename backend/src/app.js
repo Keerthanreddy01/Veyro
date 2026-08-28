@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -22,6 +23,11 @@ const app = express();
 
 // ─── Database ────────────────────────────────────────────────────────────────
 connectDB();
+
+// ─── Security Headers (Helmet) ───────────────────────────────────────────────
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows cross-origin media embedding (videos, PDFs, images)
+}));
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors({
