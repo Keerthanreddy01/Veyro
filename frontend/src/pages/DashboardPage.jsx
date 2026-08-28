@@ -402,6 +402,69 @@ function StudentDashboard({ user }) {
   );
 }
 
+// ── Student Dashboard: Reference learning workspace ─────────────────────────
+function ReferenceStudentDashboard() {
+  const [enrollments, setEnrollments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    api.get('/enrollments/my')
+      .then(({ data }) => setEnrollments(data.enrollments || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const completedCount = enrollments.filter((e) => e.status === 'completed').length;
+  const filtered = enrollments.filter((e) => (e.courseId?.title || '').toLowerCase().includes(searchQuery.toLowerCase()));
+  const featured = filtered.find((e) => e.status === 'active') || filtered[0];
+
+  return (
+    <div className="min-h-screen bg-[#dff7fa] px-2 py-4 sm:px-5 sm:py-7 text-[#171717]">
+      <div className="mx-auto max-w-[1360px] overflow-hidden rounded-[28px] border-[6px] border-black bg-[#f8f8f6] shadow-[0_18px_40px_rgba(20,40,50,0.15)] animate-fade-in">
+        <div className="grid min-h-[calc(100vh-90px)] grid-cols-1 lg:grid-cols-[54px_minmax(0,1fr)_300px]">
+          <aside className="hidden bg-white py-16 lg:flex lg:flex-col lg:items-center lg:gap-3">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white" title="Connected learning path"><Compass size={14} /></button>
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-slate-700" title="List view"><MoreHorizontal size={15} /></button>
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-slate-700" title="Grid view"><Layers size={14} /></button>
+            <div className="mt-auto flex flex-col gap-2 pb-4">
+              <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10" title="Zoom in"><Plus size={14} /></button>
+              <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10" title="Zoom out"><Minus size={14} /></button>
+            </div>
+          </aside>
+
+          <main className="min-w-0 bg-[#f8f8f6] px-5 py-6 sm:px-8 sm:py-8">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-tight sm:text-3xl">My Learning Plan</h1><span className="text-xl">🧁</span></div>
+              <div className="relative"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" /><input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search" className="w-40 rounded-full bg-[#eeeeec] py-2.5 pl-10 pr-4 text-xs outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-black/10 sm:w-52" /></div>
+            </div>
+
+            <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
+              <StatPill label="Total" value={enrollments.length} bg="bg-[#d6f4f7]" text="text-slate-900" />
+              <StatPill label="Completed" value={completedCount} bg="bg-[#d9f6df]" text="text-emerald-950" badge="🎉" />
+              <StatPill label="Upcoming" value={Math.max(enrollments.length - completedCount, 0)} bg="bg-[#fff0bd]" text="text-amber-950" />
+            </div>
+
+            {featured?.courseId && <div className="relative mb-5 overflow-hidden rounded-[26px] bg-[#e9c8f3] p-5 sm:p-7"><div className="absolute -right-8 -top-10 h-32 w-32 rounded-full border-[16px] border-white/40" /><div className="relative max-w-[330px]"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-fuchsia-950/70">Active course</p><h2 className="text-2xl font-black leading-tight">{featured.courseId.title}</h2><p className="mt-2 text-xs leading-relaxed text-fuchsia-950/75">{featured.courseId.description || 'Learn the fundamentals through focused lessons and practice.'}</p><div className="mt-5 flex items-center gap-3"><span className="rounded-full bg-white/80 px-3 py-1.5 text-[11px] font-bold">◷ Watching 00:30</span><Link to={`/courses/${featured.courseId._id}`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm" title="Resume course"><Play size={17} className="ml-0.5 fill-black" /></Link></div></div></div>}
+
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black">Your courses</h2><Link to="/courses" className="text-xs font-bold text-slate-600 hover:text-black">View all <ArrowRight size={12} className="inline" /></Link></div>
+            {loading ? <div className="h-32 animate-pulse rounded-[24px] bg-slate-200" /> : filtered.length === 0 ? <div className="rounded-[24px] border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">No courses yet. <Link to="/courses" className="font-bold text-black underline">Explore the catalog</Link></div> : <div className="relative space-y-3 pl-7"><div className="absolute bottom-5 left-3 top-5 border-l-2 border-dashed border-[#72c878]" />{filtered.map((enrollment, index) => { const course = enrollment.courseId; if (!course) return null; const isDone = enrollment.status === 'completed'; return <div key={enrollment._id} className="relative flex items-center gap-3"><div className={`absolute -left-7 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#f8f8f6] text-[11px] font-bold shadow-sm ${isDone ? 'bg-[#7bd18a] text-white' : 'bg-white text-black'}`}>{isDone ? <Check size={13} /> : index + 1}</div><div className={`min-w-0 flex-1 rounded-[22px] p-4 ${isDone ? 'bg-[#dff6e2]' : 'bg-white'} shadow-[0_3px_12px_rgba(0,0,0,0.04)]`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate text-base font-black">{course.title}</h3><p className="mt-1 line-clamp-2 text-xs text-slate-600">{course.description || 'Learn structured concepts and complete the next lesson.'}</p></div><Link to={`/courses/${course._id}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f1f1ef]" title="Open course"><ArrowRight size={14} /></Link></div><span className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold ${isDone ? 'bg-white text-emerald-800' : 'bg-[#fff0bd] text-amber-900'}`}>{isDone ? 'Completed 🍃' : 'Upcoming ◷'}</span></div></div>; })}</div>}
+
+            <div className="mt-7 flex items-center gap-2 border-t border-black/5 pt-4">{['T', 'A', 'P', 'E', 'D', 'K'].map((initial, index) => <span key={initial} className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ring-2 ring-[#f8f8f6] ${['bg-[#c8eff2]', 'bg-[#ffe59b]', 'bg-[#e7c3ef]', 'bg-[#c8efd0]', 'bg-[#ffd0b0]', 'bg-slate-200'][index]}`}>{initial}</span>)}<button className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-white" title="Add collaborator"><Plus size={13} /></button></div>
+          </main>
+
+          <aside className="border-t border-black/5 bg-white px-5 py-6 sm:px-7 lg:border-l lg:border-t-0 lg:py-8"><h2 className="mb-5 text-2xl font-black">My Events <span className="text-lg">🤔</span></h2><div className="space-y-3">{[
+            ['Webinar', 'Tu, 25.03', 'Understanding medical research, critical appraisal skills, and applying evidence-based guidelines in practice', 'bg-[#d7f5f6]'],
+            ['Lesson', 'We, 26.03', 'Overview of healthcare delivery systems, health policy, and their impact on patient care.', 'bg-[#edc8f2]'],
+            ['Task', 'Th, 27.03', 'Examination of major global health issues, including infectious diseases, non-communicable diseases, and healthcare disparities.', 'bg-[#ffefb3]'],
+            ['Task', 'Fr, 28.03', 'Importance of teamwork and communication among healthcare professionals for optimal patient outcomes.', 'bg-[#c9f1cf]'],
+          ].map(([type, date, copy, color]) => <div key={date} className={`rounded-[22px] ${color} p-4`}><div className="mb-3 flex items-center justify-between text-[11px] font-bold"><span>{type}</span><span>{date}</span></div><p className="text-xs font-medium leading-relaxed text-slate-800">{copy}</p>{type === 'Webinar' && <div className="mt-3 rounded-full bg-white/85 px-3 py-2 text-center text-[11px] font-bold">◷ Start at 12:30</div>}</div>)}</div></aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Admin Dashboard: Soft Light Theme Console ────────────────────────────────
 function AdminDashboard({ user }) {
   const [pendingCourses, setPendingCourses] = useState([]);
@@ -552,6 +615,97 @@ function AdminDashboard({ user }) {
   );
 }
 
+// ── Instructor Dashboard: Course catalog reference ────────────────────────────
+function CourseCatalogReferenceDashboard() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    api.get(user?.role === 'student' ? '/enrollments/my' : '/courses')
+      .then(({ data }) => setCourses(user?.role === 'student' ? (data.enrollments || []).map((enrollment) => enrollment.courseId).filter(Boolean) : (data.courses || [])))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const colors = ['bg-[#ffdc70]', 'bg-[#d2b1fa]', 'bg-[#aee5f8]'];
+  const accents = ['bg-[#f2bd25]', 'bg-[#aa73e8]', 'bg-[#5bc6d5]'];
+  const visibleCourses = courses.slice(0, 3);
+  const isStudent = user?.role === 'student';
+  const lessonRows = courses.slice(0, 5);
+
+  return (
+    <div className="min-h-screen bg-[#2e2d2a] text-[#202020]">
+      <div className="min-h-screen w-full overflow-hidden bg-[#f8f8f6] animate-fade-in">
+        <header className="flex h-16 items-center justify-between bg-[#2e2d2a] px-5 text-white sm:px-8">
+          <Link to="/dashboard" className="font-serif text-xl font-semibold italic tracking-tight">Veyro</Link>
+          <nav className="hidden items-center gap-2 sm:flex"><Link to="/dashboard" className="rounded-lg bg-white/10 px-4 py-2 text-xs font-semibold">My courses</Link><Link to="/courses" className="rounded-lg px-4 py-2 text-xs text-white/65 hover:bg-white/10">Browse courses</Link></nav>
+          <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f1cc68] text-xs font-bold text-slate-900">{user?.name?.[0]?.toUpperCase() || 'U'}</div><span className="hidden text-xs font-semibold sm:block">{user?.name || 'Instructor'}</span></div>
+        </header>
+
+        <div className="grid min-h-[calc(100vh-64px)] grid-cols-1 lg:grid-cols-[58px_minmax(0,1fr)]">
+          <aside className="hidden flex-col items-center gap-4 bg-[#2e2d2a] py-6 text-white/75 lg:flex"><button className="rounded-md p-2 text-white" title="Dashboard"><Layers size={17} /></button><button className="rounded-md bg-[#ffda55] p-2 text-slate-900" title="Courses"><BookOpen size={17} /></button><Link to={isStudent ? '/courses' : '/instructor/courses/new'} className="rounded-md p-2 hover:bg-white/10" title={isStudent ? 'Browse courses' : 'Create course'}><PlusCircle size={17} /></Link><button className="rounded-md p-2 hover:bg-white/10" title="Assignments"><CheckSquare size={17} /></button><button className="mt-auto rounded-md p-2 hover:bg-white/10" title="Settings"><Clock size={17} /></button></aside>
+
+          <main className="bg-[#f8f8f6] p-5 sm:p-8"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs text-slate-500">Welcome to <span className="font-bold text-[#ee6b4d]">Veyro</span></p><h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">My courses</h1></div><div className="flex items-center gap-2"><div className="relative"><Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input placeholder="Search" className="w-36 rounded-lg border border-slate-400 bg-white py-2 pl-8 pr-3 text-xs outline-none sm:w-48" /></div><button className="rounded-lg bg-[#ff6847] p-2 text-white" title="Search courses"><Search size={15} /></button></div></div>
+            <div className="mb-4 flex flex-wrap gap-2"><button className="rounded-lg bg-[#201f1d] px-3 py-1.5 text-[11px] font-bold text-white">All courses</button><span className="rounded-lg border border-slate-400 px-3 py-1.5 text-[11px]">Published</span><span className="rounded-lg border border-slate-400 px-3 py-1.5 text-[11px]">Pending</span><span className="rounded-lg border border-slate-400 px-3 py-1.5 text-[11px]">Drafts</span></div>
+
+            {loading ? <div className="h-44 animate-pulse rounded-[22px] bg-slate-200" /> : visibleCourses.length === 0 ? <div className="rounded-[22px] border border-dashed border-slate-400 p-10 text-center text-sm">No courses yet. <Link to={isStudent ? '/courses' : '/instructor/courses/new'} className="font-bold underline">{isStudent ? 'Browse courses' : 'Create one'}</Link></div> : <div className="grid gap-3 md:grid-cols-3">{visibleCourses.map((course, index) => <div key={course._id} className={`${colors[index]} flex min-h-[185px] flex-col justify-between rounded-[20px] border-2 border-[#282724] p-4 shadow-[2px_3px_0_#282724]`}><div><div className="flex items-center justify-between"><span className={`${accents[index]} rounded-md px-2 py-1 text-[10px] font-bold`}>{course.category || course.status}</span><button className="text-lg" title="Bookmark course">▮</button></div><h2 className="mt-3 text-lg font-black leading-tight">{course.title}</h2><p className="mt-2 line-clamp-2 text-[11px] leading-relaxed">{course.description || 'Build an engaging curriculum for your learners.'}</p></div><div><div className="mb-2 flex items-center justify-between text-[10px] font-semibold"><span>Progress</span><span>{course.status}</span></div><div className="h-1.5 rounded-full bg-black/15"><div className={`${accents[index]} h-full rounded-full`} style={{ width: course.status === 'published' ? '72%' : '38%' }} /></div><Link to={isStudent ? `/courses/${course._id}` : `/instructor/courses/${course._id}/edit`} className="mt-3 block rounded-lg bg-[#ff6847] py-2 text-center text-[11px] font-bold text-white">{isStudent ? 'Continue' : 'Edit curriculum'}</Link></div></div>)}</div>}
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]"><section className="rounded-[20px] border-2 border-[#282724] bg-white p-4"><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-black">My next lessons</h2><Link to="/instructor/courses/new" className="text-[11px] font-bold text-[#e86b51]">Add lesson</Link></div>{lessonRows.length === 0 ? <p className="text-xs text-slate-500">Your lesson plan will appear here.</p> : <div className="divide-y divide-slate-200">{lessonRows.map((course, index) => <div key={course._id} className="flex items-center justify-between gap-3 py-2.5 text-[11px]"><div className="min-w-0"><p className="truncate font-bold">{String(index + 1).padStart(2, '0')}. {course.title}</p><p className="truncate text-[10px] text-slate-500">{course.category || 'Course curriculum'}</p></div><span className="shrink-0 text-slate-500">{22 + index * 8} min</span></div>)}</div>}</section><section className="rounded-[20px] bg-[#2e2d2a] p-5 text-white"><p className="text-[11px] text-white/70">New course matching your interests</p><span className="mt-5 inline-block rounded-md bg-[#ffda55] px-2.5 py-1 text-[10px] font-bold text-slate-900">Teaching insight</span><h2 className="mt-3 text-lg font-semibold leading-tight">Build a course your learners will remember</h2><p className="mt-3 text-[11px] leading-relaxed text-white/70">Use clear lessons, thoughtful quizzes, and a strong learning path.</p><Link to="/instructor/courses/new" className="mt-6 block rounded-lg bg-[#ff6847] py-2.5 text-center text-xs font-bold">More details</Link></section></div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Instructor Dashboard: Reference workspace ─────────────────────────────────
+function ReferenceInstructorDashboard() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/courses')
+      .then(({ data }) => setCourses(data.courses || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const published = courses.filter((course) => course.status === 'published').length;
+  const pending = courses.filter((course) => course.status === 'pending').length;
+  const drafts = courses.filter((course) => course.status === 'draft').length;
+
+  return (
+    <div className="min-h-screen bg-[#dff7fa] px-2 py-4 sm:px-5 sm:py-7 text-[#171717]">
+      <div className="mx-auto max-w-[1360px] overflow-hidden rounded-[28px] border-[6px] border-black bg-[#f8f8f6] shadow-[0_18px_40px_rgba(20,40,50,0.15)] animate-fade-in">
+        <div className="grid min-h-[calc(100vh-90px)] grid-cols-1 lg:grid-cols-[54px_minmax(0,1fr)_300px]">
+          <aside className="hidden bg-white py-16 lg:flex lg:flex-col lg:items-center lg:gap-3">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white" title="Studio overview"><Compass size={14} /></button>
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-slate-700" title="Course list"><MoreHorizontal size={15} /></button>
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-slate-700" title="Course grid"><Layers size={14} /></button>
+            <div className="mt-auto flex flex-col gap-2 pb-4"><button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10" title="Add course"><Plus size={14} /></button><button className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10" title="Collapse controls"><Minus size={14} /></button></div>
+          </aside>
+
+          <main className="min-w-0 bg-[#f8f8f6] px-5 py-6 sm:px-8 sm:py-8">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-tight sm:text-3xl">Instructor Studio</h1><span className="text-xl">🎨</span></div><Link to="/instructor/courses/new" className="rounded-full bg-black px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800">+ Author course</Link></div>
+            <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3"><StatPill label="Total" value={courses.length} bg="bg-[#d6f4f7]" text="text-slate-900" /><StatPill label="Published" value={published} bg="bg-[#d9f6df]" text="text-emerald-950" badge="🎉" /><StatPill label="Pending" value={pending + drafts} bg="bg-[#fff0bd]" text="text-amber-950" /></div>
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-black">Your course plan</h2><span className="text-xs font-bold text-slate-500">{drafts} drafts</span></div>
+            {loading ? <div className="h-32 animate-pulse rounded-[24px] bg-slate-200" /> : courses.length === 0 ? <div className="rounded-[24px] border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">No courses yet. <Link to="/instructor/courses/new" className="font-bold text-black underline">Author your first course</Link></div> : <div className="relative space-y-3 pl-7"><div className="absolute bottom-5 left-3 top-5 border-l-2 border-dashed border-[#72c878]" />{courses.map((course, index) => <div key={course._id} className="relative flex items-center gap-3"><div className={`absolute -left-7 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#f8f8f6] text-[11px] font-bold shadow-sm ${course.status === 'published' ? 'bg-[#7bd18a] text-white' : 'bg-white text-black'}`}>{course.status === 'published' ? <Check size={13} /> : index + 1}</div><div className={`min-w-0 flex-1 rounded-[22px] p-4 ${course.status === 'published' ? 'bg-[#dff6e2]' : course.status === 'pending' ? 'bg-[#fff0bd]' : 'bg-white'} shadow-[0_3px_12px_rgba(0,0,0,0.04)]`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate text-base font-black">{course.title}</h3><p className="mt-1 line-clamp-2 text-xs text-slate-600">{course.description || 'Build a structured curriculum with video lessons and assessments.'}</p></div><Link to={`/instructor/courses/${course._id}/edit`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f1f1ef]" title="Edit curriculum"><ArrowRight size={14} /></Link></div><span className="mt-3 inline-flex rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-bold capitalize text-slate-700">{course.status}</span></div></div>)}</div>}
+            <div className="mt-7 flex items-center gap-2 border-t border-black/5 pt-4">{['T', 'A', 'P', 'E', 'D', 'K'].map((initial, index) => <span key={initial} className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold ring-2 ring-[#f8f8f6] ${['bg-[#c8eff2]', 'bg-[#ffe59b]', 'bg-[#e7c3ef]', 'bg-[#c8efd0]', 'bg-[#ffd0b0]', 'bg-slate-200'][index]}`}>{initial}</span>)}<span className="ml-2 text-[11px] font-bold text-slate-500">Faculty & peers</span></div>
+          </main>
+
+          <aside className="border-t border-black/5 bg-white px-5 py-6 sm:px-7 lg:border-l lg:border-t-0 lg:py-8"><h2 className="mb-5 text-2xl font-black">My Events <span className="text-lg">🤔</span></h2><div className="space-y-3">{[
+            ['Webinar', 'Tu, 25.03', 'Understanding curriculum research and applying evidence-based teaching methods.', 'bg-[#d7f5f6]'],
+            ['Review', 'We, 26.03', 'Review your pending course submissions and prepare the next lesson.', 'bg-[#edc8f2]'],
+            ['Task', 'Th, 27.03', 'Complete quiz questions and publish the next course milestone.', 'bg-[#ffefb3]'],
+            ['Task', 'Fr, 28.03', 'Plan feedback sessions and improve the learner experience.', 'bg-[#c9f1cf]'],
+          ].map(([type, date, copy, color]) => <div key={date} className={`rounded-[22px] ${color} p-4`}><div className="mb-3 flex items-center justify-between text-[11px] font-bold"><span>{type}</span><span>{date}</span></div><p className="text-xs font-medium leading-relaxed text-slate-800">{copy}</p>{type === 'Webinar' && <div className="mt-3 rounded-full bg-white/85 px-3 py-2 text-center text-[11px] font-bold">◷ Start at 12:30</div>}</div>)}</div></aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Instructor Hub: Studio & Curriculum Management ────────────────────────────
 function InstructorDashboard({ user }) {
   const [courses, setCourses] = useState([]);
@@ -665,7 +819,7 @@ function InstructorDashboard({ user }) {
 export default function DashboardPage() {
   const { user } = useAuthStore();
   if (!user) return null;
-  if (user.role === 'student') return <StudentDashboard user={user} />;
-  if (user.role === 'instructor') return <InstructorDashboard user={user} />;
+  if (user.role === 'student') return <CourseCatalogReferenceDashboard />;
+  if (user.role === 'instructor') return <CourseCatalogReferenceDashboard />;
   return <AdminDashboard user={user} />;
 }

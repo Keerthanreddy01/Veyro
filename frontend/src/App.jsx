@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import { ProtectedRoute, RoleRoute } from './routes/ProtectedRoute';
@@ -13,6 +13,11 @@ import QuizPage from './pages/QuizPage';
 import CreateCoursePage from './pages/CreateCoursePage';
 import EditCoursePage from './pages/EditCoursePage';
 import VerifyCertificatePage from './pages/VerifyCertificatePage';
+
+function RouteTransition({ children }) {
+  const location = useLocation();
+  return <div key={location.pathname} className="route-transition">{children}</div>;
+}
 
 export default function App() {
   return (
@@ -37,7 +42,8 @@ export default function App() {
             <>
               <Navbar />
               <main className="flex-1">
-                <Routes>
+                <RouteTransition>
+                  <Routes>
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/courses" element={<CourseCatalogPage />} />
                   <Route path="/courses/:id" element={<CourseDetailPage />} />
@@ -65,7 +71,8 @@ export default function App() {
                       <p className="text-slate-400">Page not found</p>
                     </div>
                   } />
-                </Routes>
+                  </Routes>
+                </RouteTransition>
               </main>
             </>
           } />
