@@ -38,7 +38,7 @@ export default function App() {
               <Navbar />
               <main className="flex-1">
                 <Routes>
-                  <Route path="/" element={<Navigate to="/courses" replace />} />
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/courses" element={<CourseCatalogPage />} />
                   <Route path="/courses/:id" element={<CourseDetailPage />} />
 
