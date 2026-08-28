@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { body } = require('express-validator');
 const { register, login, refresh, logout, getMe } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 const registerRules = [
   body('name').trim().notEmpty().withMessage('Name is required'),
@@ -14,8 +15,8 @@ const loginRules = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
-router.post('/register', registerRules, register);
-router.post('/login', loginRules, login);
+router.post('/register', authLimiter, registerRules, register);
+router.post('/login', authLimiter, loginRules, login);
 router.post('/refresh', refresh);
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);

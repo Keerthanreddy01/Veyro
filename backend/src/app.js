@@ -16,6 +16,7 @@ const enrollmentRoutes = require('./routes/enrollments');
 const { verifyCertificate } = require('./controllers/enrollmentController');
 const { getAllUsers, toggleUserStatus } = require('./controllers/courseController');
 const { authenticate, authorize } = require('./middleware/auth');
+const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Apply general rate limiter to all API endpoints
+app.use('/api', apiLimiter);
 
 // Serve uploaded files statically
 // Files are accessed as: /static/videos/abc.mp4, /static/pdfs/abc.pdf, etc.
