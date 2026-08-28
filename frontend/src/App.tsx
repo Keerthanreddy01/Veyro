@@ -14,7 +14,9 @@ import CreateCoursePage from './pages/CreateCoursePage';
 import EditCoursePage from './pages/EditCoursePage';
 import VerifyCertificatePage from './pages/VerifyCertificatePage';
 
-function RouteTransition({ children }) {
+import type { ReactNode } from 'react';
+
+function RouteTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
   return <div key={location.pathname} className="route-transition">{children}</div>;
 }
