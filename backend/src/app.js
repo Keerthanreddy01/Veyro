@@ -29,10 +29,20 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows cross-origin media embedding (videos, PDFs, images)
 }));
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
+// ─── CORS Lockdown ───────────────────────────────────────────────────────────
+const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, server-to-server) or matching allowedOrigin
+    if (!origin || origin === allowedOrigin) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
