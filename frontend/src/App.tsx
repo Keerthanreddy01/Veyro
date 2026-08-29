@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
+import SmoothScroll from './components/SmoothScroll';
 import { ProtectedRoute, RoleRoute } from './routes/ProtectedRoute';
 
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -24,6 +26,7 @@ function RouteTransition({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <SmoothScroll />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -34,6 +37,9 @@ export default function App() {
       />
       <div className="min-h-screen flex flex-col">
         <Routes>
+          {/* Landing page - public */}
+          <Route path="/" element={<LandingPage />} />
+          
           {/* Public routes (no navbar for auth pages) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -46,7 +52,7 @@ export default function App() {
               <main className="flex-1">
                 <RouteTransition>
                   <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
                   <Route path="/courses" element={<CourseCatalogPage />} />
                   <Route path="/courses/:id" element={<CourseDetailPage />} />
 

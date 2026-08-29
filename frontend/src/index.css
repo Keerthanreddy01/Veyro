@@ -25,13 +25,31 @@
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: auto !important;
+  }
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
   body {
     font-family: var(--font-sans);
     background-color: #f0f4fa;
     color: #1e293b;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #f0f4fa; }
@@ -144,3 +162,260 @@
 @media (prefers-reduced-motion: reduce) {
   .route-transition { animation: none; }
 }
+
+/* ── Landing Page Typography Hierarchy & Editorial Design System ─────────── */
+.font-display {
+  font-family: 'Syne', sans-serif;
+}
+.font-syne {
+  font-family: 'Syne', sans-serif;
+}
+.font-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.font-mono-tag {
+  font-family: 'Space Grotesk', monospace;
+}
+.font-handwriting {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
+/* 1. Primary Display / Headings Font (Syne) */
+.text-display-hero {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-size: clamp(3.25rem, 5.8vw, 6.5rem);
+}
+
+.text-display-veyro {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  font-size: clamp(3.75rem, 7.5vw, 8rem);
+}
+
+.text-display-poster {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-size: clamp(2.5rem, 4.8vw, 5.25rem);
+}
+
+.text-display-section {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-size: clamp(2rem, 3.8vw, 4.25rem);
+}
+
+.text-body-copy {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+  color: #1E293B;
+  line-height: 1.5;
+}
+
+.text-body-subtle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  color: #1E293B;
+  line-height: 1.5;
+}
+
+.text-card-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Color Tokens & Classes */
+:root {
+  --color-cream-bg: #FAF7EE;
+  --color-cream-light: #FAF7EE;
+  --color-sky-blue: #60C5F1;
+  --color-sky-blue-hover: #4db9e8;
+  --color-pale-yellow: #FFF490;
+  --color-yellow-light: #FFF8AD;
+  --color-dark-ink: #111111;
+}
+
+.bg-cream-bg { background-color: #FAF7EE; }
+.bg-cream-light { background-color: #FAF7EE; }
+.bg-sky-blue { background-color: #60C5F1; }
+.bg-pale-yellow { background-color: #FFF490; }
+.bg-dark-ink { background-color: #111111; }
+.text-dark-ink { color: #111111; }
+.border-dark-ink { border-color: #111111; }
+
+/* 1.5px & 2px crisp dark borders */
+.border-editorial {
+  border: 1.5px solid #111111;
+}
+.border-editorial-2 {
+  border: 2px solid #111111;
+}
+.border-editorial-b {
+  border-bottom: 2px solid #111111;
+}
+.border-editorial-t {
+  border-top: 2px solid #111111;
+}
+.border-editorial-r {
+  border-right: 2px solid #111111;
+}
+.border-editorial-l {
+  border-left: 2px solid #111111;
+}
+
+/* Brutal editorial solid offset shadows */
+.shadow-brutal-sm {
+  box-shadow: 2px 2px 0px #111111;
+}
+.shadow-brutal {
+  box-shadow: 3px 3px 0px #111111;
+}
+.shadow-brutal-lg {
+  box-shadow: 5px 5px 0px #111111;
+}
+
+/* 3. Badge, Tag & Sticker Typography */
+.sticker-yellow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFF490;
+  color: #111111;
+  border: 2px solid #111111;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 9999px;
+  padding: 0.35rem 1.25rem;
+  box-shadow: 2px 2px 0px #111111;
+}
+
+.sticker-yellow-rect {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFF490;
+  color: #111111;
+  border: 2px solid #111111;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0.65rem;
+  padding: 0.35rem 1rem;
+  box-shadow: 2px 2px 0px #111111;
+}
+
+/* User Chips / Status Tags */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  color: #111111;
+  border: 1.5px solid #111111;
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 1.5px 1.5px 0px rgba(17,17,17,0.15);
+}
+
+/* 4. Buttons & CTAs (Plus Jakarta Sans 700, uppercase, 0.875rem, tracking 0.04em) */
+.btn-sky-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #60C5F1;
+  color: #111111;
+  border: 2px solid #111111;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+  padding: 0.55rem 1.35rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  box-shadow: 1.5px 1.5px 0px #111111;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-sky-pill:hover {
+  background-color: #4db9e8;
+}
+
+.btn-dark-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #111111;
+  color: #ffffff;
+  border: 2px solid #111111;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+  padding: 0.55rem 1.35rem;
+  transition: background-color 0.15s ease;
+  box-shadow: 1.5px 1.5px 0px rgba(0,0,0,0.2);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-dark-pill:hover {
+  background-color: #27272a;
+}
+
+.btn-white-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #ffffff;
+  color: #111111;
+  border: 2px solid #111111;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+  padding: 0.55rem 1.35rem;
+  transition: background-color 0.15s ease;
+  box-shadow: 1.5px 1.5px 0px #111111;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-white-pill:hover {
+  background-color: #f4f4f5;
+}
+
+/* Custom subtle scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
