@@ -164,42 +164,24 @@
   .animate-draw-loop { stroke-dashoffset: 0 !important; animation: none !important; }
 }
 
-/* ── Squiggle Draw Loop Animation ─────────────────────────────────────────── */
-@keyframes drawSquiggleLoop {
-  0% {
+/* ── Squiggle Draw Back & Forth Animation (No disappearing) ───────────────── */
+@keyframes drawSquiggleYoYo {
+  0%, 8% {
     stroke-dashoffset: 100;
-    opacity: 0.2;
   }
-  8% {
-    opacity: 1;
-  }
-  48% {
+  44%, 56% {
     stroke-dashoffset: 0;
-    opacity: 1;
   }
-  82% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  92% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-  96% {
+  92%, 100% {
     stroke-dashoffset: 100;
-    opacity: 0;
-  }
-  100% {
-    stroke-dashoffset: 100;
-    opacity: 0.2;
   }
 }
 
 .animate-draw-loop {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: drawSquiggleLoop 3.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-  will-change: stroke-dashoffset, opacity;
+  animation: drawSquiggleYoYo 4.6s cubic-bezier(0.42, 0, 0.25, 1) infinite;
+  will-change: stroke-dashoffset;
 }
 
 /* ── Landing Page Typography Hierarchy & Editorial Design System ─────────── */
