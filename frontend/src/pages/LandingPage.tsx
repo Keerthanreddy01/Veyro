@@ -1280,104 +1280,94 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION J: GOOGLE LABS-STYLE FOOTER
+          SECTION J: EDITORIAL STUDIO FOOTER
           ═══════════════════════════════════════════════════════════════════════ */}
       <footer className="bg-white text-neutral-900 overflow-hidden relative border-t border-neutral-200 font-body">
         
-        {/* ── 2. Interactive Organic Shapes Hero (Upper Section) ── */}
-        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-14 border-b border-neutral-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 relative min-h-[240px] sm:min-h-[320px] flex items-center justify-between gap-1 sm:gap-2 overflow-visible">
+        {/* ── 1. Protocol Architecture & Live Proof Ribbon ── */}
+        <div className="border-b border-neutral-200 bg-[#FAF7EE]/50 py-5 px-4 sm:px-8">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             
-            {/* Shape 1: Bright Yellow Hexagon/Decagon */}
-            <div 
-              className="w-24 h-24 sm:w-40 sm:h-40 md:w-52 md:h-52 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
-              style={{
-                clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                transform: `translateY(${Math.sin(scrollY * 0.002) * 12}px) rotate(-6deg)`
-              }}
-            />
-
-            {/* Shape 2: Deep Sky-Blue Scalloped Flower Badge */}
-            <div 
-              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
-              style={{
-                transform: `translateY(${Math.sin(scrollY * 0.003 + 1) * 16}px) rotate(${scrollY * 0.02}deg)`
-              }}
-            >
-              <ScallopedFlowerShape className="w-full h-full" />
+            {/* Live Status indicator */}
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-xs font-semibold text-neutral-800 tracking-tight">
+                Protocol Status: All Verification Engines Operational
+              </span>
             </div>
 
-            {/* Shape 3: Soft Purple/Periwinkle Rounded Circle/Egg */}
-            <div 
-              className="w-28 h-22 sm:w-44 sm:h-34 md:w-56 md:h-44 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-6 sm:-mt-12 transition-transform duration-100 ease-out shadow-sm z-0"
-              style={{
-                transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px)`
-              }}
-            />
-
-            {/* Shape 4: Vibrant Warm Orange 4-Point Blob/Clover */}
-            <div 
-              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
-              style={{
-                transform: `translateY(${Math.cos(scrollY * 0.002 + 2) * 14}px) rotate(10deg)`
-              }}
-            >
-              <OrganicCrossBlob className="w-full h-full" />
+            {/* Interactive Protocol Badges */}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium">
+              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#60C5F1]"></span>
+                Anti-Cheat Engine v2.4 Active
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                90% Playback Audited
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                SHA-256 Ledger Verified
+              </span>
             </div>
 
-            {/* Shape 5: Soft Pink Scalloped Cloud */}
-            <div 
-              className="hidden md:block w-32 h-26 sm:w-48 sm:h-38 md:w-60 md:h-46 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-0"
-              style={{
-                transform: `translateY(${Math.sin(scrollY * 0.002 + 3) * 12}px) rotate(-6deg)`
-              }}
-            >
-              <LilacPillBlob className="w-full h-full" />
-            </div>
+          </div>
+        </div>
 
-            {/* Shape 6: Lime-Green Rounded Clover */}
-            <div 
-              className="w-24 h-24 sm:w-40 sm:h-40 md:w-52 md:h-52 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
-              style={{
-                transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(8deg)`
-              }}
-            />
-
-            {/* Angled Mint-Green CTA Pills */}
-            <div 
-              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[28deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-28deg)` }}
-            >
-              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-5 py-1.5 sm:py-2 text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
-                Join our Discord Community
+        {/* ── 2. Protocol Feature Matrix Bento Cards ── */}
+        <div className="border-b border-neutral-200 bg-white py-8 sm:py-10 px-4 sm:px-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Card 1 */}
+            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
+              <div className="flex items-center justify-between pb-3">
+                <span className="text-xs font-bold font-syne text-[#60C5F1] tracking-wider uppercase">01 / INTEGRITY</span>
+                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
               </div>
+              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Server-Authoritative Proctor</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Real-time browser-lock, webcam integrity monitoring, and audio anomaly detection.
+              </p>
             </div>
 
-            <div 
-              className="absolute top-2 sm:top-6 left-28 sm:left-60 rotate-[68deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(68deg)` }}
-            >
-              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-4 sm:px-5 py-1 text-[11px] sm:text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
-                Become a Trusted Tester
+            {/* Card 2 */}
+            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
+              <div className="flex items-center justify-between pb-3">
+                <span className="text-xs font-bold font-syne text-amber-500 tracking-wider uppercase">02 / AUDITING</span>
+                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
               </div>
+              <h4 className="font-semibold text-sm text-neutral-900 pb-1">90% Video Retention Gate</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Guaranteed lesson completion tracking enforced server-side before quiz unlocks.
+              </p>
             </div>
 
-            <div 
-              className="absolute top-4 sm:top-8 right-16 sm:right-32 -rotate-[32deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-32deg)` }}
-            >
-              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-5 py-1.5 sm:py-2 text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
-                Sign up for the Labs newsletter
+            {/* Card 3 */}
+            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
+              <div className="flex items-center justify-between pb-3">
+                <span className="text-xs font-bold font-syne text-emerald-500 tracking-wider uppercase">03 / PROOF</span>
+                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
               </div>
+              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Cryptographic Credentials</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Vector-stamped PDF certificates embedded with permanent SHA-256 validation proof.
+              </p>
             </div>
 
-            <div 
-              className="hidden sm:block absolute -top-1 sm:top-4 right-2 sm:right-8 -rotate-[16deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-16deg)` }}
-            >
-              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-4 sm:px-5 py-1 text-[11px] sm:text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
-                Connected on X
+            {/* Card 4 */}
+            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
+              <div className="flex items-center justify-between pb-3">
+                <span className="text-xs font-bold font-syne text-purple-500 tracking-wider uppercase">04 / DISCOVERY</span>
+                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
               </div>
+              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Instant Recruiter Lookup</h4>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Public verification portal providing zero-friction candidate credentials lookup.
+              </p>
             </div>
 
           </div>
@@ -1480,7 +1470,7 @@ export default function LandingPage() {
             <Link to="/courses" className="hover:text-black transition-colors">ABOUT VEYRO</Link>
             <Link to="/courses" className="hover:text-black transition-colors">VEYRO PRODUCTS</Link>
             <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:text-black transition-colors">PRIVACY</button>
-            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black transition-colors">TERMS</button>
+            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black hover:text-black transition-colors">TERMS</button>
             <button onClick={() => toast('Help Center: Dedicated student support.')} className="hover:text-black transition-colors">HELP</button>
           </div>
         </div>
