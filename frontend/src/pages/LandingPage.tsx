@@ -181,7 +181,7 @@ function IosBatteryIcon() {
 function ScallopedFlowerShape({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="currentColor">
-      <path d="M100 0 C110 20 130 20 145 10 C155 25 175 30 180 50 C175 65 190 80 185 100 C190 120 175 135 180 150 C175 170 155 175 145 190 C130 180 110 180 100 200 C90 180 70 180 55 190 C45 175 25 170 20 150 C25 135 10 120 15 100 C10 80 25 65 20 50 C25 30 45 25 55 10 C70 20 90 20 100 0 Z" />
+      <path d="M100,0 C115,20 138,16 150,6 C160,22 180,26 188,44 C184,62 198,76 196,94 C198,112 184,126 188,144 C180,162 160,166 150,182 C138,172 115,168 100,188 C85,168 62,172 50,182 C40,166 20,162 12,144 C16,126 2,112 4,94 C2,76 16,62 12,44 C20,26 40,22 50,6 C62,16 85,20 100,0 Z" />
     </svg>
   );
 }
@@ -189,15 +189,15 @@ function ScallopedFlowerShape({ className = "" }: { className?: string }) {
 function OrganicCrossBlob({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 200 200" className={className} fill="currentColor">
-      <path d="M70 20 C70 8 130 8 130 20 C130 60 140 70 180 70 C192 70 192 130 180 130 C140 130 130 140 130 180 C130 192 70 192 70 180 C70 140 60 130 20 130 C8 130 8 70 20 70 C60 70 70 60 70 20 Z" />
+      <path d="M72,12 C72,2 128,2 128,12 C128,48 152,72 188,72 C198,72 198,128 188,128 C152,128 128,152 128,188 C128,198 72,198 72,188 C72,152 48,128 12,128 C2,128 2,72 12,72 C48,72 72,48 72,12 Z" />
     </svg>
   );
 }
 
 function LilacPillBlob({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 220 160" className={className} fill="currentColor">
-      <path d="M40 20 C100 0 160 0 190 30 C220 60 210 120 180 140 C140 160 80 160 40 130 C10 100 0 50 40 20 Z" />
+    <svg viewBox="0 0 240 180" className={className} fill="currentColor">
+      <path d="M40,30 C90,8 160,8 200,32 C230,55 235,115 205,145 C170,175 75,175 35,145 C5,115 0,55 40,30 Z" />
     </svg>
   );
 }
@@ -1284,30 +1284,30 @@ export default function LandingPage() {
           ═══════════════════════════════════════════════════════════════════════ */}
       <footer className="bg-white text-[#111111] overflow-hidden relative border-t border-black/15">
         
-        {/* ── Top Organic Shape Parallax Playground (Flat Solid Shapes - Exact Reference Match) ── */}
-        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-12 border-b border-black/10">
-          <div className="max-w-7xl mx-auto px-4 relative min-h-[220px] sm:min-h-[280px] flex items-center justify-between gap-1 sm:gap-3">
+        {/* ── Top Organic Shape Parallax Playground (Interlocking Shapes - Exact Reference Match) ── */}
+        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-14 border-b border-black/10">
+          <div className="max-w-[1400px] mx-auto px-4 relative min-h-[240px] sm:min-h-[320px] flex items-center justify-center -space-x-4 sm:-space-x-8 md:-space-x-12 overflow-visible">
             
-            {/* Shape 1: Bright Yellow Polygon (Solid Flat Color - No Outline) */}
+            {/* Shape 1: Bright Yellow Polygon */}
             <div 
-              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm"
+              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
               style={{
                 clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
                 transform: `translateY(${Math.sin(scrollY * 0.002) * 12}px) rotate(-6deg)`
               }}
             />
 
-            {/* Shape 2: Periwinkle Dome / Half-Oval (Solid Flat Color) */}
+            {/* Shape 2: Periwinkle Dome / Half-Oval */}
             <div 
-              className="w-28 h-20 sm:w-44 sm:h-32 md:w-56 md:h-40 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-8 sm:-mt-14 transition-transform duration-100 ease-out shadow-sm"
+              className="w-32 h-24 sm:w-48 sm:h-36 md:w-64 md:h-48 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-10 sm:-mt-16 transition-transform duration-100 ease-out shadow-sm z-0"
               style={{
                 transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px)`
               }}
             />
 
-            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge (Solid Flat SVG) */}
+            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge */}
             <div 
-              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
+              className="w-32 h-32 sm:w-48 sm:h-48 md:w-60 md:h-60 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.sin(scrollY * 0.003 + 1) * 16}px) rotate(${scrollY * 0.02}deg)`
               }}
@@ -1315,9 +1315,9 @@ export default function LandingPage() {
               <ScallopedFlowerShape className="w-full h-full" />
             </div>
 
-            {/* Shape 4: Warm Coral Orange Rounded Cross Blob (Solid Flat SVG) */}
+            {/* Shape 4: Warm Coral Orange Rounded Cross Blob */}
             <div 
-              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
+              className="w-32 h-32 sm:w-48 sm:h-48 md:w-60 md:h-60 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.cos(scrollY * 0.002 + 2) * 14}px) rotate(10deg)`
               }}
@@ -1325,9 +1325,9 @@ export default function LandingPage() {
               <OrganicCrossBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 5: Soft Lilac Pink Cloud (Solid Flat SVG) */}
+            {/* Shape 5: Soft Lilac Pink Cloud */}
             <div 
-              className="hidden md:block w-36 h-28 lg:w-48 lg:h-36 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
+              className="w-36 h-28 sm:w-52 sm:h-40 md:w-64 md:h-48 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-0"
               style={{
                 transform: `translateY(${Math.sin(scrollY * 0.002 + 3) * 12}px) rotate(-6deg)`
               }}
@@ -1335,51 +1335,51 @@ export default function LandingPage() {
               <LilacPillBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 6: Bright Chartreuse Lime Clover (Solid Flat Color) */}
+            {/* Shape 6: Bright Chartreuse Lime Clover */}
             <div 
-              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm"
+              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(8deg)`
               }}
             />
 
-            {/* Overlapping Mint Diagonal Stickers (Exact Placement & Typography) */}
-            {/* Sticker 1: Top Left Diagonal (-28deg) */}
+            {/* Overlapping Mint Diagonal Stickers (Exact Match to Reference Angles) */}
+            {/* Sticker 1: Top Left Diagonal (-24deg) */}
             <div 
-              className="absolute top-2 sm:top-6 left-2 sm:left-10 -rotate-[28deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-28deg)` }}
+              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[24deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-24deg)` }}
             >
-              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
                 Join our Discord Community
               </div>
             </div>
 
-            {/* Sticker 2: Center Left Vertical-ish (72deg) */}
+            {/* Sticker 2: Center Left (65deg - Perfectly Readable) */}
             <div 
-              className="absolute top-0 sm:top-4 left-28 sm:left-52 rotate-[72deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(72deg)` }}
+              className="absolute top-2 sm:top-6 left-32 sm:left-64 rotate-[65deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(65deg)` }}
             >
-              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-3.5 sm:px-5 py-1 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
                 Become a Trusted Tester
               </div>
             </div>
 
-            {/* Sticker 3: Right Diagonal (-30deg) */}
+            {/* Sticker 3: Right Diagonal (-28deg) */}
             <div 
-              className="absolute top-2 sm:top-6 right-8 sm:right-28 -rotate-[30deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-30deg)` }}
+              className="absolute top-4 sm:top-8 right-16 sm:right-36 -rotate-[28deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-28deg)` }}
             >
-              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
                 Sign up for the Labs newsletter
               </div>
             </div>
 
-            {/* Sticker 4: Far Right Top (-15deg) */}
+            {/* Sticker 4: Far Right Top (-12deg) */}
             <div 
-              className="hidden sm:block absolute -top-1 sm:top-2 right-2 sm:right-6 -rotate-[15deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-15deg)` }}
+              className="hidden sm:block absolute -top-1 sm:top-4 right-2 sm:right-10 -rotate-[12deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-12deg)` }}
             >
-              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-3.5 sm:px-5 py-1 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-5 py-1.5 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
                 Connected on X
               </div>
             </div>
@@ -1468,10 +1468,12 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ── Giant Brand Wordmark: Veyro Labs (Properly Scaled & Centered - No Clipping) ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-14 text-center overflow-hidden">
-          <div className="font-body font-normal text-[clamp(3.5rem,11.5vw,10.5rem)] tracking-tight text-[#111111] leading-none select-none">
-            Veyro Labs
+        {/* ── Giant Brand Wordmark: veyro. (Interactive Effect) ── */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-20 text-center select-none overflow-hidden">
+          <div className="inline-block group cursor-default">
+            <span className="font-syne font-black text-[clamp(4.5rem,18vw,16rem)] tracking-tighter text-[#111111] leading-none inline-flex items-baseline transition-transform duration-300 group-hover:scale-[1.02]">
+              veyro<span className="text-[#60C5F1] inline-block transition-transform duration-300 group-hover:rotate-12">.</span>
+            </span>
           </div>
         </div>
 
