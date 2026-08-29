@@ -1280,34 +1280,26 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION J: CREATIVE LABS FOOTER (Google Labs Inspired with Smooth Parallax)
+          SECTION J: GOOGLE LABS-STYLE FOOTER
           ═══════════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-white text-[#111111] overflow-hidden relative border-t border-black/15">
+      <footer className="bg-white text-neutral-900 overflow-hidden relative border-t border-neutral-200 font-body">
         
-        {/* ── Top Organic Shape Parallax Playground (Interlocking Shapes - Exact Reference Match) ── */}
-        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-14 border-b border-black/10">
-          <div className="max-w-[1400px] mx-auto px-4 relative min-h-[240px] sm:min-h-[320px] flex items-center justify-center -space-x-4 sm:-space-x-8 md:-space-x-12 overflow-visible">
+        {/* ── 2. Interactive Organic Shapes Hero (Upper Section) ── */}
+        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-14 border-b border-neutral-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 relative min-h-[240px] sm:min-h-[320px] flex items-center justify-between gap-1 sm:gap-2 overflow-visible">
             
-            {/* Shape 1: Bright Yellow Polygon */}
+            {/* Shape 1: Bright Yellow Hexagon/Decagon */}
             <div 
-              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
+              className="w-24 h-24 sm:w-40 sm:h-40 md:w-52 md:h-52 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
               style={{
                 clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
                 transform: `translateY(${Math.sin(scrollY * 0.002) * 12}px) rotate(-6deg)`
               }}
             />
 
-            {/* Shape 2: Periwinkle Dome / Half-Oval */}
+            {/* Shape 2: Deep Sky-Blue Scalloped Flower Badge */}
             <div 
-              className="w-32 h-24 sm:w-48 sm:h-36 md:w-64 md:h-48 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-10 sm:-mt-16 transition-transform duration-100 ease-out shadow-sm z-0"
-              style={{
-                transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px)`
-              }}
-            />
-
-            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge */}
-            <div 
-              className="w-32 h-32 sm:w-48 sm:h-48 md:w-60 md:h-60 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
+              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.sin(scrollY * 0.003 + 1) * 16}px) rotate(${scrollY * 0.02}deg)`
               }}
@@ -1315,9 +1307,17 @@ export default function LandingPage() {
               <ScallopedFlowerShape className="w-full h-full" />
             </div>
 
-            {/* Shape 4: Warm Coral Orange Rounded Cross Blob */}
+            {/* Shape 3: Soft Purple/Periwinkle Rounded Circle/Egg */}
             <div 
-              className="w-32 h-32 sm:w-48 sm:h-48 md:w-60 md:h-60 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
+              className="w-28 h-22 sm:w-44 sm:h-34 md:w-56 md:h-44 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-6 sm:-mt-12 transition-transform duration-100 ease-out shadow-sm z-0"
+              style={{
+                transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px)`
+              }}
+            />
+
+            {/* Shape 4: Vibrant Warm Orange 4-Point Blob/Clover */}
+            <div 
+              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.cos(scrollY * 0.002 + 2) * 14}px) rotate(10deg)`
               }}
@@ -1325,9 +1325,9 @@ export default function LandingPage() {
               <OrganicCrossBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 5: Soft Lilac Pink Cloud */}
+            {/* Shape 5: Soft Pink Scalloped Cloud */}
             <div 
-              className="w-36 h-28 sm:w-52 sm:h-40 md:w-64 md:h-48 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-0"
+              className="hidden md:block w-32 h-26 sm:w-48 sm:h-38 md:w-60 md:h-46 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm z-0"
               style={{
                 transform: `translateY(${Math.sin(scrollY * 0.002 + 3) * 12}px) rotate(-6deg)`
               }}
@@ -1335,51 +1335,47 @@ export default function LandingPage() {
               <LilacPillBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 6: Bright Chartreuse Lime Clover */}
+            {/* Shape 6: Lime-Green Rounded Clover */}
             <div 
-              className="w-28 h-28 sm:w-44 sm:h-44 md:w-56 md:h-56 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
+              className="w-24 h-24 sm:w-40 sm:h-40 md:w-52 md:h-52 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm z-10"
               style={{
                 transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(8deg)`
               }}
             />
 
-            {/* Overlapping Mint Diagonal Stickers (Exact Match to Reference Angles) */}
-            {/* Sticker 1: Top Left Diagonal (-24deg) */}
+            {/* Angled Mint-Green CTA Pills */}
             <div 
-              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[24deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-24deg)` }}
+              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[28deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-28deg)` }}
             >
-              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
+              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-5 py-1.5 sm:py-2 text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
                 Join our Discord Community
               </div>
             </div>
 
-            {/* Sticker 2: Center Left (65deg - Perfectly Readable) */}
             <div 
-              className="absolute top-2 sm:top-6 left-32 sm:left-64 rotate-[65deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(65deg)` }}
+              className="absolute top-2 sm:top-6 left-28 sm:left-60 rotate-[68deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(68deg)` }}
             >
-              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
+              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-4 sm:px-5 py-1 text-[11px] sm:text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
                 Become a Trusted Tester
               </div>
             </div>
 
-            {/* Sticker 3: Right Diagonal (-28deg) */}
             <div 
-              className="absolute top-4 sm:top-8 right-16 sm:right-36 -rotate-[28deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-28deg)` }}
+              className="absolute top-4 sm:top-8 right-16 sm:right-32 -rotate-[32deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-32deg)` }}
             >
-              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
+              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-5 py-1.5 sm:py-2 text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
                 Sign up for the Labs newsletter
               </div>
             </div>
 
-            {/* Sticker 4: Far Right Top (-12deg) */}
             <div 
-              className="hidden sm:block absolute -top-1 sm:top-4 right-2 sm:right-10 -rotate-[12deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-12deg)` }}
+              className="hidden sm:block absolute -top-1 sm:top-4 right-2 sm:right-8 -rotate-[16deg] z-30 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-16deg)` }}
             >
-              <div className="bg-[#72E39E] text-[#111111] border border-black/80 rounded-full px-4 sm:px-5 py-1.5 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-md whitespace-nowrap">
+              <div className="bg-[#86EFAC] text-neutral-900 border border-neutral-800/80 rounded-full px-4 sm:px-5 py-1 text-[11px] sm:text-xs font-medium font-body tracking-tight shadow-sm whitespace-nowrap">
                 Connected on X
               </div>
             </div>
@@ -1387,21 +1383,21 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ── Middle Stay Connected & Navigation 3-Column Strip ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14 border-b border-black/10">
+        {/* ── 3. Middle Navigation & Newsletter Grid ── */}
+        <div className="max-w-7xl mx-auto py-12 px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-between">
             
-            {/* Left Col: Stay Connected + Social Pills */}
-            <div className="lg:col-span-5 space-y-4">
-              <h3 className="font-syne font-bold text-lg sm:text-xl text-[#111111] max-w-md leading-snug">
+            {/* Column 1 (Left - 50% width) */}
+            <div className="lg:col-span-6 space-y-4">
+              <h3 className="font-medium text-2xl text-neutral-900 leading-snug max-w-lg">
                 Stay connected for early access to our newest tools and local events
               </h3>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2 pt-2">
                 <a
                   href="https://discord.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
+                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
                   aria-label="Discord"
                 >
                   <DiscordIcon className="w-4 h-4" />
@@ -1410,7 +1406,7 @@ export default function LandingPage() {
                   href="https://reddit.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
+                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
                   aria-label="Reddit"
                 >
                   <RedditIcon className="w-4 h-4" />
@@ -1419,7 +1415,7 @@ export default function LandingPage() {
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
+                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
                   aria-label="X"
                 >
                   <XIcon className="w-4 h-4" />
@@ -1431,63 +1427,61 @@ export default function LandingPage() {
                       toast.success(`Subscribed ${email} to Veyro updates!`);
                     }
                   }}
-                  className="bg-white border border-black/30 text-[#111111] hover:bg-[#FAF7EE] text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm transition-colors font-body"
+                  className="border border-neutral-300 rounded-full px-5 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900 transition-colors font-body"
                 >
                   Sign up for our newsletter
                 </button>
               </div>
             </div>
 
-            {/* Middle Col: Navigation */}
-            <div className="lg:col-span-3 space-y-2.5">
-              <p className="text-xs font-bold text-[#111111] font-body">
+            {/* Column 2 (Navigation) */}
+            <div className="lg:col-span-3 space-y-3">
+              <p className="font-medium text-sm text-neutral-900 mb-3 font-body">
                 Navigation
               </p>
-              <div className="flex flex-col space-y-1.5 text-xs sm:text-sm font-normal text-[#1E293B]">
-                <Link to="/" className="hover:text-black hover:underline">About</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Experiments</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Sessions</Link>
-                <a href="#steps" className="hover:text-black hover:underline">Community</a>
+              <div className="flex flex-col space-y-2 text-sm font-normal text-neutral-500 font-body">
+                <Link to="/" className="hover:text-black transition-colors">About</Link>
+                <Link to="/courses" className="hover:text-black transition-colors">Experiments</Link>
+                <Link to="/courses" className="hover:text-black transition-colors">Sessions</Link>
+                <a href="#steps" className="hover:text-black transition-colors">Community</a>
               </div>
             </div>
 
-            {/* Right Col: Other teams & product areas */}
-            <div className="lg:col-span-4 space-y-2.5">
-              <p className="text-xs font-bold text-[#111111] font-body">
+            {/* Column 3 (Product Areas) */}
+            <div className="lg:col-span-3 space-y-3">
+              <p className="font-medium text-sm text-neutral-900 mb-3 font-body">
                 Other teams and product areas
               </p>
-              <div className="flex flex-col space-y-1.5 text-xs sm:text-sm font-normal text-[#1E293B]">
-                <Link to="/courses" className="hover:text-black hover:underline">Veyro AI</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Veyro Cloud</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Veyro Research</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Veyro DeepMind</Link>
-                <Link to="/verify/VY-DEMO-2026" className="hover:text-black hover:underline">Search Labs</Link>
+              <div className="flex flex-col space-y-2 text-sm font-normal text-neutral-500 font-body">
+                <Link to="/courses" className="hover:text-black transition-colors">Veyro AI</Link>
+                <Link to="/courses" className="hover:text-black hover:text-black transition-colors">Veyro Cloud</Link>
+                <Link to="/courses" className="hover:text-black transition-colors">Veyro Research</Link>
+                <Link to="/courses" className="hover:text-black transition-colors">Veyro DeepMind</Link>
+                <Link to="/verify/VY-DEMO-2026" className="hover:text-black transition-colors">Search Labs</Link>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* ── Giant Brand Wordmark: veyro. (Interactive Effect) ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-20 text-center select-none overflow-hidden">
-          <div className="inline-block group cursor-default">
-            <span className="font-syne font-black text-[clamp(4.5rem,18vw,16rem)] tracking-tighter text-[#111111] leading-none inline-flex items-baseline transition-transform duration-300 group-hover:scale-[1.02]">
-              veyro<span className="text-[#60C5F1] inline-block transition-transform duration-300 group-hover:rotate-12">.</span>
-            </span>
+        {/* ── 4. Massive Brand Anchor (Lower Section) ── */}
+        <div className="max-w-7xl mx-auto px-8 py-8 sm:py-14 text-center select-none overflow-hidden">
+          <div className="font-body font-normal text-[clamp(4.5rem,15vw,13.5rem)] tracking-[-0.04em] text-neutral-900 leading-none inline-block">
+            veyro<span className="text-[#60C5F1]">.</span>
           </div>
         </div>
 
-        {/* ── Bottom-most Fine-Print Utility Bar ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between text-xs text-[#1E293B]/70 gap-3 font-body">
-          <span className="font-bold text-sm text-[#111111] tracking-tight">
-            Veyro
+        {/* ── 5. Bottom Legal Bar ── */}
+        <div className="max-w-7xl mx-auto py-4 px-8 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-600 gap-4 font-body">
+          <span className="font-medium text-sm text-neutral-900">
+            veyro<span className="text-[#60C5F1]">.</span>
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-[10px] sm:text-[11px] font-bold tracking-wider text-[#111111]/70 uppercase">
-            <Link to="/courses" className="hover:text-black hover:underline">ABOUT VEYRO</Link>
-            <Link to="/courses" className="hover:text-black hover:underline">VEYRO PRODUCTS</Link>
-            <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:text-black hover:underline">PRIVACY</button>
-            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black hover:underline">TERMS</button>
-            <button onClick={() => toast('Help Center: Dedicated student support.')} className="hover:text-black hover:underline">HELP</button>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] font-medium tracking-wider text-neutral-600 uppercase">
+            <Link to="/courses" className="hover:text-black transition-colors">ABOUT VEYRO</Link>
+            <Link to="/courses" className="hover:text-black transition-colors">VEYRO PRODUCTS</Link>
+            <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:text-black transition-colors">PRIVACY</button>
+            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black transition-colors">TERMS</button>
+            <button onClick={() => toast('Help Center: Dedicated student support.')} className="hover:text-black transition-colors">HELP</button>
           </div>
         </div>
 
