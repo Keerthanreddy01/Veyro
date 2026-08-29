@@ -1282,100 +1282,104 @@ export default function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           SECTION J: CREATIVE LABS FOOTER (Google Labs Inspired with Smooth Parallax)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-white text-[#111111] overflow-hidden relative border-t-2 border-black">
+      <footer className="bg-white text-[#111111] overflow-hidden relative border-t border-black/15">
         
-        {/* ── Top Organic Shape Parallax Playground (Exact Reference Match) ── */}
-        <div className="relative w-full overflow-hidden bg-white pt-10 sm:pt-16 pb-8 sm:pb-12 border-b border-black/10">
-          <div className="max-w-7xl mx-auto px-4 relative min-h-[220px] sm:min-h-[280px] flex items-center justify-between gap-2 sm:gap-4 overflow-hidden">
+        {/* ── Top Organic Shape Parallax Playground (Flat Solid Shapes - Exact Reference Match) ── */}
+        <div className="relative w-full overflow-hidden bg-white pt-8 sm:pt-14 pb-8 sm:pb-12 border-b border-black/10">
+          <div className="max-w-7xl mx-auto px-4 relative min-h-[220px] sm:min-h-[280px] flex items-center justify-between gap-1 sm:gap-3">
             
-            {/* Shape 1: Bright Yellow Polygon/Hexagon */}
+            {/* Shape 1: Bright Yellow Polygon (Solid Flat Color - No Outline) */}
             <div 
-              className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 bg-[#FFF490] border-2 border-black shadow-brutal-sm flex-shrink-0 transition-transform duration-100 ease-out"
+              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#FEE75C] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm"
               style={{
                 clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
-                transform: `translateY(${Math.sin(scrollY * 0.003) * 14}px) rotate(-6deg)`
+                transform: `translateY(${Math.sin(scrollY * 0.002) * 12}px) rotate(-6deg)`
               }}
             />
 
-            {/* Shape 2: Periwinkle Dome / Half-Oval */}
+            {/* Shape 2: Periwinkle Dome / Half-Oval (Solid Flat Color) */}
             <div 
-              className="w-28 h-20 sm:w-44 sm:h-32 md:w-56 md:h-40 bg-[#93A5FE] rounded-t-full border-2 border-black shadow-brutal-sm flex-shrink-0 -mt-10 sm:-mt-16 transition-transform duration-100 ease-out"
+              className="w-28 h-20 sm:w-44 sm:h-32 md:w-56 md:h-40 bg-[#8B9FF7] rounded-t-full flex-shrink-0 -mt-8 sm:-mt-14 transition-transform duration-100 ease-out shadow-sm"
               style={{
-                transform: `translateY(${Math.cos(scrollY * 0.003) * 16}px)`
+                transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px)`
               }}
             />
 
-            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge */}
+            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge (Solid Flat SVG) */}
             <div 
-              className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 text-[#60C5F1] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#5B8BF7] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
               style={{
-                transform: `translateY(${Math.sin(scrollY * 0.004 + 1) * 18}px) rotate(${scrollY * 0.025}deg)`
+                transform: `translateY(${Math.sin(scrollY * 0.003 + 1) * 16}px) rotate(${scrollY * 0.02}deg)`
               }}
             >
-              <ScallopedFlowerShape className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+              <ScallopedFlowerShape className="w-full h-full" />
             </div>
 
-            {/* Shape 4: Warm Coral Orange Rounded Cross Blob */}
+            {/* Shape 4: Warm Coral Orange Rounded Cross Blob (Solid Flat SVG) */}
             <div 
-              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#FB923C] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#FA8D5A] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
               style={{
-                transform: `translateY(${Math.cos(scrollY * 0.003 + 2) * 15}px) rotate(12deg)`
+                transform: `translateY(${Math.cos(scrollY * 0.002 + 2) * 14}px) rotate(10deg)`
               }}
             >
-              <OrganicCrossBlob className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+              <OrganicCrossBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 5: Soft Lilac Pink Cloud */}
+            {/* Shape 5: Soft Lilac Pink Cloud (Solid Flat SVG) */}
             <div 
-              className="hidden md:block w-36 h-28 lg:w-48 lg:h-36 text-[#F472B6] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              className="hidden md:block w-36 h-28 lg:w-48 lg:h-36 text-[#F4B2E8] flex-shrink-0 transition-transform duration-100 ease-out drop-shadow-sm"
               style={{
-                transform: `translateY(${Math.sin(scrollY * 0.003 + 3) * 14}px) rotate(-8deg)`
+                transform: `translateY(${Math.sin(scrollY * 0.002 + 3) * 12}px) rotate(-6deg)`
               }}
             >
-              <LilacPillBlob className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+              <LilacPillBlob className="w-full h-full" />
             </div>
 
-            {/* Shape 6: Bright Chartreuse Lime Clover */}
+            {/* Shape 6: Bright Chartreuse Lime Clover (Solid Flat Color) */}
             <div 
-              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#BEF264] border-2 border-black rounded-[2.5rem] sm:rounded-[3.5rem] shadow-brutal-sm flex-shrink-0 transition-transform duration-100 ease-out"
+              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#CFF36A] rounded-[2.5rem] sm:rounded-[3.5rem] flex-shrink-0 transition-transform duration-100 ease-out shadow-sm"
               style={{
-                transform: `translateY(${Math.cos(scrollY * 0.004) * 16}px) rotate(8deg)`
+                transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(8deg)`
               }}
             />
 
-            {/* Overlapping Parallax Mint Diagonal Stickers (Exact Match to Reference) */}
+            {/* Overlapping Mint Diagonal Stickers (Exact Placement & Typography) */}
+            {/* Sticker 1: Top Left Diagonal (-28deg) */}
             <div 
-              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[22deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -16}px) rotate(-22deg)` }}
+              className="absolute top-2 sm:top-6 left-2 sm:left-10 -rotate-[28deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.002) * -12}px) rotate(-28deg)` }}
             >
-              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
                 Join our Discord Community
               </div>
             </div>
 
+            {/* Sticker 2: Center Left Vertical-ish (72deg) */}
             <div 
-              className="absolute -top-3 sm:top-2 left-24 sm:left-48 rotate-[68deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.003) * 18}px) rotate(68deg)` }}
+              className="absolute top-0 sm:top-4 left-28 sm:left-52 rotate-[72deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 14}px) rotate(72deg)` }}
             >
-              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-5 py-1 text-[10px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
-                Become a Certified Learner
+              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-3.5 sm:px-5 py-1 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+                Become a Trusted Tester
               </div>
             </div>
 
+            {/* Sticker 3: Right Diagonal (-30deg) */}
             <div 
-              className="absolute top-3 sm:top-6 right-4 sm:right-16 -rotate-[28deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.sin(scrollY * 0.004) * -18}px) rotate(-28deg)` }}
+              className="absolute top-2 sm:top-6 right-8 sm:right-28 -rotate-[30deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -14}px) rotate(-30deg)` }}
             >
-              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
-                Sign up for Veyro newsletter
+              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-4 sm:px-6 py-1.5 text-[11px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
+                Sign up for the Labs newsletter
               </div>
             </div>
 
+            {/* Sticker 4: Far Right Top (-15deg) */}
             <div 
-              className="hidden sm:block absolute -top-4 right-32 md:right-56 rotate-[16deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
-              style={{ transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(16deg)` }}
+              className="hidden sm:block absolute -top-1 sm:top-2 right-2 sm:right-6 -rotate-[15deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.002) * 12}px) rotate(-15deg)` }}
             >
-              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-3.5 py-1 text-[10px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+              <div className="bg-[#7BE7A9] text-[#111111] border border-black/80 rounded-full px-3.5 sm:px-5 py-1 text-[10px] sm:text-xs font-body font-bold tracking-wide shadow-sm whitespace-nowrap">
                 Connected on X
               </div>
             </div>
@@ -1389,15 +1393,15 @@ export default function LandingPage() {
             
             {/* Left Col: Stay Connected + Social Pills */}
             <div className="lg:col-span-5 space-y-4">
-              <h3 className="text-card-heading text-lg sm:text-xl md:text-2xl text-[#111111] max-w-md leading-snug">
-                Stay connected for early access to our newest curriculum tracks and verified credentials
+              <h3 className="font-syne font-bold text-lg sm:text-xl text-[#111111] max-w-md leading-snug">
+                Stay connected for early access to our newest tools and local events
               </h3>
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <a
                   href="https://discord.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
                   aria-label="Discord"
                 >
                   <DiscordIcon className="w-4 h-4" />
@@ -1406,7 +1410,7 @@ export default function LandingPage() {
                   href="https://reddit.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
                   aria-label="Reddit"
                 >
                   <RedditIcon className="w-4 h-4" />
@@ -1415,19 +1419,19 @@ export default function LandingPage() {
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  className="w-8 h-8 rounded-full border border-black/30 bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-sm transition-transform active:scale-95"
                   aria-label="X"
                 >
                   <XIcon className="w-4 h-4" />
                 </a>
                 <button
                   onClick={() => {
-                    const email = prompt('Enter your email to receive Veyro curriculum drops:');
+                    const email = prompt('Enter your email for Veyro updates:');
                     if (email && email.includes('@')) {
                       toast.success(`Subscribed ${email} to Veyro updates!`);
                     }
                   }}
-                  className="btn-white-pill text-xs py-2 px-4 shadow-brutal-sm"
+                  className="bg-white border border-black/30 text-[#111111] hover:bg-[#FAF7EE] text-xs font-semibold px-4 py-1.5 rounded-full shadow-sm transition-colors font-body"
                 >
                   Sign up for our newsletter
                 </button>
@@ -1435,54 +1439,53 @@ export default function LandingPage() {
             </div>
 
             {/* Middle Col: Navigation */}
-            <div className="lg:col-span-3 space-y-3">
-              <p className="text-xs font-bold text-[#111111] uppercase tracking-wider font-body">
+            <div className="lg:col-span-3 space-y-2.5">
+              <p className="text-xs font-bold text-[#111111] font-body">
                 Navigation
               </p>
-              <div className="flex flex-col space-y-2 text-sm font-medium text-[#1E293B]">
+              <div className="flex flex-col space-y-1.5 text-xs sm:text-sm font-normal text-[#1E293B]">
                 <Link to="/" className="hover:text-black hover:underline">About</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Curriculum</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Proctored Sessions</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Experiments</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Sessions</Link>
                 <a href="#steps" className="hover:text-black hover:underline">Community</a>
               </div>
             </div>
 
             {/* Right Col: Other teams & product areas */}
-            <div className="lg:col-span-4 space-y-3">
-              <p className="text-xs font-bold text-[#111111] uppercase tracking-wider font-body">
-                Platform & Verification
+            <div className="lg:col-span-4 space-y-2.5">
+              <p className="text-xs font-bold text-[#111111] font-body">
+                Other teams and product areas
               </p>
-              <div className="flex flex-col space-y-2 text-sm font-medium text-[#1E293B]">
-                <Link to="/courses" className="hover:text-black hover:underline">Veyro AI Assistant</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">Anti-Cheat Guardian Engine</Link>
-                <Link to="/courses" className="hover:text-black hover:underline">PDF Cryptography & Stamping</Link>
-                <Link to="/verify/VY-DEMO-2026" className="hover:text-black hover:underline">Public Ledger Verification</Link>
-                <Link to="/login" className="hover:text-black hover:underline">Recruiter & Employer Portal</Link>
+              <div className="flex flex-col space-y-1.5 text-xs sm:text-sm font-normal text-[#1E293B]">
+                <Link to="/courses" className="hover:text-black hover:underline">Veyro AI</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Veyro Cloud</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Veyro Research</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Veyro DeepMind</Link>
+                <Link to="/verify/VY-DEMO-2026" className="hover:text-black hover:underline">Search Labs</Link>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* ── Giant Brand Wordmark: Veyro Labs ── */}
-        <div className="w-full overflow-hidden select-none py-6 sm:py-10 border-b border-black/10 text-center">
-          <h1 className="font-syne font-black text-[clamp(4.5rem,15vw,16rem)] tracking-tight text-[#111111] leading-[0.85] uppercase inline-block whitespace-nowrap">
-            veyro labs
-          </h1>
+        {/* ── Giant Brand Wordmark: Veyro Labs (Properly Scaled & Centered - No Clipping) ── */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-14 text-center overflow-hidden">
+          <div className="font-body font-normal text-[clamp(3.5rem,11.5vw,10.5rem)] tracking-tight text-[#111111] leading-none select-none">
+            Veyro Labs
+          </div>
         </div>
 
         {/* ── Bottom-most Fine-Print Utility Bar ── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between text-xs font-semibold text-[#1E293B]/70 gap-4 font-body">
-          <span className="font-syne font-extrabold text-base text-[#111111] tracking-tight">
-            veyro<span className="text-[#60C5F1]">.</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 border-t border-black/10 flex flex-col sm:flex-row items-center justify-between text-xs text-[#1E293B]/70 gap-3 font-body">
+          <span className="font-bold text-sm text-[#111111] tracking-tight">
+            Veyro
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-[10px] sm:text-[11px] font-bold tracking-wider text-[#111111]/80 uppercase">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-[10px] sm:text-[11px] font-bold tracking-wider text-[#111111]/70 uppercase">
             <Link to="/courses" className="hover:text-black hover:underline">ABOUT VEYRO</Link>
-            <Link to="/courses" className="hover:text-black hover:underline">PLATFORM PRODUCTS</Link>
-            <button onClick={() => toast('Privacy Policy: Strict enterprise zero data selling.')} className="hover:text-black hover:underline">PRIVACY</button>
-            <button onClick={() => toast('Terms: Anti-cheat monitored and server authoritative assessments.')} className="hover:text-black hover:underline">TERMS</button>
-            <button onClick={() => toast('Security: Vector cryptographic validation on public ledger.')} className="hover:text-black hover:underline">SECURITY</button>
-            <button onClick={() => toast('Help: 24/7 dedicated proctor & student support.')} className="hover:text-black hover:underline">HELP</button>
+            <Link to="/courses" className="hover:text-black hover:underline">VEYRO PRODUCTS</Link>
+            <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:text-black hover:underline">PRIVACY</button>
+            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black hover:underline">TERMS</button>
+            <button onClick={() => toast('Help Center: Dedicated student support.')} className="hover:text-black hover:underline">HELP</button>
           </div>
         </div>
 
