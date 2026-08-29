@@ -26,11 +26,15 @@ function SquiggleUnderlineHero() {
   return (
     <svg
       viewBox="0 0 320 24"
-      className="w-full h-4 sm:h-5 md:h-6 fill-none stroke-[#111111] stroke-[3.5] stroke-linecap-round stroke-linejoin-round"
+      className="w-full h-4 sm:h-5 md:h-6 fill-none stroke-[#111111] stroke-[3.5] stroke-linecap-round stroke-linejoin-round overflow-visible pointer-events-none"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path d="M 4 15 C 45 4, 95 24, 145 10 C 195 -2, 245 22, 285 8 C 300 3, 312 14, 316 12" />
+      <path
+        d="M 4 15 C 45 4, 95 24, 145 10 C 195 -2, 245 22, 285 8 C 300 3, 312 14, 316 12"
+        className="animate-draw-loop"
+        pathLength="100"
+      />
     </svg>
   );
 }

@@ -161,6 +161,45 @@
 
 @media (prefers-reduced-motion: reduce) {
   .route-transition { animation: none; }
+  .animate-draw-loop { stroke-dashoffset: 0 !important; animation: none !important; }
+}
+
+/* ── Squiggle Draw Loop Animation ─────────────────────────────────────────── */
+@keyframes drawSquiggleLoop {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.2;
+  }
+  8% {
+    opacity: 1;
+  }
+  48% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  82% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  92% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  96% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 100;
+    opacity: 0.2;
+  }
+}
+
+.animate-draw-loop {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: drawSquiggleLoop 3.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  will-change: stroke-dashoffset, opacity;
 }
 
 /* ── Landing Page Typography Hierarchy & Editorial Design System ─────────── */
