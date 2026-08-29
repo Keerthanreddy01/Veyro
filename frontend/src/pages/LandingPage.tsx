@@ -176,12 +176,19 @@ function IosBatteryIcon() {
   );
 }
 
-// ── Editorial Pop-Up Grocer / Veyro Footer Helpers ──────────────────────────
+// ── Editorial Pop-Up Grocer / Veyro Footer Helpers (with Smooth Parallax) ──
 
-function VeyroSmileyBadge() {
+function VeyroSmileyBadge({ scrollY = 0 }: { scrollY?: number }) {
+  const rotate = Math.sin(scrollY * 0.004) * 12;
+  const translateY = Math.cos(scrollY * 0.003) * 10;
   return (
-    <div className="w-20 h-20 sm:w-24 sm:h-24 text-[#1E3A8A] flex-shrink-0 flex items-center justify-center relative select-none">
-      <svg viewBox="0 0 100 100" className="w-full h-full fill-[#1E3A8A]">
+    <div 
+      className="w-20 h-20 sm:w-24 sm:h-24 text-[#1E3A8A] flex-shrink-0 flex items-center justify-center relative select-none transition-transform duration-100 ease-out"
+      style={{
+        transform: `translateY(${translateY}px) rotate(${rotate}deg)`
+      }}
+    >
+      <svg viewBox="0 0 100 100" className="w-full h-full fill-[#1E3A8A] drop-shadow-sm">
         <path d="M50 0 C56 10 67 7 74 2 C79 10 89 11 93 20 C91 29 99 36 98 45 C99 54 91 61 93 70 C89 79 79 80 74 88 C67 83 56 80 50 90 C44 80 33 83 26 88 C21 80 11 79 7 70 C9 61 1 54 2 45 C1 36 9 29 7 20 C11 11 21 10 26 2 C33 7 44 10 50 0 Z" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-[#FFF490] font-syne font-black text-center leading-none">
@@ -194,9 +201,17 @@ function VeyroSmileyBadge() {
   );
 }
 
-function FooterMascotDoodle() {
+function FooterMascotDoodle({ scrollY = 0 }: { scrollY?: number }) {
+  const walkTranslateX = Math.sin(scrollY * 0.004) * 16;
+  const walkTranslateY = Math.abs(Math.cos(scrollY * 0.004)) * -10;
+  const tilt = Math.sin(scrollY * 0.004) * 8;
   return (
-    <div className="hidden lg:block absolute bottom-4 right-8 w-24 h-28 pointer-events-none select-none">
+    <div 
+      className="hidden lg:block absolute bottom-6 right-10 w-24 h-28 pointer-events-none select-none transition-transform duration-100 ease-out"
+      style={{
+        transform: `translateX(${walkTranslateX}px) translateY(${walkTranslateY}px) rotate(${tilt}deg)`
+      }}
+    >
       <svg viewBox="0 0 100 120" className="w-full h-full fill-none stroke-[#1E3A8A] stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
         {/* Head */}
         <circle cx="50" cy="22" r="16" fill="#FAF7EE" stroke="#1E3A8A" strokeWidth="2.5" />
@@ -218,11 +233,21 @@ function FooterMascotDoodle() {
   );
 }
 
-function WavyDividerLine() {
+function WavyDividerLine({ scrollY = 0 }: { scrollY?: number }) {
+  const shiftX = (scrollY * 0.08) % 60;
   return (
-    <svg viewBox="0 0 1200 20" className="w-full h-4 fill-none stroke-[#1E3A8A] stroke-[2.5] stroke-linecap-round" preserveAspectRatio="none">
-      <path d="M 0 10 Q 15 0, 30 10 T 60 10 T 90 10 T 120 10 T 150 10 T 180 10 T 210 10 T 240 10 T 270 10 T 300 10 T 330 10 T 360 10 T 390 10 T 420 10 T 450 10 T 480 10 T 510 10 T 540 10 T 570 10 T 600 10 T 630 10 T 660 10 T 690 10 T 720 10 T 750 10 T 780 10 T 810 10 T 840 10 T 870 10 T 900 10 T 930 10 T 960 10 T 990 10 T 1020 10 T 1050 10 T 1080 10 T 1110 10 T 1140 10 T 1170 10 T 1200 10" />
-    </svg>
+    <div className="w-full overflow-hidden">
+      <svg 
+        viewBox="0 0 1200 20" 
+        className="w-[110%] -ml-[5%] h-4 fill-none stroke-[#1E3A8A] stroke-[2.5] stroke-linecap-round transition-transform duration-75 ease-out" 
+        style={{
+          transform: `translateX(${shiftX}px)`
+        }}
+        preserveAspectRatio="none"
+      >
+        <path d="M 0 10 Q 15 0, 30 10 T 60 10 T 90 10 T 120 10 T 150 10 T 180 10 T 210 10 T 240 10 T 270 10 T 300 10 T 330 10 T 360 10 T 390 10 T 420 10 T 450 10 T 480 10 T 510 10 T 540 10 T 570 10 T 600 10 T 630 10 T 660 10 T 690 10 T 720 10 T 750 10 T 780 10 T 810 10 T 840 10 T 870 10 T 900 10 T 930 10 T 960 10 T 990 10 T 1020 10 T 1050 10 T 1080 10 T 1110 10 T 1140 10 T 1170 10 T 1200 10" />
+      </svg>
+    </div>
   );
 }
 
@@ -1322,7 +1347,13 @@ export default function LandingPage() {
         <div className="bg-[#FAF7EE] border-t-2 border-[#1E3A8A] py-5 px-6 sm:px-12 lg:px-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Retro Surveillance Camera / Megaphone Icon */}
-            <svg viewBox="0 0 32 24" className="w-8 h-6 fill-[#60C5F1] stroke-[#1E3A8A] stroke-2">
+            <svg 
+              viewBox="0 0 32 24" 
+              className="w-8 h-6 fill-[#60C5F1] stroke-[#1E3A8A] stroke-2 transition-transform duration-100 ease-out"
+              style={{
+                transform: `rotate(${Math.sin(scrollY * 0.003) * 8}deg)`
+              }}
+            >
               <path d="M 4 8 L 22 4 L 22 18 L 4 14 Z" />
               <rect x="22" y="8" width="6" height="6" rx="1" fill="#FFF490" />
               <circle cx="10" cy="11" r="2.5" fill="#EF4444" stroke="#1E3A8A" strokeWidth="1.5" />
@@ -1348,7 +1379,12 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto space-y-12">
 
             {/* Giant Editorial Serif Headline */}
-            <h2 className="font-serif italic text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[#1E3A8A] tracking-tight leading-[1.05] font-normal">
+            <h2 
+              className="font-serif italic text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[#1E3A8A] tracking-tight leading-[1.05] font-normal transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.sin(scrollY * 0.002) * 6}px)`
+              }}
+            >
               Thank you for your ambition.
             </h2>
 
@@ -1357,7 +1393,7 @@ export default function LandingPage() {
               
               {/* Stamp Column */}
               <div className="col-span-2 sm:col-span-1 lg:col-span-2">
-                <VeyroSmileyBadge />
+                <VeyroSmileyBadge scrollY={scrollY} />
               </div>
 
               {/* Col 1: Headquarters */}
@@ -1446,12 +1482,12 @@ export default function LandingPage() {
 
             </div>
 
-            {/* Mascot Character Doodle (Right Bottom) */}
-            <FooterMascotDoodle />
+            {/* Mascot Character Doodle (Right Bottom with Parallax) */}
+            <FooterMascotDoodle scrollY={scrollY} />
 
-            {/* Wavy Divider Line */}
+            {/* Wavy Divider Line with Parallax */}
             <div className="pt-8">
-              <WavyDividerLine />
+              <WavyDividerLine scrollY={scrollY} />
             </div>
 
             {/* Bottom Legal Links & Social Media Icons */}
