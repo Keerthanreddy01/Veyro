@@ -176,28 +176,70 @@ function IosBatteryIcon() {
   );
 }
 
-// ── Organic Labs Shape SVGs & Social Icons ───────────────────────────────────
+// ── Editorial Pop-Up Grocer / Veyro Footer Helpers ──────────────────────────
 
-function ScallopedFlowerShape({ className = "" }: { className?: string }) {
+function VeyroSmileyBadge() {
   return (
-    <svg viewBox="0 0 200 200" className={className} fill="currentColor">
-      <path d="M100,0 C115,20 138,16 150,6 C160,22 180,26 188,44 C184,62 198,76 196,94 C198,112 184,126 188,144 C180,162 160,166 150,182 C138,172 115,168 100,188 C85,168 62,172 50,182 C40,166 20,162 12,144 C16,126 2,112 4,94 C2,76 16,62 12,44 C20,26 40,22 50,6 C62,16 85,20 100,0 Z" />
+    <div className="w-20 h-20 sm:w-24 sm:h-24 text-[#1E3A8A] flex-shrink-0 flex items-center justify-center relative select-none">
+      <svg viewBox="0 0 100 100" className="w-full h-full fill-[#1E3A8A]">
+        <path d="M50 0 C56 10 67 7 74 2 C79 10 89 11 93 20 C91 29 99 36 98 45 C99 54 91 61 93 70 C89 79 79 80 74 88 C67 83 56 80 50 90 C44 80 33 83 26 88 C21 80 11 79 7 70 C9 61 1 54 2 45 C1 36 9 29 7 20 C11 11 21 10 26 2 C33 7 44 10 50 0 Z" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-[#FFF490] font-syne font-black text-center leading-none">
+        <span className="text-[13px] tracking-wider uppercase">VEYRO</span>
+        <svg viewBox="0 0 30 14" className="w-5 h-2.5 fill-none stroke-[#FFF490] stroke-[2.5] stroke-linecap-round mt-1">
+          <path d="M 3 3 Q 15 14, 27 3" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function FooterMascotDoodle() {
+  return (
+    <div className="hidden lg:block absolute bottom-4 right-8 w-24 h-28 pointer-events-none select-none">
+      <svg viewBox="0 0 100 120" className="w-full h-full fill-none stroke-[#1E3A8A] stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
+        {/* Head */}
+        <circle cx="50" cy="22" r="16" fill="#FAF7EE" stroke="#1E3A8A" strokeWidth="2.5" />
+        <circle cx="50" cy="22" r="6" fill="#111111" />
+        {/* Torso */}
+        <path d="M36 38 L64 38 L68 70 L32 70 Z" fill="#EF4444" stroke="#1E3A8A" strokeWidth="2.5" />
+        <line x1="50" y1="38" x2="50" y2="70" stroke="#1E3A8A" strokeWidth="2" />
+        {/* Arms */}
+        <path d="M34 44 L16 80 L12 95" stroke="#1E3A8A" strokeWidth="2" />
+        <path d="M66 44 L84 65 L88 78" stroke="#1E3A8A" strokeWidth="2" />
+        {/* Legs walking */}
+        <path d="M40 70 L34 98 L24 102" stroke="#1E3A8A" strokeWidth="2.5" />
+        <path d="M58 70 L68 94 L80 98" stroke="#1E3A8A" strokeWidth="2.5" />
+        {/* Shoes */}
+        <ellipse cx="22" cy="103" rx="7" ry="3" fill="#111111" />
+        <ellipse cx="82" cy="99" rx="7" ry="3" fill="#111111" />
+      </svg>
+    </div>
+  );
+}
+
+function WavyDividerLine() {
+  return (
+    <svg viewBox="0 0 1200 20" className="w-full h-4 fill-none stroke-[#1E3A8A] stroke-[2.5] stroke-linecap-round" preserveAspectRatio="none">
+      <path d="M 0 10 Q 15 0, 30 10 T 60 10 T 90 10 T 120 10 T 150 10 T 180 10 T 210 10 T 240 10 T 270 10 T 300 10 T 330 10 T 360 10 T 390 10 T 420 10 T 450 10 T 480 10 T 510 10 T 540 10 T 570 10 T 600 10 T 630 10 T 660 10 T 690 10 T 720 10 T 750 10 T 780 10 T 810 10 T 840 10 T 870 10 T 900 10 T 930 10 T 960 10 T 990 10 T 1020 10 T 1050 10 T 1080 10 T 1110 10 T 1140 10 T 1170 10 T 1200 10" />
     </svg>
   );
 }
 
-function OrganicCrossBlob({ className = "" }: { className?: string }) {
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 200 200" className={className} fill="currentColor">
-      <path d="M72,12 C72,2 128,2 128,12 C128,48 152,72 188,72 C198,72 198,128 188,128 C152,128 128,152 128,188 C128,198 72,198 72,188 C72,152 48,128 12,128 C2,128 2,72 12,72 C48,72 72,48 72,12 Z" />
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
     </svg>
   );
 }
 
-function LilacPillBlob({ className = "" }: { className?: string }) {
+function TikTokIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 240 180" className={className} fill="currentColor">
-      <path d="M40,30 C90,8 160,8 200,32 C230,55 235,115 205,145 C170,175 75,175 35,145 C5,115 0,55 40,30 Z" />
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.27 1.76-.23.94-.04 1.98.54 2.75.64.88 1.74 1.34 2.83 1.25.96-.04 1.88-.58 2.39-1.39.38-.58.54-1.29.54-1.99.03-4.66.01-9.33.02-14 .01-1.28.01-2.56.02-3.84z" />
     </svg>
   );
 }
@@ -206,14 +248,6 @@ function DiscordIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">
       <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-    </svg>
-  );
-}
-
-function RedditIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.492 1.207-.492.941 0 1.704.763 1.704 1.704 0 .614-.324 1.152-.809 1.45.015.148.023.298.023.45 0 2.302-2.678 4.17-5.981 4.17s-5.981-1.868-5.981-4.17c0-.152.008-.302.023-.45-.485-.298-.809-.836-.809-1.45 0-.941.763-1.704 1.704-1.704.477 0 .899.183 1.207.492 1.194-.856 2.85-1.418 4.674-1.488l.8-3.747 2.597.547a1.248 1.248 0 0 1 1.249-1.249z" />
     </svg>
   );
 }
@@ -1116,13 +1150,13 @@ export default function LandingPage() {
             {/* Right Column: Premium Realistic iPhone Device Mockup */}
             <div className="lg:col-span-6 flex justify-center items-center py-4">
               <div className="relative w-full max-w-[325px] sm:max-w-[345px]">
-                
+
                 {/* Realistic ambient soft glow behind phone */}
                 <div className="absolute -inset-6 bg-gradient-to-tr from-[#60C5F1]/30 via-[#FFF490]/35 to-[#60C5F1]/20 rounded-[64px] blur-2xl -z-10 pointer-events-none" />
-                
+
                 {/* iPhone Outer Titanium Chassis with Sleek Metallic Edge */}
                 <div className="relative rounded-[50px] p-[3px] bg-gradient-to-b from-[#5c5c60] via-[#242426] to-[#3a3a3c] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.45),0_10px_20px_-5px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]">
-                  
+
                   {/* Subtle Side Button Accents (Left Volume & Right Power) */}
                   <div className="absolute -left-[5px] top-[100px] w-[3px] h-[36px] bg-[#3a3a3c] rounded-l-sm" />
                   <div className="absolute -left-[5px] top-[145px] w-[3px] h-[36px] bg-[#3a3a3c] rounded-l-sm" />
@@ -1131,7 +1165,7 @@ export default function LandingPage() {
                   {/* Ultra-thin Inner Bezel & Display Screen */}
                   <div className="rounded-[47px] p-[8px] bg-[#0c0d0f] shadow-[inset_0_0_4px_rgba(255,255,255,0.1)]">
                     <div className="rounded-[40px] overflow-hidden bg-[#FAF7EE] relative shadow-[inset_0_0_12px_rgba(0,0,0,0.15)] flex flex-col justify-between min-h-[580px] p-4 sm:p-5 text-[#111111] space-y-3.5">
-                      
+
                       {/* Native iOS Status Bar & Dynamic Island */}
                       <div className="flex items-center justify-between pt-1 pb-1 relative z-20">
                         {/* Left: iOS Time */}
@@ -1280,199 +1314,179 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION J: EDITORIAL STUDIO FOOTER
+          SECTION J: EDITORIAL POP-UP GROCER-STYLE VEYRO FOOTER
           ═══════════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-white text-neutral-900 overflow-hidden relative border-t border-neutral-200 font-body">
+      <footer className="font-body selection:bg-[#60C5F1] selection:text-[#111111]">
         
-        {/* ── 1. Protocol Architecture & Live Proof Ribbon ── */}
-        <div className="border-b border-neutral-200 bg-[#FAF7EE]/50 py-5 px-4 sm:px-8">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            
-            {/* Live Status indicator */}
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <span className="text-xs font-semibold text-neutral-800 tracking-tight">
-                Protocol Status: All Verification Engines Operational
-              </span>
-            </div>
-
-            {/* Interactive Protocol Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium">
-              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#60C5F1]"></span>
-                Anti-Cheat Engine v2.4 Active
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                90% Playback Audited
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white border border-neutral-300/80 rounded-full px-3.5 py-1 text-neutral-800 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                SHA-256 Ledger Verified
-              </span>
-            </div>
-
+        {/* ── 1. Top Social Bar (Cream #FAF7EE) ── */}
+        <div className="bg-[#FAF7EE] border-t-2 border-[#1E3A8A] py-5 px-6 sm:px-12 lg:px-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Retro Surveillance Camera / Megaphone Icon */}
+            <svg viewBox="0 0 32 24" className="w-8 h-6 fill-[#60C5F1] stroke-[#1E3A8A] stroke-2">
+              <path d="M 4 8 L 22 4 L 22 18 L 4 14 Z" />
+              <rect x="22" y="8" width="6" height="6" rx="1" fill="#FFF490" />
+              <circle cx="10" cy="11" r="2.5" fill="#EF4444" stroke="#1E3A8A" strokeWidth="1.5" />
+              <path d="M 12 16 L 8 22" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+            <span className="font-syne font-black text-lg tracking-tight text-[#1E3A8A] lowercase">
+              follow us
+            </span>
           </div>
+          <a
+            href="https://twitter.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-syne font-black text-base sm:text-lg tracking-tight text-[#1E3A8A] hover:underline lowercase"
+          >
+            @veyro.learning
+          </a>
         </div>
 
-        {/* ── 2. Protocol Feature Matrix Bento Cards ── */}
-        <div className="border-b border-neutral-200 bg-white py-8 sm:py-10 px-4 sm:px-8">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Card 1 */}
-            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-xs font-bold font-syne text-[#60C5F1] tracking-wider uppercase">01 / INTEGRITY</span>
-                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
+        {/* ── 2. Main Butter Yellow Content Block (#FFF490) ── */}
+        <div className="bg-[#FFF490] border-t-2 border-[#1E3A8A] text-[#1E3A8A] pt-12 sm:pt-16 pb-8 px-6 sm:px-12 lg:px-16 relative overflow-hidden">
+          
+          <div className="max-w-7xl mx-auto space-y-12">
+
+            {/* Giant Editorial Serif Headline */}
+            <h2 className="font-serif italic text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-[#1E3A8A] tracking-tight leading-[1.05] font-normal">
+              Thank you for your ambition.
+            </h2>
+
+            {/* 5-Column Navigation Grid + Stamp */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-12 gap-8 items-start pt-2">
+              
+              {/* Stamp Column */}
+              <div className="col-span-2 sm:col-span-1 lg:col-span-2">
+                <VeyroSmileyBadge />
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Server-Authoritative Proctor</h4>
-              <p className="text-xs text-neutral-500 leading-relaxed">
-                Real-time browser-lock, webcam integrity monitoring, and audio anomaly detection.
-              </p>
-            </div>
 
-            {/* Card 2 */}
-            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-xs font-bold font-syne text-amber-500 tracking-wider uppercase">02 / AUDITING</span>
-                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
+              {/* Col 1: Headquarters */}
+              <div className="col-span-1 lg:col-span-2 space-y-2 text-xs sm:text-[13px] leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[#1E3A8A] pb-1 font-body">
+                  HEADQUARTERS
+                </p>
+                <p>540 Howard Street</p>
+                <p>San Francisco, CA</p>
+                <p>94105</p>
+                <p className="pt-2 text-[11px] opacity-80">24/7 Verified Audits</p>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900 pb-1">90% Video Retention Gate</h4>
-              <p className="text-xs text-neutral-500 leading-relaxed">
-                Guaranteed lesson completion tracking enforced server-side before quiz unlocks.
-              </p>
-            </div>
 
-            {/* Card 3 */}
-            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-xs font-bold font-syne text-emerald-500 tracking-wider uppercase">03 / PROOF</span>
-                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
+              {/* Col 2: Explore */}
+              <div className="col-span-1 lg:col-span-2 space-y-2 text-xs sm:text-[13px] leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[#1E3A8A] pb-1 font-body">
+                  EXPLORE
+                </p>
+                <div className="flex flex-col space-y-1.5 font-medium">
+                  <Link to="/courses" className="hover:underline">Course Catalog</Link>
+                  <Link to="/courses" className="hover:underline">Learning Tracks</Link>
+                  <Link to="/login" className="hover:underline">Proctor Engine</Link>
+                  <Link to="/verify/VY-DEMO-2026" className="hover:underline">Public Ledger</Link>
+                </div>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Cryptographic Credentials</h4>
-              <p className="text-xs text-neutral-500 leading-relaxed">
-                Vector-stamped PDF certificates embedded with permanent SHA-256 validation proof.
-              </p>
-            </div>
 
-            {/* Card 4 */}
-            <div className="p-5 rounded-2xl border border-neutral-200/80 hover:border-neutral-900 transition-colors bg-white group shadow-sm">
-              <div className="flex items-center justify-between pb-3">
-                <span className="text-xs font-bold font-syne text-purple-500 tracking-wider uppercase">04 / DISCOVERY</span>
-                <span className="text-xs font-bold text-neutral-400 group-hover:text-black transition-colors">↗</span>
+              {/* Col 3: Learn */}
+              <div className="col-span-1 lg:col-span-2 space-y-2 text-xs sm:text-[13px] leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[#1E3A8A] pb-1 font-body">
+                  LEARN
+                </p>
+                <div className="flex flex-col space-y-1.5 font-medium">
+                  <Link to="/" className="hover:underline">About Us</Link>
+                  <Link to="/courses" className="hover:underline">Anti-Cheat AI</Link>
+                  <Link to="/login" className="hover:underline">Instructor Desk</Link>
+                  <Link to="/courses" className="hover:underline">Audit Blog</Link>
+                  <a href="#steps" className="hover:underline">FAQ</a>
+                </div>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900 pb-1">Instant Recruiter Lookup</h4>
-              <p className="text-xs text-neutral-500 leading-relaxed">
-                Public verification portal providing zero-friction candidate credentials lookup.
-              </p>
-            </div>
 
-          </div>
-        </div>
-
-        {/* ── 3. Middle Navigation & Newsletter Grid ── */}
-        <div className="max-w-7xl mx-auto py-12 px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-between">
-            
-            {/* Column 1 (Left - 50% width) */}
-            <div className="lg:col-span-6 space-y-4">
-              <h3 className="font-medium text-2xl text-neutral-900 leading-snug max-w-lg">
-                Stay connected for early access to our newest tools and local events
-              </h3>
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <a
-                  href="https://discord.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
-                  aria-label="Discord"
-                >
-                  <DiscordIcon className="w-4 h-4" />
+              {/* Col 4: Let's Talk Shop */}
+              <div className="col-span-1 lg:col-span-2 space-y-2 text-xs sm:text-[13px] leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[#1E3A8A] pb-1 font-body">
+                  LET&apos;S TALK SHOP
+                </p>
+                <p className="text-[12px] opacity-90">Questions? Comments?</p>
+                <p className="text-[12px] opacity-90">Enterprise & Recruiter info:</p>
+                <a href="mailto:admissions@veyro.edu" className="font-semibold underline block">
+                  admissions@veyro.edu
                 </a>
-                <a
-                  href="https://reddit.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
-                  aria-label="Reddit"
-                >
-                  <RedditIcon className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://x.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="border border-neutral-300 rounded-full w-9 h-9 flex items-center justify-center text-neutral-700 hover:text-black hover:border-neutral-900 transition-colors"
-                  aria-label="X"
-                >
-                  <XIcon className="w-4 h-4" />
-                </a>
-                <button
-                  onClick={() => {
-                    const email = prompt('Enter your email for Veyro updates:');
-                    if (email && email.includes('@')) {
-                      toast.success(`Subscribed ${email} to Veyro updates!`);
+                <p className="pt-2 text-[12px]">Direct Proctor Line:</p>
+                <p className="font-bold">+1 (800) 555-VEYRO</p>
+              </div>
+
+              {/* Col 5: Newsletter Box */}
+              <div className="col-span-2 sm:col-span-3 lg:col-span-2 space-y-3">
+                <p className="text-xs sm:text-[13px] leading-snug opacity-95">
+                  Join 25,000+ ambitious learners & engineers who already receive our weekly curriculum drops.
+                </p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newsletterEmail || !newsletterEmail.includes('@')) {
+                      toast.error('Please enter a valid email address.');
+                      return;
                     }
+                    toast.success(`Subscribed ${newsletterEmail} to Veyro drops!`);
+                    setNewsletterEmail('');
                   }}
-                  className="border border-neutral-300 rounded-full px-5 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900 transition-colors font-body"
+                  className="pt-1"
                 >
-                  Sign up for our newsletter
+                  <div className="border-2 border-[#1E3A8A] flex items-center justify-between px-3 py-2 bg-transparent focus-within:ring-2 focus-within:ring-[#1E3A8A]/30">
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      className="bg-transparent border-none outline-none text-xs text-[#1E3A8A] placeholder-[#1E3A8A]/60 w-full font-medium"
+                    />
+                    <button type="submit" className="text-[#1E3A8A] font-bold text-base hover:translate-x-0.5 transition-transform">
+                      →
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+
+            {/* Mascot Character Doodle (Right Bottom) */}
+            <FooterMascotDoodle />
+
+            {/* Wavy Divider Line */}
+            <div className="pt-8">
+              <WavyDividerLine />
+            </div>
+
+            {/* Bottom Legal Links & Social Media Icons */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] font-bold tracking-wider uppercase text-[#1E3A8A] gap-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <button onClick={() => toast('Refund Policy: 14-day guaranteed refund.')} className="hover:underline">
+                  REFUND POLICY
+                </button>
+                <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:underline">
+                  PRIVACY POLICY
+                </button>
+                <button onClick={() => toast('Terms: Server authoritative assessments.')} className="hover:underline">
+                  TERMS OF SERVICE
                 </button>
               </div>
-            </div>
 
-            {/* Column 2 (Navigation) */}
-            <div className="lg:col-span-3 space-y-3">
-              <p className="font-medium text-sm text-neutral-900 mb-3 font-body">
-                Navigation
-              </p>
-              <div className="flex flex-col space-y-2 text-sm font-normal text-neutral-500 font-body">
-                <Link to="/" className="hover:text-black transition-colors">About</Link>
-                <Link to="/courses" className="hover:text-black transition-colors">Experiments</Link>
-                <Link to="/courses" className="hover:text-black transition-colors">Sessions</Link>
-                <a href="#steps" className="hover:text-black transition-colors">Community</a>
-              </div>
-            </div>
-
-            {/* Column 3 (Product Areas) */}
-            <div className="lg:col-span-3 space-y-3">
-              <p className="font-medium text-sm text-neutral-900 mb-3 font-body">
-                Other teams and product areas
-              </p>
-              <div className="flex flex-col space-y-2 text-sm font-normal text-neutral-500 font-body">
-                <Link to="/courses" className="hover:text-black transition-colors">Veyro AI</Link>
-                <Link to="/courses" className="hover:text-black hover:text-black transition-colors">Veyro Cloud</Link>
-                <Link to="/courses" className="hover:text-black transition-colors">Veyro Research</Link>
-                <Link to="/courses" className="hover:text-black transition-colors">Veyro DeepMind</Link>
-                <Link to="/verify/VY-DEMO-2026" className="hover:text-black transition-colors">Search Labs</Link>
+              {/* Social Icons */}
+              <div className="flex items-center gap-4 text-base">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" aria-label="Instagram">
+                  <InstagramIcon className="w-4 h-4" />
+                </a>
+                <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" aria-label="TikTok">
+                  <TikTokIcon className="w-4 h-4" />
+                </a>
+                <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" aria-label="Discord">
+                  <DiscordIcon className="w-4 h-4" />
+                </a>
+                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" aria-label="X">
+                  <XIcon className="w-4 h-4" />
+                </a>
               </div>
             </div>
 
           </div>
-        </div>
 
-        {/* ── 4. Massive Brand Anchor (Lower Section) ── */}
-        <div className="max-w-7xl mx-auto px-8 py-8 sm:py-14 text-center select-none overflow-hidden">
-          <div className="font-body font-normal text-[clamp(4.5rem,15vw,13.5rem)] tracking-[-0.04em] text-neutral-900 leading-none inline-block">
-            veyro<span className="text-[#60C5F1]">.</span>
-          </div>
-        </div>
-
-        {/* ── 5. Bottom Legal Bar ── */}
-        <div className="max-w-7xl mx-auto py-4 px-8 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-600 gap-4 font-body">
-          <span className="font-medium text-sm text-neutral-900">
-            veyro<span className="text-[#60C5F1]">.</span>
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] font-medium tracking-wider text-neutral-600 uppercase">
-            <Link to="/courses" className="hover:text-black transition-colors">ABOUT VEYRO</Link>
-            <Link to="/courses" className="hover:text-black transition-colors">VEYRO PRODUCTS</Link>
-            <button onClick={() => toast('Privacy Policy: Enterprise zero data selling.')} className="hover:text-black transition-colors">PRIVACY</button>
-            <button onClick={() => toast('Terms: Platform terms of service.')} className="hover:text-black hover:text-black transition-colors">TERMS</button>
-            <button onClick={() => toast('Help Center: Dedicated student support.')} className="hover:text-black transition-colors">HELP</button>
-          </div>
         </div>
 
       </footer>
