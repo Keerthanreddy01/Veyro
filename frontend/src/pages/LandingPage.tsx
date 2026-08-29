@@ -176,6 +176,56 @@ function IosBatteryIcon() {
   );
 }
 
+// ── Organic Labs Shape SVGs & Social Icons ───────────────────────────────────
+
+function ScallopedFlowerShape({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 200 200" className={className} fill="currentColor">
+      <path d="M100 0 C110 20 130 20 145 10 C155 25 175 30 180 50 C175 65 190 80 185 100 C190 120 175 135 180 150 C175 170 155 175 145 190 C130 180 110 180 100 200 C90 180 70 180 55 190 C45 175 25 170 20 150 C25 135 10 120 15 100 C10 80 25 65 20 50 C25 30 45 25 55 10 C70 20 90 20 100 0 Z" />
+    </svg>
+  );
+}
+
+function OrganicCrossBlob({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 200 200" className={className} fill="currentColor">
+      <path d="M70 20 C70 8 130 8 130 20 C130 60 140 70 180 70 C192 70 192 130 180 130 C140 130 130 140 130 180 C130 192 70 192 70 180 C70 140 60 130 20 130 C8 130 8 70 20 70 C60 70 70 60 70 20 Z" />
+    </svg>
+  );
+}
+
+function LilacPillBlob({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 220 160" className={className} fill="currentColor">
+      <path d="M40 20 C100 0 160 0 190 30 C220 60 210 120 180 140 C140 160 80 160 40 130 C10 100 0 50 40 20 Z" />
+    </svg>
+  );
+}
+
+function DiscordIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+    </svg>
+  );
+}
+
+function RedditIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.492 1.207-.492.941 0 1.704.763 1.704 1.704 0 .614-.324 1.152-.809 1.45.015.148.023.298.023.45 0 2.302-2.678 4.17-5.981 4.17s-5.981-1.868-5.981-4.17c0-.152.008-.302.023-.45-.485-.298-.809-.836-.809-1.45 0-.941.763-1.704 1.704-1.704.477 0 .899.183 1.207.492 1.194-.856 2.85-1.418 4.674-1.488l.8-3.747 2.597.547a1.248 1.248 0 0 1 1.249-1.249z" />
+    </svg>
+  );
+}
+
+function XIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
 // ── Curated Avatars ──────────────────────────────────────────────────────────
 const AVATARS = {
   heroGuy: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
@@ -192,7 +242,23 @@ export default function LandingPage() {
   const [verifyCodeInput, setVerifyCodeInput] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [activeAccordion, setActiveAccordion] = useState<number>(0);
+  const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleVerifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1214,96 +1280,212 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION J: MINIMALIST STUDIO FOOTER
+          SECTION J: CREATIVE LABS FOOTER (Google Labs Inspired with Smooth Parallax)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-[#FAF7EE] py-12 sm:py-16 px-4 sm:px-8 lg:px-12 text-[#111111]">
-        <div className="max-w-6xl mx-auto space-y-10">
+      <footer className="bg-white text-[#111111] overflow-hidden relative border-t-2 border-black">
+        
+        {/* ── Top Organic Shape Parallax Playground (Exact Reference Match) ── */}
+        <div className="relative w-full overflow-hidden bg-white pt-10 sm:pt-16 pb-8 sm:pb-12 border-b border-black/10">
+          <div className="max-w-7xl mx-auto px-4 relative min-h-[220px] sm:min-h-[280px] flex items-center justify-between gap-2 sm:gap-4 overflow-hidden">
+            
+            {/* Shape 1: Bright Yellow Polygon/Hexagon */}
+            <div 
+              className="w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 bg-[#FFF490] border-2 border-black shadow-brutal-sm flex-shrink-0 transition-transform duration-100 ease-out"
+              style={{
+                clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+                transform: `translateY(${Math.sin(scrollY * 0.003) * 14}px) rotate(-6deg)`
+              }}
+            />
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start justify-between">
+            {/* Shape 2: Periwinkle Dome / Half-Oval */}
+            <div 
+              className="w-28 h-20 sm:w-44 sm:h-32 md:w-56 md:h-40 bg-[#93A5FE] rounded-t-full border-2 border-black shadow-brutal-sm flex-shrink-0 -mt-10 sm:-mt-16 transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.cos(scrollY * 0.003) * 16}px)`
+              }}
+            />
 
-            {/* Col 1: Brand & Tagline */}
-            <div className="md:col-span-5 space-y-3">
-              <Link to="/" className="inline-block">
-                <span className="font-syne font-extrabold text-3xl sm:text-4xl tracking-tight lowercase">
-                  veyro<span className="text-[#60C5F1]">.</span>
-                </span>
-              </Link>
-              <p className="text-xs text-body-copy max-w-sm leading-relaxed">
-                Next-generation full-stack distance learning with server-authoritative anti-cheat assessments, granular 90% video playback auditing, and cryptographic PDF credentials.
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                <span className="text-xs text-body-subtle">Platform Status: All systems operational</span>
+            {/* Shape 3: Vibrant Cobalt Blue Scalloped Flower Badge */}
+            <div 
+              className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 text-[#60C5F1] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.sin(scrollY * 0.004 + 1) * 18}px) rotate(${scrollY * 0.025}deg)`
+              }}
+            >
+              <ScallopedFlowerShape className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+            </div>
+
+            {/* Shape 4: Warm Coral Orange Rounded Cross Blob */}
+            <div 
+              className="w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 text-[#FB923C] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.cos(scrollY * 0.003 + 2) * 15}px) rotate(12deg)`
+              }}
+            >
+              <OrganicCrossBlob className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+            </div>
+
+            {/* Shape 5: Soft Lilac Pink Cloud */}
+            <div 
+              className="hidden md:block w-36 h-28 lg:w-48 lg:h-36 text-[#F472B6] drop-shadow-[2px_2px_0px_#111111] flex-shrink-0 transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.sin(scrollY * 0.003 + 3) * 14}px) rotate(-8deg)`
+              }}
+            >
+              <LilacPillBlob className="w-full h-full stroke-[#111111] stroke-[2.5]" />
+            </div>
+
+            {/* Shape 6: Bright Chartreuse Lime Clover */}
+            <div 
+              className="w-24 h-24 sm:w-36 sm:h-36 md:w-48 md:h-48 bg-[#BEF264] border-2 border-black rounded-[2.5rem] sm:rounded-[3.5rem] shadow-brutal-sm flex-shrink-0 transition-transform duration-100 ease-out"
+              style={{
+                transform: `translateY(${Math.cos(scrollY * 0.004) * 16}px) rotate(8deg)`
+              }}
+            />
+
+            {/* Overlapping Parallax Mint Diagonal Stickers (Exact Match to Reference) */}
+            <div 
+              className="absolute top-4 sm:top-8 left-4 sm:left-12 -rotate-[22deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.003) * -16}px) rotate(-22deg)` }}
+            >
+              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+                Join our Discord Community
               </div>
             </div>
 
-            {/* Col 2: Navigation Links */}
-            <div className="md:col-span-3 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#1E293B]/70 font-body">
-                NAVIGATION
-              </p>
-              <div className="flex flex-col items-start gap-2 text-xs font-bold font-body">
-                <Link to="/" className="hover:underline">Home</Link>
-                <Link to="/courses" className="hover:underline">Course Catalog</Link>
-                <Link to="/login" className="hover:underline">Student Sign In</Link>
-                <Link to="/register" className="hover:underline">Create Account</Link>
-                <a href="#problem" className="hover:underline">Why Veyro</a>
-                <a href="#steps" className="hover:underline">Three Steps</a>
+            <div 
+              className="absolute -top-3 sm:top-2 left-24 sm:left-48 rotate-[68deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.003) * 18}px) rotate(68deg)` }}
+            >
+              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-5 py-1 text-[10px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+                Become a Certified Learner
               </div>
             </div>
 
-            {/* Col 3: Newsletter */}
-            <div className="md:col-span-4 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#1E293B]/70 font-body">
-                NEWSLETTER & UPDATES
-              </p>
-              <form onSubmit={handleNewsletterSubmit} className="space-y-2">
-                <input
-                  type="email"
-                  placeholder="Enter email address..."
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full bg-white border-editorial-2 text-xs rounded-xl px-3.5 py-2.5 text-[#111111] placeholder-gray-400 focus:outline-none font-medium shadow-sm font-body"
-                />
-                <button
-                  type="submit"
-                  className="w-full btn-dark-pill text-xs py-2.5"
-                >
-                  Subscribe to Curriculum Drops ↗
-                </button>
-              </form>
+            <div 
+              className="absolute top-3 sm:top-6 right-4 sm:right-16 -rotate-[28deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.sin(scrollY * 0.004) * -18}px) rotate(-28deg)` }}
+            >
+              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+                Sign up for Veyro newsletter
+              </div>
+            </div>
+
+            <div 
+              className="hidden sm:block absolute -top-4 right-32 md:right-56 rotate-[16deg] z-20 transition-transform duration-100 ease-out pointer-events-none"
+              style={{ transform: `translateY(${Math.cos(scrollY * 0.003) * 14}px) rotate(16deg)` }}
+            >
+              <div className="bg-[#86EFAC] text-[#111111] border-2 border-black rounded-full px-3.5 py-1 text-[10px] sm:text-xs font-syne font-extrabold uppercase tracking-wider shadow-brutal-sm">
+                Connected on X
+              </div>
             </div>
 
           </div>
-
-          {/* Bottom Copyright & Legal Bar */}
-          <div className="pt-8 border-t border-[#111111]/15 flex flex-col sm:flex-row items-center justify-between text-xs font-bold text-[#1E293B]/70 gap-3 font-body">
-            <p>© {new Date().getFullYear()} VEYRO LEARNING PLATFORM. ALL RIGHTS RESERVED.</p>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => toast('Privacy Policy: Strict zero data selling with enterprise privacy.')}
-                className="hover:underline"
-              >
-                Privacy
-              </button>
-              <span>•</span>
-              <button
-                onClick={() => toast('Terms: Anti-cheat monitored and server authoritative assessments.')}
-                className="hover:underline"
-              >
-                Terms
-              </button>
-              <span>•</span>
-              <button
-                onClick={() => toast('Security: Vector cryptographic validation on public ledger.')}
-                className="hover:underline"
-              >
-                Security
-              </button>
-            </div>
-          </div>
-
         </div>
+
+        {/* ── Middle Stay Connected & Navigation 3-Column Strip ── */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14 border-b border-black/10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-between">
+            
+            {/* Left Col: Stay Connected + Social Pills */}
+            <div className="lg:col-span-5 space-y-4">
+              <h3 className="text-card-heading text-lg sm:text-xl md:text-2xl text-[#111111] max-w-md leading-snug">
+                Stay connected for early access to our newest curriculum tracks and verified credentials
+              </h3>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <a
+                  href="https://discord.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  aria-label="Discord"
+                >
+                  <DiscordIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://reddit.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  aria-label="Reddit"
+                >
+                  <RedditIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full border-2 border-black bg-white flex items-center justify-center text-[#111111] hover:bg-[#FAF7EE] shadow-brutal-sm transition-transform active:scale-95"
+                  aria-label="X"
+                >
+                  <XIcon className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => {
+                    const email = prompt('Enter your email to receive Veyro curriculum drops:');
+                    if (email && email.includes('@')) {
+                      toast.success(`Subscribed ${email} to Veyro updates!`);
+                    }
+                  }}
+                  className="btn-white-pill text-xs py-2 px-4 shadow-brutal-sm"
+                >
+                  Sign up for our newsletter
+                </button>
+              </div>
+            </div>
+
+            {/* Middle Col: Navigation */}
+            <div className="lg:col-span-3 space-y-3">
+              <p className="text-xs font-bold text-[#111111] uppercase tracking-wider font-body">
+                Navigation
+              </p>
+              <div className="flex flex-col space-y-2 text-sm font-medium text-[#1E293B]">
+                <Link to="/" className="hover:text-black hover:underline">About</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Curriculum</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Proctored Sessions</Link>
+                <a href="#steps" className="hover:text-black hover:underline">Community</a>
+              </div>
+            </div>
+
+            {/* Right Col: Other teams & product areas */}
+            <div className="lg:col-span-4 space-y-3">
+              <p className="text-xs font-bold text-[#111111] uppercase tracking-wider font-body">
+                Platform & Verification
+              </p>
+              <div className="flex flex-col space-y-2 text-sm font-medium text-[#1E293B]">
+                <Link to="/courses" className="hover:text-black hover:underline">Veyro AI Assistant</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">Anti-Cheat Guardian Engine</Link>
+                <Link to="/courses" className="hover:text-black hover:underline">PDF Cryptography & Stamping</Link>
+                <Link to="/verify/VY-DEMO-2026" className="hover:text-black hover:underline">Public Ledger Verification</Link>
+                <Link to="/login" className="hover:text-black hover:underline">Recruiter & Employer Portal</Link>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Giant Brand Wordmark: Veyro Labs ── */}
+        <div className="w-full overflow-hidden select-none py-6 sm:py-10 border-b border-black/10 text-center">
+          <h1 className="font-syne font-black text-[clamp(4.5rem,15vw,16rem)] tracking-tight text-[#111111] leading-[0.85] uppercase inline-block whitespace-nowrap">
+            veyro labs
+          </h1>
+        </div>
+
+        {/* ── Bottom-most Fine-Print Utility Bar ── */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between text-xs font-semibold text-[#1E293B]/70 gap-4 font-body">
+          <span className="font-syne font-extrabold text-base text-[#111111] tracking-tight">
+            veyro<span className="text-[#60C5F1]">.</span>
+          </span>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-[10px] sm:text-[11px] font-bold tracking-wider text-[#111111]/80 uppercase">
+            <Link to="/courses" className="hover:text-black hover:underline">ABOUT VEYRO</Link>
+            <Link to="/courses" className="hover:text-black hover:underline">PLATFORM PRODUCTS</Link>
+            <button onClick={() => toast('Privacy Policy: Strict enterprise zero data selling.')} className="hover:text-black hover:underline">PRIVACY</button>
+            <button onClick={() => toast('Terms: Anti-cheat monitored and server authoritative assessments.')} className="hover:text-black hover:underline">TERMS</button>
+            <button onClick={() => toast('Security: Vector cryptographic validation on public ledger.')} className="hover:text-black hover:underline">SECURITY</button>
+            <button onClick={() => toast('Help: 24/7 dedicated proctor & student support.')} className="hover:text-black hover:underline">HELP</button>
+          </div>
+        </div>
+
       </footer>
 
     </div>
