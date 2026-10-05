@@ -1260,12 +1260,13 @@ async function runAllTests() {
       }
     };
 
+    // Use clearly-fake, non-functional credentials for testing sanitization logic
     const uriWithSecret = 'mongodb+srv://fakeTestUser:FakeTestPass123@fake-cluster.example.mongodb.net/test_db?retryWrites=true';
     const host = getSanitizedHost(uriWithSecret);
 
-    assert.strictEqual(host, 'cluster0.abcde.mongodb.net');
-    assert.ok(!host.includes('REDACTED_CREDENTIAL'));
-    assert.ok(!host.includes('adminUser'));
+    assert.strictEqual(host, 'fake-cluster.example.mongodb.net');
+    assert.ok(!host.includes('FakeTestPass123'));
+    assert.ok(!host.includes('fakeTestUser'));
   });
 
   runTest('CORS normalizer allows production Vercel frontend and strips trailing slashes', () => {
