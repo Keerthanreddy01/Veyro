@@ -94,7 +94,7 @@ const getLessonById = async (req, res, next) => {
       const enrolled = await Enrollment.findOne({
         studentId: req.user.userId,
         courseId: course._id,
-        status: 'active',
+        status: { $in: ['active', 'completed'] },
       });
       if (!enrolled) return res.status(403).json({ error: 'You must enroll in this course to access this lesson.' });
     }
@@ -120,10 +120,27 @@ const updateProgress = async (req, res, next) => {
     if (!lesson) return res.status(404).json({ error: 'Lesson not found.' });
 
     const mod = await Module.findById(lesson.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    // Verify enrollment
+    const enrolled = await Enrollment.findOne({
+      studentId: req.user.userId,
+      courseId: mod.courseId,
+      status: { $in: ['active', 'completed'] },
+    });
+    if (!enrolled) {
+      return res.status(403).json({ error: 'You must be enrolled in this course to record progress.' });
+    }
 
     let { watchedSeconds, lastPosition } = req.body;
     watchedSeconds = Math.max(0, Number(watchedSeconds) || 0);
     lastPosition = Math.max(0, Number(lastPosition) || 0);
+
+    // Prevent impossible values
+    if (lesson.durationSeconds > 0) {
+      watchedSeconds = Math.min(watchedSeconds, lesson.durationSeconds);
+      lastPosition = Math.min(lastPosition, lesson.durationSeconds);
+    }
 
     // Find or create progress record
     let progress = await Progress.findOne({ studentId: req.user.userId, lessonId: lesson._id });

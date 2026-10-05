@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import SmoothScroll from './components/SmoothScroll';
@@ -52,33 +52,36 @@ export default function App() {
               <main className="flex-1">
                 <RouteTransition>
                   <Routes>
-                  <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-                  <Route path="/courses" element={<CourseCatalogPage />} />
-                  <Route path="/courses/:id" element={<CourseDetailPage />} />
+                    <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                    <Route path="/courses" element={<CourseCatalogPage />} />
+                    <Route path="/courses/:id" element={<CourseDetailPage />} />
+                    <Route path="/lessons/:id" element={<ProtectedRoute><LessonViewerPage /></ProtectedRoute>} />
+                    <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
 
-                  {/* Protected: any logged-in user */}
-                  <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-                  <Route path="/lessons/:id" element={<ProtectedRoute><LessonViewerPage /></ProtectedRoute>} />
-                  <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+                    {/* Instructor only */}
+                    <Route path="/instructor/courses/new" element={
+                      <RoleRoute allowedRoles={['instructor']}>
+                        <CreateCoursePage />
+                      </RoleRoute>
+                    } />
+                    <Route path="/instructor/courses/:id/edit" element={
+                      <RoleRoute allowedRoles={['instructor']}>
+                        <EditCoursePage />
+                      </RoleRoute>
+                    } />
 
-                  {/* Instructor only */}
-                  <Route path="/instructor/courses/new" element={
-                    <RoleRoute allowedRoles={['instructor']}>
-                      <CreateCoursePage />
-                    </RoleRoute>
-                  } />
-                  <Route path="/instructor/courses/:id/edit" element={
-                    <RoleRoute allowedRoles={['instructor']}>
-                      <EditCoursePage />
-                    </RoleRoute>
-                  } />
-
-                  <Route path="*" element={
-                    <div className="page-container text-center py-20">
-                      <p className="text-6xl font-bold text-slate-700 mb-4">404</p>
-                      <p className="text-slate-400">Page not found</p>
-                    </div>
-                  } />
+                    <Route path="*" element={
+                      <div className="page-container text-center py-24 animate-fade-in">
+                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4 border border-black/10">
+                          <span className="font-syne font-extrabold text-2xl text-slate-800">404</span>
+                        </div>
+                        <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Page Not Found</h1>
+                        <p className="text-slate-500 text-xs max-w-sm mx-auto mb-6">The curriculum or destination you requested does not exist or has been relocated.</p>
+                        <Link to="/courses" className="btn-dark-pill text-xs">
+                          <span>Explore Courses</span>
+                        </Link>
+                      </div>
+                    } />
                   </Routes>
                 </RouteTransition>
               </main>

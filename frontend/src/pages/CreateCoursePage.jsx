@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Upload, BookOpen, Tag, AlignLeft, Loader2, ImagePlus, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Upload, BookOpen, Tag, AlignLeft, Loader2, ImagePlus, ArrowLeft, Sparkles, Layers } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -24,7 +24,10 @@ export default function CreateCoursePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.description.trim()) { toast.error('Title and description required'); return; }
+    if (!form.title.trim() || !form.description.trim()) {
+      toast.error('Title and description required');
+      return;
+    }
     setLoading(true);
     try {
       const fd = new FormData();
@@ -39,68 +42,97 @@ export default function CreateCoursePage() {
       navigate(`/instructor/courses/${data.course._id}/edit`);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to create course');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4fa] text-slate-800 p-4 sm:p-6 lg:p-8 animate-fade-in">
+    <div className="min-h-screen bg-[#FAF7EE] text-slate-900 p-4 sm:p-6 lg:p-8 animate-fade-in selection:bg-[#FFF490] selection:text-[#111111]">
       <div className="max-w-3xl mx-auto space-y-6">
         
+        {/* Navigation & Headline */}
         <div>
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors mb-3"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-black transition-colors mb-3"
           >
-            <ArrowLeft size={14} /> Back to Studio
+            <ArrowLeft size={14} />
+            <span>Back to Studio</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Create New Course</h1>
-          <p className="text-slate-500 text-xs mt-1">Fill in the curriculum metadata. You can author video modules and quizzes in the next step.</p>
+          
+          <div className="inline-flex items-center gap-1.5 bg-[#FFF490] border border-[#111111]/20 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#111111] mb-2">
+            <Layers size={13} />
+            <span>Curriculum Builder</span>
+          </div>
+
+          <h1 className="font-syne font-extrabold text-2xl sm:text-4xl text-slate-900 tracking-tight">
+            Create New Course.
+          </h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            Fill in the course metadata. You will add video lectures, reading materials, and quizzes in the studio editor.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Thumbnail */}
-          <div className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-slate-200/80">
-            <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-3">Course Banner Thumbnail</label>
-            <div className="flex items-center gap-5">
-              <div className="w-40 h-28 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
+          
+          {/* Thumbnail Dropzone */}
+          <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-xs border border-[#111111]/15">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-3 font-syne">
+              Course Banner Image
+            </label>
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              <div className="w-full sm:w-48 h-32 rounded-2xl bg-[#FAF7EE] border-2 border-dashed border-[#111111]/20 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
                 {preview ? (
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={preview} alt="Thumbnail preview" className="w-full h-full object-cover" />
                 ) : (
-                  <ImagePlus size={28} className="text-slate-400" />
+                  <div className="text-center text-slate-400 space-y-1">
+                    <ImagePlus size={28} className="mx-auto text-slate-400" />
+                    <span className="text-[10px] font-bold block">No image</span>
+                  </div>
                 )}
               </div>
-              <div>
-                <label htmlFor="thumb" className="px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer inline-flex items-center gap-1.5 transition-colors shadow-2xs">
-                  <Upload size={14} /> Choose Image
+
+              <div className="space-y-2 text-center sm:text-left">
+                <label
+                  htmlFor="thumb"
+                  className="px-4 py-2.5 rounded-full bg-[#111111] text-white text-xs font-bold cursor-pointer inline-flex items-center gap-1.5 hover:bg-black transition-colors shadow-2xs"
+                >
+                  <Upload size={14} />
+                  <span>Choose Thumbnail</span>
                 </label>
                 <input id="thumb" type="file" accept="image/*" onChange={handleImg} className="hidden" />
-                <p className="text-slate-400 text-[11px] mt-2">JPG, PNG or WebP · Up to 10MB</p>
+                <p className="text-slate-400 text-[11px]">Recommended: JPG, PNG or WebP · 16:9 ratio</p>
               </div>
             </div>
           </div>
 
-          {/* Basic Info */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-slate-200/80 space-y-4">
+          {/* Core Info */}
+          <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-xs border border-[#111111]/15 space-y-5">
             <div>
-              <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Course Title *</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5 font-syne">
+                Course Title *
+              </label>
               <input
                 value={form.title}
                 onChange={setF('title')}
-                className="w-full bg-[#f8fafc] text-slate-800 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-slate-200 outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/10 transition-all"
-                placeholder="e.g. Full-Stack Modern Web Engineering"
+                className="w-full bg-[#FAF7EE] text-slate-900 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-[#111111]/15 outline-none focus:bg-white focus:ring-2 focus:ring-[#111111]/20 transition-all"
+                placeholder="e.g. Modern Full-Stack Systems Architecture"
                 required
                 maxLength={200}
               />
             </div>
 
             <div>
-              <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Description *</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5 font-syne">
+                Description & Outcomes *
+              </label>
               <textarea
                 value={form.description}
                 onChange={setF('description')}
                 rows={4}
-                className="w-full bg-[#f8fafc] text-slate-800 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-slate-200 outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/10 transition-all resize-none"
-                placeholder="Describe key learning outcomes and prerequisites…"
+                className="w-full bg-[#FAF7EE] text-slate-900 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-[#111111]/15 outline-none focus:bg-white focus:ring-2 focus:ring-[#111111]/20 transition-all resize-none"
+                placeholder="Explain the core competencies, modules, and target skill mastery…"
                 required
                 maxLength={2000}
               />
@@ -108,41 +140,59 @@ export default function CreateCoursePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Category</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5 font-syne">
+                  Curriculum Category
+                </label>
                 <select
                   value={form.category}
                   onChange={setF('category')}
-                  className="w-full bg-[#f8fafc] text-slate-800 text-sm font-medium rounded-2xl p-3.5 border border-slate-200 outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/10 transition-all cursor-pointer"
+                  className="w-full bg-[#FAF7EE] text-slate-900 text-sm font-medium rounded-2xl p-3.5 border border-[#111111]/15 outline-none focus:bg-white focus:ring-2 focus:ring-[#111111]/20 transition-all cursor-pointer"
                 >
-                  {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </div>
+
               <div>
-                <label className="text-xs font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Tags (comma-separated)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5 font-syne">
+                  Tags (comma-separated)
+                </label>
                 <input
                   value={form.tags}
                   onChange={setF('tags')}
-                  className="w-full bg-[#f8fafc] text-slate-800 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-slate-200 outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/10 transition-all"
-                  placeholder="react, node, fullstack"
+                  className="w-full bg-[#FAF7EE] text-slate-900 placeholder:text-slate-400 text-sm font-medium rounded-2xl p-3.5 border border-[#111111]/15 outline-none focus:bg-white focus:ring-2 focus:ring-[#111111]/20 transition-all"
+                  placeholder="react, cloud, typescript"
                 />
               </div>
             </div>
           </div>
 
+          {/* Form Actions */}
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="flex-1 py-3.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs"
+              className="flex-1 py-3.5 rounded-full bg-white border border-[#111111]/20 text-slate-800 text-xs font-bold hover:bg-[#FAF7EE] transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3.5 rounded-full bg-slate-900 hover:bg-black text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-dark-pill flex-1 py-3.5 text-xs shadow-md disabled:opacity-50"
             >
-              {loading ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : <><BookOpen size={16} /> Create Curriculum</>}
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin text-slate-300" />
+                  <span>Saving Draft…</span>
+                </>
+              ) : (
+                <>
+                  <BookOpen size={16} />
+                  <span>Create Curriculum & Add Modules</span>
+                </>
+              )}
             </button>
           </div>
         </form>

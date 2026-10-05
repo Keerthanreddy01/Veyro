@@ -14,8 +14,10 @@ const moduleRoutes = require('./routes/modules');
 const lessonRoutes = require('./routes/lessons');
 const quizRoutes = require('./routes/quizzes');
 const enrollmentRoutes = require('./routes/enrollments');
+const adminRoutes = require('./routes/admin');
+const notificationRoutes = require('./routes/notifications');
 const { verifyCertificate } = require('./controllers/enrollmentController');
-const { getAllUsers, toggleUserStatus } = require('./controllers/courseController');
+const { getAllUsers, toggleUserStatus, reviewCourse } = require('./controllers/courseController');
 const { authenticate, authorize } = require('./middleware/auth');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
@@ -62,6 +64,8 @@ app.use('/api/modules', moduleRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Public certificate verification (no auth required)
 app.get('/api/verify/:code', verifyCertificate);
@@ -69,6 +73,8 @@ app.get('/api/verify/:code', verifyCertificate);
 // Admin routes
 app.get('/api/admin/users', authenticate, authorize('admin'), getAllUsers);
 app.patch('/api/admin/users/:id/toggle', authenticate, authorize('admin'), toggleUserStatus);
+app.put('/api/admin/courses/:id/status', authenticate, authorize('admin'), reviewCourse);
+app.patch('/api/admin/courses/:id/status', authenticate, authorize('admin'), reviewCourse);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

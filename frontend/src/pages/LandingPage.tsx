@@ -16,50 +16,50 @@ import {
   FileCheck,
   GraduationCap,
   Zap,
-  BookOpen
+  BookOpen,
+  ArrowRight,
+  Video
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// ── Hand-Drawn Static SVG Accents & Doodles ──────────────────────────────────
+// ── Hand-Drawn Exact Reference SVG Accents & Doodles ──────────────────────────
 
-function SquiggleUnderlineHero() {
+function DoubleUnderlineHero() {
   return (
     <svg
-      viewBox="0 0 320 24"
-      className="w-full h-4 sm:h-5 md:h-6 fill-none stroke-[#111111] stroke-[3.5] stroke-linecap-round stroke-linejoin-round overflow-visible pointer-events-none"
+      viewBox="0 0 420 18"
+      className="w-full h-3 sm:h-4 fill-none stroke-[#111111] stroke-linecap-round stroke-linejoin-round overflow-visible pointer-events-none mt-1"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path
-        d="M 4 15 C 45 4, 95 24, 145 10 C 195 -2, 245 22, 285 8 C 300 3, 312 14, 316 12"
-        className="animate-draw-loop"
-        pathLength="100"
-      />
+      <line x1="2" y1="4" x2="418" y2="4" strokeWidth="3.5" />
+      <line x1="12" y1="12" x2="410" y2="12" strokeWidth="2.5" />
     </svg>
   );
 }
 
-function CurvedArrowHero() {
+function CurvedSwoopArrowHero() {
   return (
     <svg
-      viewBox="0 0 110 110"
-      className="w-16 h-16 sm:w-20 sm:h-20 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round"
+      viewBox="0 0 120 120"
+      className="w-16 h-16 sm:w-20 sm:h-20 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round pointer-events-none select-none"
       aria-hidden="true"
     >
-      <path d="M 22 15 C 55 10, 90 32, 75 70 C 65 92, 32 82, 44 58 C 54 42, 80 58, 74 95" />
-      <path d="M 58 84 L 75 98 L 92 78" />
+      <path d="M 32 108 C 24 75, 48 42, 85 30 C 102 24, 108 42, 92 56 C 75 70, 48 55, 62 25 L 68 14" />
+      <path d="M 48 18 L 68 14 L 75 32" />
     </svg>
   );
 }
 
-function LoopDoodleBig() {
+function LoopSpiralArrow() {
   return (
     <svg
-      viewBox="0 0 90 65"
-      className="w-12 h-9 sm:w-16 sm:h-12 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round inline-block align-middle ml-2"
+      viewBox="0 0 90 70"
+      className="w-12 h-10 sm:w-16 sm:h-12 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round inline-block align-middle ml-2"
       aria-hidden="true"
     >
-      <path d="M 12 36 C 26 12, 64 12, 74 28 C 84 46, 56 60, 38 50 C 22 40, 48 18, 74 34 L 82 42" />
+      <path d="M 14 42 C 26 14, 65 14, 76 28 C 86 46, 56 60, 36 50 C 20 40, 46 16, 75 32 L 82 40" />
+      <path d="M 68 38 L 84 42 L 80 26" />
     </svg>
   );
 }
@@ -88,59 +88,167 @@ function DoodleSparkle() {
   );
 }
 
-// ── Static Line-Art Problem Card Illustrations ───────────────────────────────
+// ── Problem Section Line-Art Doodles (Exact Match to Reference Cards) ────────
 
-function LaptopSignalIconHero() {
+function LaptopFaceDoodle() {
   return (
-    <svg viewBox="0 0 100 70" className="w-20 h-14 fill-none stroke-[#111111] stroke-[2] stroke-linecap-round stroke-linejoin-round">
-      <rect x="22" y="12" width="56" height="38" rx="4" fill="#ffffff" strokeWidth="2" />
-      <line x1="34" y1="24" x2="66" y2="24" strokeWidth="2" />
-      <line x1="38" y1="32" x2="62" y2="32" strokeWidth="2" />
-      <path d="M 12 52 L 88 52 C 92 52, 93 55, 90 58 L 84 61 L 16 61 L 10 58 C 7 55, 8 52, 12 52 Z" fill="#ffffff" strokeWidth="2" />
-      <path d="M 10 20 C 15 25, 15 35, 10 40" strokeWidth="2" />
-      <path d="M 90 20 C 85 25, 85 35, 90 40" strokeWidth="2" />
-      <path d="M 5 13 C 12 21, 12 44, 5 52" strokeWidth="2" />
-      <path d="M 95 13 C 88 21, 88 44, 95 52" strokeWidth="2" />
+    <svg viewBox="0 0 120 90" className="w-24 h-18 sm:w-28 sm:h-20 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Screen */}
+      <rect x="25" y="16" width="70" height="48" rx="4" fill="#60C5F1" />
+      {/* Face on Screen */}
+      <line x1="45" y1="36" x2="52" y2="36" strokeWidth="2.5" />
+      <line x1="68" y1="36" x2="75" y2="36" strokeWidth="2.5" />
+      <line x1="53" y1="46" x2="67" y2="46" strokeWidth="2.2" />
+      {/* Base */}
+      <path d="M 12 68 L 108 68 C 112 68, 114 72, 110 76 L 102 80 L 18 80 L 10 76 C 6 72, 8 68, 12 68 Z" fill="#60C5F1" />
+      {/* Radiating sound lines */}
+      <line x1="14" y1="28" x2="18" y2="32" strokeWidth="2" />
+      <line x1="102" y1="28" x2="98" y2="32" strokeWidth="2" />
+      <line x1="12" y1="44" x2="17" y2="44" strokeWidth="2" />
+      <line x1="104" y1="44" x2="99" y2="44" strokeWidth="2" />
     </svg>
   );
 }
 
-function ChaosCloudIconHero() {
+function ChaosCloudDoodle() {
   return (
-    <svg viewBox="0 0 100 70" className="w-20 h-14 fill-none stroke-[#111111] stroke-[2] stroke-linecap-round stroke-linejoin-round">
-      <path d="M 28 42 C 20 42, 14 36, 18 26 C 16 18, 24 12, 34 14 C 40 8, 54 10, 58 18 C 66 14, 76 18, 76 26 C 84 30, 80 40, 74 44 C 78 52, 68 60, 58 56 C 52 60, 40 56, 34 52 C 26 56, 18 50, 28 42 Z" fill="#ffffff" strokeWidth="2" />
-      <path d="M 32 30 C 42 22, 54 38, 66 28 C 70 36, 50 44, 42 36 C 36 42, 56 50, 64 42" strokeWidth="2" />
-      <line x1="14" y1="14" x2="18" y2="18" strokeWidth="2" />
-      <line x1="86" y1="18" x2="82" y2="22" strokeWidth="2" />
-      <line x1="86" y1="54" x2="82" y2="50" strokeWidth="2" />
+    <svg viewBox="0 0 120 90" className="w-24 h-18 sm:w-28 sm:h-20 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Cloud outline */}
+      <path d="M 38 48 C 30 48, 24 42, 28 32 C 26 24, 34 18, 44 20 C 50 14, 64 16, 68 24 C 76 20, 86 24, 86 32 C 94 36, 90 46, 84 50 C 88 58, 78 66, 68 62 C 62 66, 50 62, 44 58 C 36 62, 28 56, 38 48 Z" fill="#60C5F1" />
+      {/* Question mark inside cloud */}
+      <path d="M 54 32 C 54 26, 64 26, 64 32 C 64 37, 58 39, 58 44" strokeWidth="2.5" />
+      <circle cx="58" cy="49" r="1.5" fill="#111111" />
+      {/* Circling arrows */}
+      <path d="M 22 28 C 16 38, 18 52, 26 60" />
+      <path d="M 20 60 L 26 60 L 28 54" />
+      <path d="M 98 60 C 104 50, 102 36, 94 28" />
+      <path d="M 100 28 L 94 28 L 92 34" />
     </svg>
   );
 }
 
-function SadCrossIconHero() {
+function ResentmentCrossDoodle() {
   return (
-    <svg viewBox="0 0 100 70" className="w-20 h-14 fill-none stroke-[#111111] stroke-[2] stroke-linecap-round stroke-linejoin-round">
-      <rect x="30" y="12" width="42" height="46" rx="10" fill="#ffffff" strokeWidth="2" />
-      <line x1="42" y1="22" x2="58" y2="34" strokeWidth="2.75" />
-      <line x1="58" y1="22" x2="42" y2="34" strokeWidth="2.75" />
-      <path d="M 40 48 C 44 44, 56 44, 60 48" strokeWidth="2.5" />
-      <circle cx="20" cy="26" r="3.5" strokeWidth="1.75" />
-      <circle cx="80" cy="44" r="4" strokeWidth="1.75" />
+    <svg viewBox="0 0 120 90" className="w-24 h-18 sm:w-28 sm:h-20 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Cloud outline */}
+      <path d="M 68 62 C 62 66, 50 62, 44 58 C 36 62, 28 56, 38 48 C 30 48, 24 42, 28 32 C 26 24, 34 18, 44 20 C 50 14, 64 16, 68 24 C 76 20, 86 24, 86 32 C 94 36, 90 46, 84 50 C 88 58, 78 66, 68 62 Z" fill="#60C5F1" />
+      {/* Sad face */}
+      <circle cx="50" cy="38" r="2.5" fill="#111111" />
+      <circle cx="68" cy="38" r="2.5" fill="#111111" />
+      <path d="M 52 50 C 56 46, 62 46, 66 50" strokeWidth="2.2" />
+      {/* Top Cross bubble */}
+      <circle cx="78" cy="22" r="14" fill="#60C5F1" strokeWidth="2.2" />
+      <line x1="72" y1="16" x2="84" y2="28" strokeWidth="2.5" />
+      <line x1="84" y1="16" x2="72" y2="28" strokeWidth="2.5" />
     </svg>
   );
 }
 
-function InspectSearchIconHero() {
+function MagnifyingSadDoodle() {
   return (
-    <svg viewBox="0 0 100 70" className="w-20 h-14 fill-none stroke-[#111111] stroke-[2] stroke-linecap-round stroke-linejoin-round">
-      <circle cx="44" cy="30" r="21" fill="#ffffff" strokeWidth="2.5" />
-      <line x1="60" y1="46" x2="80" y2="62" strokeWidth="4" />
-      <circle cx="36" cy="28" r="2" fill="#111111" />
-      <circle cx="50" cy="28" r="2" fill="#111111" />
-      <path d="M 38 38 C 42 35, 48 35, 50 38" strokeWidth="2" />
-      <line x1="14" y1="18" x2="20" y2="22" strokeWidth="2" />
-      <line x1="10" y1="34" x2="16" y2="34" strokeWidth="2" />
-      <line x1="14" y1="50" x2="20" y2="46" strokeWidth="2" />
+    <svg viewBox="0 0 120 90" className="w-24 h-18 sm:w-28 sm:h-20 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Lens */}
+      <circle cx="52" cy="38" r="26" fill="#60C5F1" strokeWidth="2.5" />
+      <line x1="72" y1="58" x2="98" y2="82" strokeWidth="4" />
+      {/* Sad Face inside lens */}
+      <line x1="42" y1="32" x2="48" y2="34" strokeWidth="2.2" />
+      <line x1="62" y1="34" x2="56" y2="32" strokeWidth="2.2" />
+      <circle cx="44" cy="36" r="2" fill="#111111" />
+      <circle cx="60" cy="36" r="2" fill="#111111" />
+      <path d="M 46 48 C 50 44, 54 44, 58 48" strokeWidth="2.2" />
+    </svg>
+  );
+}
+
+// ── Down-Section Hand-Drawn Doodles (Exact Match to Reference Image) ─────────
+
+function ZigZagSwoopDoodle() {
+  return (
+    <svg viewBox="0 0 100 120" className="w-16 h-20 sm:w-20 sm:h-24 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round">
+      <path d="M 68 12 C 45 22, 28 36, 42 50 C 58 64, 22 75, 40 92 L 48 102" />
+      <path d="M 32 98 L 48 102 L 52 86" />
+    </svg>
+  );
+}
+
+function GlassesDoodle() {
+  return (
+    <svg viewBox="0 0 120 70" className="w-20 h-12 sm:w-24 sm:h-14 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Left Frame */}
+      <rect x="15" y="20" width="38" height="28" rx="8" fill="#FFF490" strokeWidth="2.5" />
+      <line x1="22" y1="28" x2="36" y2="28" strokeWidth="2" strokeOpacity="0.6" />
+      {/* Bridge */}
+      <path d="M 53 28 Q 60 22, 67 28" strokeWidth="2.5" />
+      {/* Right Frame */}
+      <rect x="67" y="20" width="38" height="28" rx="8" fill="#FFF490" strokeWidth="2.5" />
+      <line x1="74" y1="28" x2="88" y2="28" strokeWidth="2" strokeOpacity="0.6" />
+      {/* Temples (Arms) */}
+      <path d="M 15 26 L 4 20" strokeWidth="2.2" />
+      <path d="M 105 26 L 116 20" strokeWidth="2.2" />
+    </svg>
+  );
+}
+
+function SmartCoordinationDoodle() {
+  return (
+    <svg viewBox="0 0 120 80" className="w-20 h-14 sm:w-24 sm:h-16 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Main Speech Bubble */}
+      <path d="M 24 16 C 14 16, 8 24, 8 36 C 8 48, 16 56, 32 56 L 32 68 L 46 56 L 68 56 C 80 56, 86 48, 86 36 C 86 24, 78 16, 64 16 Z" fill="#FFF490" strokeWidth="2.2" />
+      {/* Eyes & smile in main bubble */}
+      <circle cx="34" cy="34" r="3" fill="#111111" />
+      <circle cx="58" cy="34" r="3" fill="#111111" />
+      <path d="M 40 44 Q 46 48, 52 44" strokeWidth="2.2" />
+      {/* Secondary mini chat bubble */}
+      <path d="M 80 34 C 84 30, 94 30, 102 34 C 110 38, 110 48, 102 54 L 108 62 L 98 58 C 92 60, 84 56, 82 50" fill="#FFF490" strokeWidth="2" />
+      <line x1="90" y1="42" x2="98" y2="42" strokeWidth="2" />
+      <line x1="90" y1="48" x2="96" y2="48" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function ClockGaugeDoodle() {
+  return (
+    <svg viewBox="0 0 100 80" className="w-18 h-14 sm:w-22 sm:h-16 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Outer Circle */}
+      <circle cx="50" cy="42" r="26" fill="#FFF490" strokeWidth="2.5" />
+      {/* Quarter pie slice filled */}
+      <path d="M 50 42 L 50 16 A 26 26 0 0 1 76 42 Z" fill="#111111" />
+      {/* Clock hands */}
+      <line x1="50" y1="42" x2="36" y2="34" strokeWidth="2.5" />
+      <circle cx="50" cy="42" r="3" fill="#111111" />
+      {/* Top Stopwatch button */}
+      <line x1="50" y1="16" x2="50" y2="8" strokeWidth="3" />
+      <line x1="44" y1="8" x2="56" y2="8" strokeWidth="3" />
+      {/* Side button */}
+      <line x1="68" y1="24" x2="74" y2="18" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+function SteamingCupDoodle() {
+  return (
+    <svg viewBox="0 0 100 80" className="w-18 h-14 sm:w-22 sm:h-16 fill-none stroke-[#111111] stroke-[2.2] stroke-linecap-round stroke-linejoin-round">
+      {/* Mug Body */}
+      <path d="M 28 28 L 32 64 C 33 68, 67 68, 68 64 L 72 28 Z" fill="#FFF490" strokeWidth="2.5" />
+      {/* Handle */}
+      <path d="M 70 34 C 84 34, 84 54, 68 56" strokeWidth="2.5" />
+      {/* Happy Face on mug */}
+      <circle cx="44" cy="44" r="2" fill="#111111" />
+      <circle cx="56" cy="44" r="2" fill="#111111" />
+      <path d="M 46 52 Q 50 56, 54 52" strokeWidth="2" />
+      {/* Steam curves */}
+      <path d="M 38 22 C 36 16, 42 12, 40 6" strokeWidth="2" strokeLinecap="round" />
+      <path d="M 50 22 C 48 16, 54 12, 52 6" strokeWidth="2" strokeLinecap="round" />
+      <path d="M 62 22 C 60 16, 66 12, 64 6" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CurvedStepsArrow() {
+  return (
+    <svg viewBox="0 0 110 110" className="w-14 h-14 sm:w-18 sm:h-18 fill-none stroke-[#111111] stroke-[2.75] stroke-linecap-round stroke-linejoin-round inline-block ml-3">
+      <path d="M 18 24 C 42 6, 78 18, 68 46 C 58 74, 28 58, 48 84 L 56 94" />
+      <path d="M 40 90 L 56 94 L 62 78" />
     </svg>
   );
 }
@@ -285,15 +393,15 @@ function XIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-// ── Curated Avatars ──────────────────────────────────────────────────────────
+// ── Curated Avatars (Matching Reference Image Personas) ──────────────────────
 const AVATARS = {
-  heroGuy: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
-  sarah: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
-  marcus: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-  elena: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
-  alex: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+  heroGuy: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
+  anita: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
+  sean: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+  dennis: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+  oksana: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+  elena: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
   david: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
-  leila: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
 };
 
 export default function LandingPage() {
@@ -301,6 +409,7 @@ export default function LandingPage() {
   const [verifyCodeInput, setVerifyCodeInput] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [activeAccordion, setActiveAccordion] = useState<number>(0);
+  const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
 
@@ -319,6 +428,41 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  React.useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('.landing-page .reveal-section'));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -7% 0px' }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    const chapters = Array.from(document.querySelectorAll<HTMLElement>('[data-story-step]'));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const targetEl = entry.target as HTMLElement;
+            setActiveStoryStep(Number(targetEl.dataset.storyStep));
+          }
+        });
+      },
+      { rootMargin: '-34% 0px -47% 0px', threshold: 0 }
+    );
+    chapters.forEach((chapter) => observer.observe(chapter));
+    return () => observer.disconnect();
+  }, []);
+
   const handleVerifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!verifyCodeInput.trim()) {
@@ -328,56 +472,44 @@ export default function LandingPage() {
     navigate(`/verify/${verifyCodeInput.trim()}`);
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail || !newsletterEmail.includes('@')) {
-      toast.error('Please enter a valid email address.');
-      return;
-    }
-    toast.success(`Subscribed ${newsletterEmail} to Veyro updates.`);
-    setNewsletterEmail('');
-  };
-
   return (
-    <div className="min-h-screen bg-[#FAF7EE] text-[#1E293B] font-body selection:bg-[#FFF490] selection:text-[#111111]">
+    <div className="landing-page min-h-screen bg-[#FAF7EE] text-[#111111] font-body selection:bg-[#FFF490] selection:text-[#111111]">
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION A: NAVBAR
+          SECTION A: HERO HEADER & EXACT HERO CANVAS (Cream #FAF7EE)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FAF7EE] pt-6 sm:pt-8 pb-16 sm:pb-24 px-4 sm:px-8 lg:px-12 border-editorial-b relative overflow-hidden">
+      <section className="bg-[#FAF7EE] pt-6 sm:pt-8 pb-16 sm:pb-28 px-4 sm:px-8 lg:px-14 border-editorial-b relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
 
-          {/* ── TOP HEADER ── */}
-          <header className="flex items-center justify-between gap-4 pb-10 sm:pb-14">
-            {/* Left: Lowercase organic wordmark logo: veyro. */}
-            <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-1">
-                <span className="font-syne font-extrabold text-3xl sm:text-4xl tracking-tight text-[#111111] lowercase">
+          {/* ── TOP HEADER (Left wordmark + Left subhead + Right CTAs) ── */}
+          <header className="flex items-center justify-between gap-4 pb-8 sm:pb-12">
+            {/* Left Brand Wordmark */}
+            <div className="space-y-1">
+              <Link to="/" className="inline-block" aria-label="Veyro home">
+                <span className="font-syne font-black text-3xl sm:text-4xl tracking-tight text-[#111111] lowercase select-none">
                   veyro<span className="text-[#60C5F1]">.</span>
                 </span>
               </Link>
-            </div>
-
-            {/* Subtitle Tagline */}
-            <div className="hidden lg:block max-w-xs text-xs font-medium text-[#1E293B]/70 leading-snug">
-              The verified learning platform for <br />
-              accredited online mastery.
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-500 max-w-xs leading-snug">
+                The integrated LMS app for all your flexible learning needs.
+              </p>
             </div>
 
             {/* Right Action Buttons */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/courses"
-                className="btn-sky-pill"
+                className="bg-[#60C5F1] text-[#111111] border-2 border-[#111111] rounded-full px-4 sm:px-5 py-2 text-xs font-extrabold uppercase tracking-wider hover:bg-[#48b8e9] transition-all shadow-xs flex items-center gap-1.5"
               >
+                <Video size={13} className="text-[#111111]" />
                 <span>BOOK A DEMO</span>
               </Link>
 
               <Link
                 to="/login"
-                className="btn-dark-pill hidden sm:inline-flex"
+                className="bg-[#111111] text-white rounded-full px-4 sm:px-5 py-2 text-xs font-extrabold uppercase tracking-wider hover:bg-black transition-all shadow-xs hidden sm:inline-flex items-center gap-1.5"
               >
-                <span>SIGN IN</span>
+                <span>MENU</span>
               </Link>
 
               <button
@@ -385,7 +517,7 @@ export default function LandingPage() {
                 className="p-2 bg-[#111111] text-white rounded-full hover:bg-black transition flex items-center justify-center sm:hidden shadow-sm"
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4 text-white" />}
               </button>
             </div>
           </header>
@@ -414,23 +546,16 @@ export default function LandingPage() {
               >
                 Platform Solution
               </a>
-              <a
-                href="#steps"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block font-bold text-sm text-[#111111] p-2 rounded-lg hover:bg-[#FAF7EE]"
-              >
-                Three Simple Steps
-              </a>
               <div className="pt-2 border-t border-black/10 flex gap-2">
                 <Link
                   to="/login"
-                  className="flex-1 text-center py-2 bg-white border-editorial-2 rounded-full text-xs font-bold uppercase tracking-wider font-body"
+                  className="flex-1 text-center py-2 bg-white border-editorial-2 rounded-full text-xs font-bold uppercase tracking-wider"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="flex-1 text-center py-2 bg-[#111111] text-white rounded-full text-xs font-bold uppercase tracking-wider font-body"
+                  className="flex-1 text-center py-2 bg-[#111111] text-white rounded-full text-xs font-bold uppercase tracking-wider"
                 >
                   Get Started
                 </Link>
@@ -438,147 +563,92 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION B: HERO SECTION
-              ═══════════════════════════════════════════════════════════════════ */}
-          <div className="relative pt-4 sm:pt-6 pb-8 sm:pb-12">
+          {/* ── HERO CANVAS ── */}
+          <div className="relative pt-6 sm:pt-10 pb-8 sm:pb-16">
 
-            {/* Floating Status Badge 1 (Top Left): ENROLLED Sarah Jenkins */}
-            <div className="hidden sm:inline-flex status-pill absolute -top-5 left-16 md:left-24 -rotate-2 z-20">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1E293B]/70 flex items-center gap-1">
-                <GraduationCap className="w-3 h-3 text-[#60C5F1]" /> ENROLLED
+            {/* ── 4 Floating Status Badges (Exact Positioning from Reference Image) ── */}
+
+            {/* Badge 1: Top Center-Left (Anita Davis - IN OFFICE) */}
+            <div className="hidden sm:inline-flex items-center gap-2 bg-[#FAF7EE] border-2 border-[#111111] rounded-full pl-3 pr-1 py-1 absolute -top-2 sm:top-1 left-[30%] -rotate-1 z-20 shadow-xs">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> IN OFFICE
               </span>
-              <span className="font-bold text-xs text-[#111111]">Sarah Jenkins</span>
-              <img
-                src={AVATARS.sarah}
-                alt="Sarah"
-                className="w-5 h-5 rounded-full object-cover border border-[#111111]"
-              />
+              <span className="font-bold text-xs text-[#111111]">Anita Davis</span>
+              <img src={AVATARS.anita} alt="Anita" className="w-5 h-5 rounded-full object-cover border border-[#111111]" />
             </div>
 
-            {/* Floating Status Badge 2 (Top Right): QUIZ ACTIVE Marcus Vance */}
-            <div className="hidden md:inline-flex status-pill absolute -top-4 right-16 lg:right-32 rotate-2 z-20">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1">
-                <Zap className="w-3 h-3 text-amber-600" /> QUIZ ACTIVE
+            {/* Badge 2: Top Right (Sean Gilliers - LEAVING) */}
+            <div className="hidden md:inline-flex items-center gap-2 bg-[#FAF7EE] border-2 border-[#111111] rounded-full pl-3 pr-1 py-1 absolute -top-1 right-8 lg:right-24 rotate-2 z-20 shadow-xs">
+              <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> LEAVING
               </span>
-              <span className="font-bold text-xs text-[#111111]">Marcus Vance</span>
-              <img
-                src={AVATARS.marcus}
-                alt="Marcus"
-                className="w-5 h-5 rounded-full object-cover border border-[#111111]"
-              />
+              <span className="font-bold text-xs text-[#111111]">Sean Gilliers</span>
+              <img src={AVATARS.sean} alt="Sean" className="w-5 h-5 rounded-full object-cover border border-[#111111]" />
             </div>
 
-            {/* Main Headline: Multi-line massive uppercase with inline circular avatar */}
-            <div className="w-full">
-              <h1 className="text-display-hero text-[#111111] select-none max-w-5xl">
+            {/* Badge 3: Middle-Bottom Right (Dennis Ross - IN 10:15) */}
+            <div className="hidden sm:inline-flex items-center gap-2 bg-[#FAF7EE] border-2 border-[#111111] rounded-full pl-3 pr-1 py-1 absolute bottom-6 right-[26%] -rotate-2 z-20 shadow-xs">
+              <span className="text-[10px] font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-sky-500" /> IN 10:15
+              </span>
+              <span className="font-bold text-xs text-[#111111]">Dennis Ross</span>
+              <img src={AVATARS.dennis} alt="Dennis" className="w-5 h-5 rounded-full object-cover border border-[#111111]" />
+            </div>
+
+            {/* Badge 4: Far Bottom Right (Oksana Levina - HOME) */}
+            <div className="hidden lg:inline-flex items-center gap-2 bg-[#FAF7EE] border-2 border-[#111111] rounded-full pl-3 pr-1 py-1 absolute bottom-12 right-2 rotate-1 z-20 shadow-xs">
+              <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-purple-500" /> HOME
+              </span>
+              <span className="font-bold text-xs text-[#111111]">Oksana Levina</span>
+              <img src={AVATARS.oksana} alt="Oksana" className="w-5 h-5 rounded-full object-cover border border-[#111111]" />
+            </div>
+
+            {/* ── Main Hero Giant Headline ── */}
+            <div className="w-full relative z-10">
+              <h1 className="font-syne font-black text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] tracking-tight text-[#111111] uppercase leading-[0.98] select-none">
                 <span>MAKE </span>
-                {/* Embedded Circular Avatar Cutout */}
+                {/* Embedded Video Avatar with Play Button (Guy waving ✌️) */}
                 <span className="inline-flex items-center justify-center align-middle mx-1.5 sm:mx-2.5">
-                  <span className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border-editorial-2 overflow-hidden shadow-brutal-sm inline-block">
+                  <span className="w-16 h-12 sm:w-24 sm:h-16 md:w-28 md:h-18 rounded-xl sm:rounded-2xl border-2 sm:border-[2.5px] border-[#111111] overflow-hidden shadow-xs relative inline-block bg-slate-900">
                     <img
                       src={AVATARS.heroGuy}
-                      alt="User"
+                      alt="Student"
                       className="w-full h-full object-cover"
                     />
+                    {/* Floating mini white play button in corner */}
+                    <div className="absolute top-1.5 left-1.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/90 text-[#111111] flex items-center justify-center shadow-xs">
+                      <Play size={10} className="fill-[#111111] ml-0.5" />
+                    </div>
                   </span>
                 </span>
-                <span> ONLINE</span> <br />
+                <span> FLEXIBLE</span> <br />
+                <span>WORK, </span>
                 <span className="relative inline-block">
-                  LEARNING,
-                  {/* Hand-Drawn Squiggly Underline */}
+                  REALLY WORK
+                  {/* Clean Double Underline */}
                   <span className="absolute -bottom-2 sm:-bottom-3 left-0 w-full pointer-events-none">
-                    <SquiggleUnderlineHero />
+                    <DoubleUnderlineHero />
                   </span>
                 </span>
-                <span> REALLY WORK</span>
               </h1>
             </div>
 
-            {/* Lower Hero Row: Curved Arrow, CTA & Verification Input */}
-            <div className="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-12 gap-6 items-end relative">
+            {/* ── Lower CTA with Curvy Swoop Arrow (Bottom-Left) ── */}
+            <div className="mt-14 sm:mt-20 relative z-10 flex items-start gap-3">
+              <div className="relative inline-block">
+                <Link
+                  to="/courses"
+                  className="bg-[#60C5F1] text-[#111111] border-2 border-[#111111] rounded-full px-6 sm:px-7 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider hover:bg-[#48b8e9] hover:shadow-md transition-all shadow-xs flex items-center gap-2"
+                >
+                  <span>+ ADD TO SLACK</span>
+                </Link>
 
-              {/* Left Column: CTA with Sketchy Vector Arrow */}
-              <div className="md:col-span-6 space-y-3">
-                <div className="relative inline-block pt-8 sm:pt-10 pl-8 sm:pl-12">
-
-                  {/* Static Hand-drawn Curved Arrow */}
-                  <div className="absolute -top-4 left-0 sm:left-1 pointer-events-none">
-                    <CurvedArrowHero />
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Link
-                      to="/register"
-                      className="btn-sky-pill px-6 py-3 shadow-brutal-sm"
-                    >
-                      <span>START FREE TRIAL</span>
-                    </Link>
-                  </div>
+                {/* Curvy Swoop Hand-Drawn Arrow Arching Upward */}
+                <div className="absolute -top-16 -right-18 sm:-right-22 pointer-events-none">
+                  <CurvedSwoopArrowHero />
                 </div>
-
-                <p className="text-xs text-body-copy pt-1 pl-2">
-                  Server-verified anti-cheat assessments • 90% watch auditing
-                </p>
               </div>
-
-              {/* Right Column: Floating Status Badges & Certificate Verification Form */}
-              <div className="md:col-span-6 flex flex-col items-start md:items-end justify-between gap-4">
-
-                {/* Floating Status Badges */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="status-pill -rotate-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" /> PROCTOR
-                    </span>
-                    <span className="font-bold text-xs text-[#111111]">0 Violations</span>
-                    <img
-                      src={AVATARS.elena}
-                      alt="Elena"
-                      className="w-5 h-5 rounded-full object-cover border border-[#111111]"
-                    />
-                  </div>
-
-                  <div className="status-pill rotate-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#1E293B]/70 flex items-center gap-1">
-                      <Award className="w-3 h-3 text-[#60C5F1]" /> CERTIFIED
-                    </span>
-                    <span className="font-bold text-xs text-[#111111]">Alex Morgan</span>
-                    <img
-                      src={AVATARS.alex}
-                      alt="Alex"
-                      className="w-5 h-5 rounded-full object-cover border border-[#111111]"
-                    />
-                  </div>
-                </div>
-
-                {/* Certificate Verification Lookup */}
-                <div className="w-full sm:w-auto bg-white border-editorial-2 rounded-xl p-2.5 shadow-brutal-sm flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#111111] px-1 font-body">
-                    VERIFY:
-                  </span>
-                  <form onSubmit={handleVerifySubmit} className="flex items-center gap-1.5 flex-1 sm:flex-initial">
-                    <div className="relative flex-1">
-                      <input
-                        type="text"
-                        placeholder="Cert Code (e.g. VY-8921)"
-                        value={verifyCodeInput}
-                        onChange={(e) => setVerifyCodeInput(e.target.value)}
-                        className="w-full sm:w-48 bg-[#FAF7EE] border border-black/20 text-xs rounded-full px-3 py-1.5 pr-7 focus:outline-none focus:border-[#111111] font-body font-medium text-[#1E293B]"
-                      />
-                      <Search className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-2" />
-                    </div>
-                    <button
-                      type="submit"
-                      className="bg-[#111111] text-white hover:bg-black text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition font-body"
-                    >
-                      Check ↗
-                    </button>
-                  </form>
-                </div>
-
-              </div>
-
             </div>
 
           </div>
@@ -588,502 +658,538 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION C: VALUE MATRIX / 4-COLUMN BENTO ROW (Butter Yellow #FFF490)
+          SECTION B: THE PROBLEM SECTION (Vibrant Bright Sky Blue #60C5F1)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FFF490] py-10 sm:py-14 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white border-editorial-2 rounded-2xl p-6 sm:p-8 shadow-brutal">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-[#111111]/20">
+      <section id="problem" className="bg-[#60C5F1] py-16 sm:py-24 px-4 sm:px-8 lg:px-14 border-editorial-b relative">
+        <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
 
-              {/* Card 1 */}
-              <div className="pt-3 sm:pt-0 sm:px-4 first:pl-0 space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <Eye className="w-5 h-5 text-[#111111]" />
-                  <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                    90% Watch Auditing
-                  </h4>
-                </div>
-                <p className="text-xs text-body-copy leading-relaxed">
-                  Real-time watch streams track exact student interaction without relying on fake progress bars.
-                </p>
-              </div>
-
-              {/* Card 2 */}
-              <div className="pt-3 sm:pt-0 sm:px-4 space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-5 h-5 text-[#111111]" />
-                  <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                    Anti-Cheat Guardian
-                  </h4>
-                </div>
-                <p className="text-xs text-body-copy leading-relaxed">
-                  Server timers and live tab violation detection guarantee exam and quiz integrity.
-                </p>
-              </div>
-
-              {/* Card 3 */}
-              <div className="pt-3 sm:pt-0 sm:px-4 space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <BarChart3 className="w-5 h-5 text-[#111111]" />
-                  <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                    Ledger Verification
-                  </h4>
-                </div>
-                <p className="text-xs text-body-copy leading-relaxed">
-                  Zero-auth public verification portal allows instant recruiter and employer audit.
-                </p>
-              </div>
-
-              {/* Card 4 */}
-              <div className="pt-3 sm:pt-0 sm:px-4 last:pr-0 space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <Award className="w-5 h-5 text-[#111111]" />
-                  <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                    Tamper-Proof Credentials
-                  </h4>
-                </div>
-                <p className="text-xs text-body-copy leading-relaxed">
-                  Tamper-proof vector PDF certificates stamped with unique hashes verifiable anywhere.
-                </p>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION D: PROBLEM / FRICTION SECTION (Bright Sky Blue #60C5F1)
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="problem" className="bg-[#60C5F1] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
-        <div className="max-w-6xl mx-auto space-y-10 sm:space-y-12">
-
-          {/* Title: ONLINE EDUCATION IS [GREAT BUT] with loop doodle */}
+          {/* Headline: FLEXIBLE WORK IS GREAT [BUT] with loop spiral doodle */}
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-              <h2 className="font-syne font-extrabold text-2xl sm:text-4xl md:text-5xl text-[#111111] uppercase tracking-tight">
-                ONLINE EDUCATION IS
-              </h2>
-              {/* Slanted Yellow Sticker Badge */}
-              <span className="sticker-yellow text-xl sm:text-3xl px-4 py-1 -rotate-3 shadow-brutal-sm">
-                GREAT BUT
+            <h2 className="font-syne font-black text-3xl sm:text-5xl md:text-6xl text-[#111111] uppercase tracking-tight leading-[1.02]">
+              FLEXIBLE <br />
+              WORK IS <br />
+              <span className="inline-flex items-center gap-2 sm:gap-3">
+                <span>GREAT</span>
+                {/* Slanted White Sticker Badge [BUT] */}
+                <span className="inline-flex items-center justify-center bg-white text-[#111111] border-2 border-[#111111] rounded-lg px-3 sm:px-4 py-0.5 text-2xl sm:text-4xl md:text-5xl font-syne font-black uppercase shadow-xs">
+                  BUT
+                </span>
+                {/* Spiral Hand-Drawn Arrow */}
+                <LoopSpiralArrow />
               </span>
-              {/* Loop Doodle */}
-              <LoopDoodleBig />
-            </div>
+            </h2>
           </div>
 
-          {/* 4 White Problem Cards in a Row */}
+          {/* 4 Light-Blue Outlined Cards (Exact match to reference image) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
 
-            {/* Card 1 */}
-            <div className="bg-white border-editorial-2 rounded-2xl p-5 sm:p-6 shadow-brutal-sm flex flex-col justify-between min-h-[220px] sm:min-h-[250px]">
+            {/* Card 1: It can make work isolating */}
+            <div className="bg-[#74D0F6]/85 border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[220px] sm:min-h-[250px] transition-transform hover:-translate-y-1">
               <div>
-                <h3 className="text-card-heading text-base sm:text-lg text-[#111111]">
-                  Passive Watching without Retention
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  It can make work isolating
                 </h3>
               </div>
-              <div className="pt-4 flex justify-center">
-                <LaptopSignalIconHero />
+              <div className="pt-4 flex justify-center items-center">
+                <LaptopFaceDoodle />
               </div>
             </div>
 
-            {/* Card 2 */}
-            <div className="bg-white border-editorial-2 rounded-2xl p-5 sm:p-6 shadow-brutal-sm flex flex-col justify-between min-h-[220px] sm:min-h-[250px]">
+            {/* Card 2: It can create operational Chaos */}
+            <div className="bg-[#74D0F6]/85 border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[220px] sm:min-h-[250px] transition-transform hover:-translate-y-1">
               <div>
-                <h3 className="text-card-heading text-base sm:text-lg text-[#111111]">
-                  Rampant Assessment Cheating
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  It can create operational Chaos
                 </h3>
               </div>
-              <div className="pt-4 flex justify-center">
-                <ChaosCloudIconHero />
+              <div className="pt-4 flex justify-center items-center">
+                <ChaosCloudDoodle />
               </div>
             </div>
 
-            {/* Card 3 */}
-            <div className="bg-white border-editorial-2 rounded-2xl p-5 sm:p-6 shadow-brutal-sm flex flex-col justify-between min-h-[220px] sm:min-h-[250px]">
+            {/* Card 3: Mandates can create Resentment */}
+            <div className="bg-[#74D0F6]/85 border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[220px] sm:min-h-[250px] transition-transform hover:-translate-y-1">
               <div>
-                <h3 className="text-card-heading text-base sm:text-lg text-[#111111]">
-                  Unverified Resume Credentials
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Mandates can create Resentment
                 </h3>
               </div>
-              <div className="pt-4 flex justify-center">
-                <SadCrossIconHero />
+              <div className="pt-4 flex justify-center items-center">
+                <ResentmentCrossDoodle />
               </div>
             </div>
 
-            {/* Card 4 */}
-            <div className="bg-white border-editorial-2 rounded-2xl p-5 sm:p-6 shadow-brutal-sm flex flex-col justify-between min-h-[220px] sm:min-h-[250px]">
+            {/* Card 4: Decision making in the Dark */}
+            <div className="bg-[#74D0F6]/85 border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[220px] sm:min-h-[250px] transition-transform hover:-translate-y-1">
               <div>
-                <h3 className="text-card-heading text-base sm:text-lg text-[#111111]">
-                  Zero Real-Time Verification
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Decision making in the Dark
                 </h3>
               </div>
-              <div className="pt-4 flex justify-center">
-                <InspectSearchIconHero />
+              <div className="pt-4 flex justify-center items-center">
+                <MagnifyingSadDoodle />
               </div>
             </div>
 
           </div>
 
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION E: TRANSITION / BRAND STICKER BREAK & MOCKUP
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="solution" className="bg-[#FAF7EE] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
-        <div className="max-w-6xl mx-auto space-y-10 sm:space-y-14">
-
-          {/* Angled Sticker Banner tilted at -3deg */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-              <span className="sticker-yellow text-xl sm:text-3xl px-4 py-1 -rotate-3 shadow-brutal-sm">
+          {/* ── SECTION C: THAT'S WHERE VEYRO COMES IN (Yellow Sticker Transition & Mockup) ── */}
+          <div className="pt-12 sm:pt-20 text-center space-y-6">
+            
+            {/* Angled Yellow Sticker 1: THAT'S WHERE */}
+            <div className="inline-block transform -rotate-3">
+              <span className="bg-[#FFF490] text-[#111111] border-2 border-[#111111] font-syne font-black text-xl sm:text-3xl md:text-4xl uppercase px-5 py-1.5 rounded-lg shadow-sm">
                 THAT'S WHERE
               </span>
-              <span className="text-display-veyro text-[#111111] lowercase block my-1 sm:my-2">
-                veyro
+            </div>
+
+            {/* Giant Flowing Wordmark: veyro. */}
+            <div className="py-2">
+              <span className="font-syne font-black text-6xl sm:text-8xl md:text-9xl text-[#111111] lowercase tracking-tight block">
+                veyro<span className="text-white">.</span>
               </span>
-              <span className="sticker-yellow text-xl sm:text-3xl px-4 py-1 rotate-2 shadow-brutal-sm">
+            </div>
+
+            {/* Angled Yellow Sticker 2: COMES IN */}
+            <div className="inline-block transform rotate-2">
+              <span className="bg-[#FFF490] text-[#111111] border-2 border-[#111111] font-syne font-black text-xl sm:text-3xl md:text-4xl uppercase px-5 py-1.5 rounded-lg shadow-sm">
                 COMES IN
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-body-copy max-w-xl mx-auto pt-1">
-              Next-generation LMS engineered with server-authoritative anti-cheat, 90% video progress auditing, and tamper-proof PDF verification.
-            </p>
+
           </div>
 
-          {/* Product UI Mockup */}
-          <div className="relative bg-[#111111] border-editorial-2 rounded-3xl p-4 sm:p-7 shadow-brutal-lg overflow-hidden text-white max-w-5xl mx-auto">
-
-            {/* Top Window Bar */}
-            <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-white/15 text-xs font-mono-tag">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#ef4444] border border-black/20" />
-                <span className="w-3 h-3 rounded-full bg-[#f59e0b] border border-black/20" />
-                <span className="w-3 h-3 rounded-full bg-[#10b981] border border-black/20" />
-                <span className="ml-2 text-white/60 font-medium hidden sm:inline">veyro.lms.cloud // live-session</span>
-              </div>
+          {/* ── Slack / LMS App Window Mockup with ZigZag Doodle ── */}
+          <div className="relative pt-6 sm:pt-10 max-w-4xl mx-auto">
+            
+            {/* Top Floating Prompt Dialog */}
+            <div className="mb-3 sm:mb-4 bg-white border-2 border-[#111111] rounded-2xl p-3 sm:p-4 shadow-brutal-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left">
               <div className="flex items-center gap-3">
-                <span className="bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1.5 border border-emerald-500/30 font-body uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" /> SERVER PROCTOR ACTIVE
-                </span>
-                <span className="text-white/60 font-bold hidden md:inline">AUDIT #VY-9820</span>
-              </div>
-            </div>
-
-            {/* Prompt Card */}
-            <div className="mb-4 bg-white text-[#111111] border-editorial-2 rounded-xl p-3.5 sm:p-4 shadow-brutal-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#60C5F1] flex items-center justify-center text-[#111111] font-bold text-sm border-editorial-2">
-                  <Zap className="w-4 h-4 text-[#111111]" />
+                <div className="w-8 h-8 rounded-full bg-[#60C5F1] border-2 border-[#111111] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                  <Zap size={14} className="text-[#111111]" />
                 </div>
                 <div>
                   <p className="text-xs sm:text-sm font-bold text-[#111111]">
-                    Hey Alex, you reached <span className="text-emerald-700 font-bold">88% verified watch time</span> in Distributed Systems. Ready for the timed exam?
+                    Hey Alex, <span className="text-[#2563eb] font-bold">@Sam</span> and <span className="text-[#2563eb] font-bold">@Pat</span> are in the Distributed Systems track today. Join them?
                   </p>
-                  <p className="text-[10px] text-body-subtle mt-0.5">
-                    Zero tab violations recorded • Video audit active
-                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Automated cohort coordination • Live verified room</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Link
                   to="/courses"
-                  className="btn-sky-pill text-xs py-1.5 px-3 flex-1 sm:flex-initial text-center"
+                  className="bg-[#60C5F1] text-[#111111] border-2 border-[#111111] rounded-full px-3 py-1.5 text-xs font-bold hover:bg-[#48b8e9] transition"
                 >
-                  Take Exam Now
+                  Start Learning
                 </Link>
                 <button
                   type="button"
-                  onClick={() => toast.success('Reviewing course notes.')}
-                  className="btn-white-pill text-xs py-1.5 px-3 flex-1 sm:flex-initial text-center"
+                  onClick={() => toast.success('Passing for now.')}
+                  className="bg-white text-[#111111] border-2 border-[#111111] rounded-full px-3 py-1.5 text-xs font-bold hover:bg-slate-50 transition"
                 >
-                  Review Notes
+                  Pass
                 </button>
               </div>
             </div>
 
-            {/* Mockup Workspace Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-
-              {/* Sidebar */}
-              <div className="lg:col-span-4 bg-[#1f2024] rounded-xl p-4 border border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-white/80 font-body">CURRICULUM TRACK</span>
-                  <span className="text-[10px] bg-[#FFF490] text-[#111111] font-bold px-2 py-0.5 rounded-md font-mono-tag">84% DONE</span>
+            {/* App Window Container */}
+            <div className="relative bg-white border-2 border-[#111111] rounded-3xl shadow-brutal-lg overflow-hidden text-[#111111]">
+              
+              {/* Window Top Controls Bar */}
+              <div className="bg-[#24172f] text-white px-4 py-3 flex items-center justify-between border-b-2 border-[#111111]">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-[#EF4444] border border-black/30" />
+                  <span className="w-3 h-3 rounded-full bg-[#F59E0B] border border-black/30" />
+                  <span className="w-3 h-3 rounded-full bg-[#10B981] border border-black/30" />
+                  <span className="text-xs text-white/70 font-mono-tag ml-2 hidden sm:inline">veyro.workspace // cohort-sync</span>
                 </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="bg-[#2a2b30] p-2.5 rounded-lg border border-white/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      <div>
-                        <p className="font-bold text-white text-xs">01. Architectural Foundations</p>
-                        <p className="text-[10px] text-white/50">42 mins • 100% verified watch</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase font-body">COMPLETED</span>
-                  </div>
-
-                  <div className="bg-[#60C5F1] text-[#111111] p-2.5 rounded-lg border-editorial-2 font-bold flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-2.5">
-                      <Play className="w-4 h-4 fill-current" />
-                      <div>
-                        <p className="font-bold text-xs text-[#111111]">02. State Machines & SSR</p>
-                        <p className="text-[10px] text-[#111111]/80 font-semibold">Currently Playing • 18:24 / 22:00</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] bg-[#111111] text-white px-2 py-0.5 rounded-full font-bold font-body">LIVE</span>
-                  </div>
-
-                  <div className="bg-[#2a2b30] p-2.5 rounded-lg border border-white/10 flex items-center justify-between text-white/70">
-                    <div className="flex items-center gap-2.5">
-                      <Lock className="w-4 h-4 text-white/40" />
-                      <div>
-                        <p className="font-semibold text-white/80 text-xs">03. Server-Authoritative Quiz</p>
-                        <p className="text-[10px] text-white/40">Requires &ge;90% playback</p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-amber-400 font-bold uppercase font-body">LOCKED</span>
-                  </div>
-                </div>
-
-                <div className="bg-[#111111] p-2.5 rounded-lg border border-white/10 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="font-bold text-white/90 text-xs">Anti-Cheat Guardian</span>
-                  </div>
-                  <span className="text-emerald-400 font-bold text-xs uppercase font-body">0 VIOLATIONS</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold bg-[#60C5F1] text-[#111111] px-2.5 py-0.5 rounded-full border border-black/30">
+                    LIVE COHORT ACTIVE
+                  </span>
                 </div>
               </div>
 
-              {/* Center Panel */}
-              <div className="lg:col-span-8 bg-[#1a1b1e] rounded-xl p-4 border border-white/10 flex flex-col justify-between space-y-4">
-
-                <div className="relative aspect-[16/9] bg-black rounded-lg overflow-hidden border border-white/10 flex flex-col justify-between p-4">
-                  <img
-                    src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1000&auto=format&fit=crop&q=80"
-                    alt="Active Lesson"
-                    className="absolute inset-0 w-full h-full object-cover opacity-60"
-                  />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span className="bg-black/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/20 uppercase font-body">
-                      LESSON 02: ASYNC ROUTING
-                    </span>
-                    <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold uppercase font-body">
-                      90% AUDIT STREAMING
-                    </span>
+              {/* Window Body Grid: Sidebar + Main Schedule Canvas */}
+              <div className="grid grid-cols-1 md:grid-cols-12 min-h-[300px]">
+                
+                {/* Left Dark Sidebar */}
+                <div className="md:col-span-4 bg-[#2b1b36] p-4 text-white/80 space-y-3 border-b md:border-b-0 md:border-r-2 md:border-[#111111] text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <span className="font-syne font-bold text-white text-sm">Veyro Learning Hub</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   </div>
-
-                  <div className="relative z-10 self-center">
-                    <div className="w-12 h-12 rounded-full bg-[#FFF490] text-[#111111] border-2 border-[#111111] flex items-center justify-center shadow-brutal cursor-pointer">
-                      <Play className="w-5 h-5 fill-current ml-0.5" />
+                  <div className="space-y-1.5">
+                    <div className="bg-[#60C5F1] text-[#111111] font-bold px-2.5 py-1.5 rounded-lg flex items-center justify-between">
+                      <span># distributed-systems</span>
+                      <span className="text-[10px] bg-[#111111] text-white px-1.5 py-0.5 rounded">3 ACTIVE</span>
                     </div>
-                  </div>
-
-                  <div className="relative z-10 space-y-1.5">
-                    <div className="flex justify-between text-[10px] text-white/90 font-semibold font-body">
-                      <span>18:24 (83%)</span>
-                      <span className="text-[#FFF490] font-bold">Threshold: 90% unique playback required</span>
-                      <span>22:00</span>
+                    <div className="px-2.5 py-1.5 rounded-lg hover:bg-white/5 flex items-center justify-between text-white/70">
+                      <span># state-machines</span>
+                      <span className="text-[10px] text-white/40">12:00 PM</span>
                     </div>
-                    <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden relative">
-                      <div className="h-full bg-[#60C5F1] rounded-full" style={{ width: '83%' }} />
-                      <div className="absolute top-0 bottom-0 left-[90%] w-0.5 bg-[#FFF490] z-20" />
+                    <div className="px-2.5 py-1.5 rounded-lg hover:bg-white/5 flex items-center justify-between text-white/70">
+                      <span># proctor-audits</span>
+                      <span className="text-[10px] text-emerald-400 font-bold">100% PASS</span>
+                    </div>
+                    <div className="px-2.5 py-1.5 rounded-lg hover:bg-white/5 flex items-center justify-between text-white/70">
+                      <span># cert-ledger</span>
+                      <span className="text-[10px] text-[#FFF490] font-bold">8 ISSUED</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Bottom Strip */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1 font-body">
-                  <div className="bg-[#24252a] p-2.5 rounded-lg border border-white/10">
-                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Cryptographic Stamp</p>
-                    <p className="font-bold text-white font-mono-tag mt-0.5 text-xs">HASH #VY-7819-B</p>
+                {/* Main Workspace Area */}
+                <div className="md:col-span-8 p-5 sm:p-6 bg-[#FAF7EE] flex flex-col justify-between space-y-4 text-left">
+                  
+                  {/* Schedule Header & Status Chips */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-syne font-bold text-base sm:text-lg text-[#111111]">
+                        Monday, 23 September
+                      </span>
+                      <span className="text-xs bg-[#FFF490] text-[#111111] border-2 border-[#111111] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                        TODAY
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="bg-[#60C5F1] border-2 border-[#111111] rounded-lg px-2.5 py-1 font-bold text-[#111111] flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" /> In Progress (84%)
+                      </span>
+                      <span className="bg-white border-2 border-[#111111] rounded-lg px-2.5 py-1 font-bold text-[#111111]">
+                        18/20 Lessons Verified
+                      </span>
+                      <span className="bg-[#FFF490] border-2 border-[#111111] rounded-lg px-2.5 py-1 font-bold text-[#111111]">
+                        Exam Unlocked
+                      </span>
+                    </div>
                   </div>
-                  <div className="bg-[#24252a] p-2.5 rounded-lg border border-white/10">
-                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Assessment Timer</p>
-                    <p className="font-bold text-emerald-400 mt-0.5 text-xs">Server Authoritative</p>
+
+                  {/* Floating Live Status Comment Bubble */}
+                  <div className="bg-white border-2 border-[#111111] rounded-2xl p-3.5 shadow-xs flex items-center gap-3">
+                    <img
+                      src={AVATARS.dennis}
+                      alt="Dennis"
+                      className="w-9 h-9 rounded-full object-cover border-2 border-[#111111] flex-shrink-0"
+                    />
+                    <div className="text-xs">
+                      <p className="font-bold text-[#111111]">
+                        Dennis Ross reached 94% verified playback in Lesson 03.
+                      </p>
+                      <p className="text-[10px] text-slate-500">Timed server assessment is ready to take • 0 violations</p>
+                    </div>
                   </div>
-                  <div className="bg-[#24252a] p-2.5 rounded-lg border border-white/10">
-                    <p className="text-[9px] text-white/50 font-bold uppercase tracking-wider">Vector PDF Generation</p>
-                    <p className="font-bold text-[#FFF490] mt-0.5 text-xs">Instant Verification</p>
+
+                  {/* Quick Action Footer */}
+                  <div className="pt-2 flex items-center justify-between text-xs font-bold">
+                    <span className="text-slate-600 font-semibold">Cohort Room: Live stream active</span>
+                    <Link
+                      to="/courses"
+                      className="text-[#111111] hover:underline flex items-center gap-1"
+                    >
+                      Take Timed Assessment ↗
+                    </Link>
                   </div>
+
                 </div>
 
               </div>
 
             </div>
 
-            {/* Alert Bubble */}
-            <div className="mt-4 bg-[#FAF7EE] text-[#111111] border-editorial-2 rounded-xl p-3.5 sm:p-4 shadow-brutal-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#FFF490] flex items-center justify-center font-bold text-sm border-editorial-2">
-                  <FileCheck className="w-4 h-4 text-[#111111]" />
-                </div>
-                <p className="text-xs sm:text-sm font-bold text-[#111111]">
-                  Tamper-proof <span className="font-bold text-[#2563eb]">Certificate #VY-8921</span> issued to Sarah Jenkins. Cryptographic hash verified on ledger.
+            {/* Hand-Drawn Squiggly Swoop Arrow on the Right */}
+            <div className="absolute -bottom-8 -right-4 sm:-right-10 pointer-events-none hidden sm:block">
+              <ZigZagSwoopDoodle />
+            </div>
+
+          </div>
+
+          {/* ── 4 Yellow Benefit Cards with Hand-Drawn Line Doodles ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 pt-8 sm:pt-14 text-left">
+            
+            {/* Card 1: Increases Visibility */}
+            <div className="bg-[#FFF490] border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-transform hover:-translate-y-1">
+              <div>
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Increases Visibility
+                </h3>
+                <p className="text-xs text-slate-700 mt-1">
+                  Real-time telemetry on active learning and completion rates.
                 </p>
               </div>
+              <div className="pt-3 flex justify-center items-center">
+                <GlassesDoodle />
+              </div>
+            </div>
+
+            {/* Card 2: Enables Smart Coordination */}
+            <div className="bg-[#FFF490] border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-transform hover:-translate-y-1">
+              <div>
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Enables Smart Coordination
+                </h3>
+                <p className="text-xs text-slate-700 mt-1">
+                  Automated cohort study pairing and peer evaluation milestones.
+                </p>
+              </div>
+              <div className="pt-3 flex justify-center items-center">
+                <SmartCoordinationDoodle />
+              </div>
+            </div>
+
+            {/* Card 3: Optimises Office / Learning Utilisation */}
+            <div className="bg-[#FFF490] border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-transform hover:-translate-y-1">
+              <div>
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Optimises Office Utilisation
+                </h3>
+                <p className="text-xs text-slate-700 mt-1">
+                  Streamlined course completion with guaranteed verified watch-time.
+                </p>
+              </div>
+              <div className="pt-3 flex justify-center items-center">
+                <ClockGaugeDoodle />
+              </div>
+            </div>
+
+            {/* Card 4: Strengthens Work Culture */}
+            <div className="bg-[#FFF490] border-2 border-[#111111] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between min-h-[200px] sm:min-h-[220px] transition-transform hover:-translate-y-1">
+              <div>
+                <h3 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                  Strengthens Work Culture
+                </h3>
+                <p className="text-xs text-slate-700 mt-1">
+                  Certified credentials and shared mastery that teams celebrate.
+                </p>
+              </div>
+              <div className="pt-3 flex justify-center items-center">
+                <SteamingCupDoodle />
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── Social Proof & Crosshair Logo Grid (Still on Sky Blue #60C5F1) ── */}
+          <div className="pt-14 sm:pt-20 space-y-8 sm:space-y-10 text-left">
+            
+            {/* Headline with Orange Sticker Badge */}
+            <div className="space-y-2">
+              <h3 className="font-syne font-black text-2xl sm:text-4xl md:text-5xl text-[#111111] uppercase tracking-tight leading-[1.08] max-w-3xl">
+                HELPING{' '}
+                <span className="inline-block bg-[#FF6B4A] text-white border-2 border-[#111111] px-3 sm:px-4 py-0.5 rounded-lg -rotate-2 font-syne font-black text-2xl sm:text-4xl shadow-xs mx-1">
+                  1,000'S
+                </span>{' '}
+                FLEXIBLE COMPANIES AVOID OFFICE MANDATES
+              </h3>
+            </div>
+
+            {/* 6-Cell Crosshair Logo Grid */}
+            <div className="border-t-2 border-b-2 border-[#111111] grid grid-cols-2 md:grid-cols-3 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#111111]">
+              
+              {/* Row 1, Col 1: Adaptavist */}
+              <div className="p-6 sm:p-8 flex items-center justify-center gap-2.5 font-bold text-base sm:text-lg text-[#111111]">
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#111111" strokeWidth="2" fill="none" />
+                </svg>
+                <span className="font-syne tracking-tight">Adaptavist</span>
+              </div>
+
+              {/* Row 1, Col 2: marshmallow */}
+              <div className="p-6 sm:p-8 flex items-center justify-center gap-2 font-bold text-base sm:text-lg text-[#111111] border-l-2 md:border-l-0 border-[#111111]">
+                <div className="w-4 h-4 bg-[#111111] rounded-sm" />
+                <span className="tracking-tight lowercase font-bold">marshmallow</span>
+              </div>
+
+              {/* Row 1, Col 3: ultra ninja */}
+              <div className="col-span-2 md:col-span-1 p-6 sm:p-8 flex items-center justify-center gap-2.5 font-bold text-base sm:text-lg text-[#111111] border-t-2 md:border-t-0 border-[#111111]">
+                <div className="w-5 h-5 rounded-full bg-[#111111] text-white flex items-center justify-center text-[10px] font-black">
+                  🥷
+                </div>
+                <span className="font-mono-tag tracking-wider text-sm sm:text-base lowercase font-bold">ultra ninja</span>
+              </div>
+
+            </div>
+
+            <div className="border-b-2 border-[#111111] grid grid-cols-2 md:grid-cols-3 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#111111] -mt-8 sm:-mt-10">
+              
+              {/* Row 2, Col 1: Lemonade */}
+              <div className="p-6 sm:p-8 flex items-center justify-center font-serif italic text-xl sm:text-2xl text-[#111111] font-bold">
+                <span>Lemonade</span>
+              </div>
+
+              {/* Row 2, Col 2: Bolt */}
+              <div className="p-6 sm:p-8 flex items-center justify-center gap-1.5 font-syne font-black text-xl sm:text-2xl text-[#111111] border-l-2 md:border-l-0 border-[#111111]">
+                <span className="text-amber-500">⚡</span>
+                <span className="tracking-tighter uppercase">Bolt</span>
+              </div>
+
+              {/* Row 2, Col 3: Remote */}
+              <div className="col-span-2 md:col-span-1 p-6 sm:p-8 flex items-center justify-center font-serif text-lg sm:text-xl text-[#111111] font-bold border-t-2 md:border-t-0 border-[#111111]">
+                <span className="tracking-wide">Remote</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          SECTION D: SEAMLESS INTEGRATION (Cream #FAF7EE)
+          ═══════════════════════════════════════════════════════════════════════ */}
+      <section id="solution" className="reveal-section bg-[#FAF7EE] py-16 sm:py-24 px-4 sm:px-8 lg:px-14 border-editorial-b relative">
+        <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
+
+          {/* Top Headline + Integrations Pill Button */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <h2 className="font-syne font-black text-3xl sm:text-5xl md:text-6xl text-[#111111] uppercase tracking-tight leading-[1.02] max-w-2xl">
+              VEYRO WILL <br />
+              INTEGRATE WITH <br />
+              YOUR WORK <br />
+              SEAMLESSLY.
+            </h2>
+
+            <div>
               <Link
-                to="/verify/VY-DEMO-2026"
-                className="btn-dark-pill text-xs py-1.5 px-3.5 flex-shrink-0"
+                to="/courses"
+                className="bg-[#60C5F1] text-[#111111] border-2 border-[#111111] rounded-full px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider hover:bg-[#48b8e9] transition shadow-xs inline-flex items-center gap-2"
               >
-                Inspect Ledger ↗
+                <span>+ INTEGRATIONS DIRECTORY</span>
               </Link>
             </div>
-
           </div>
 
-        </div>
-      </section>
+          {/* 2-Column Layout: Visual Card on Left + 4-Row Matrix on Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left Column: Modern Learning Visual Card with Sticker Overlays */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative rounded-3xl border-2 border-[#111111] overflow-hidden bg-white shadow-brutal">
+                <img
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&auto=format&fit=crop&q=80"
+                  alt="Student Collaborating"
+                  className="w-full aspect-[4/3] object-cover"
+                />
 
+                {/* Top-Left Yellow Sticker */}
+                <div className="absolute top-4 left-4">
+                  <span className="bg-[#FFF490] text-[#111111] border-2 border-[#111111] rounded-lg px-2.5 py-1 text-[11px] font-syne font-black uppercase shadow-xs">
+                    ⚡ LIVE COHORT
+                  </span>
+                </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION F: LOGO CLOUD / TECH STACK TRUST GRID
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#60C5F1] py-12 sm:py-16 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
-        <div className="max-w-6xl mx-auto space-y-8 sm:space-y-10">
+                {/* Bottom-Left Purple Pill */}
+                <div className="absolute bottom-4 left-4">
+                  <span className="bg-[#a855f7] text-white border-2 border-[#111111] rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-xs flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" /> 90% VERIFIED STREAM
+                  </span>
+                </div>
 
-          {/* Header */}
-          <div className="max-w-3xl">
-            <h2 className="font-syne font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#111111] uppercase tracking-tight leading-tight">
-              BUILT FOR ACCREDITED DISTANCE LEARNING EXPERIENCES
-            </h2>
-          </div>
+                {/* Bottom-Right White Check Tag */}
+                <div className="absolute bottom-4 right-4 bg-white border-2 border-[#111111] rounded-xl px-2.5 py-1 text-[10px] font-bold shadow-xs">
+                  AUDIT #VY-8920 OK
+                </div>
+              </div>
+            </div>
 
-          {/* 6-Cell Bordered Grid (2x3) */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            {[
-              { name: 'React 19', symbol: 'React 19' },
-              { name: 'Node.js', symbol: 'Node.js' },
-              { name: 'Express', symbol: 'Express' },
-              { name: 'MongoDB Atlas', symbol: 'MongoDB Atlas' },
-              { name: 'PDFKit Crypto', symbol: 'PDFKit Crypto' },
-              { name: 'Tailwind CSS', symbol: 'Tailwind CSS' },
-            ].map((tech, idx) => (
-              <div
-                key={idx}
-                className="bg-[#E8F5FD] hover:bg-white border-editorial-2 rounded-xl p-5 sm:p-6 flex items-center justify-center text-center shadow-brutal-sm transition-colors"
+            {/* Right Column: 4-Row Numbered Interactive List with Diagonal Arrows */}
+            <div className="lg:col-span-7 divide-y-2 divide-[#111111] border-y-2 border-[#111111] relative">
+              
+              {/* Row 1 */}
+              <div 
+                onClick={() => setActiveAccordion(0)}
+                className={`py-5 px-3 sm:px-4 cursor-pointer transition-colors ${activeAccordion === 0 ? 'bg-[#FFF490]/40' : 'hover:bg-black/5'} flex items-start justify-between gap-4`}
               >
-                <span className="font-syne font-bold text-base sm:text-xl text-[#111111] tracking-tight">
-                  {tech.symbol}
+                <div className="flex items-start gap-4">
+                  <span className="font-syne font-black text-lg sm:text-xl text-[#111111] w-6 flex-shrink-0">
+                    1
+                  </span>
+                  <div>
+                    <h4 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                      See who is in and what's going on in the Learning Track
+                    </h4>
+                    <p className={`text-xs text-slate-600 mt-1 leading-relaxed ${activeAccordion === 0 ? 'block' : 'hidden sm:block'}`}>
+                      Instant visibility into active student streams, proctored assessments, and completion rates.
+                    </p>
+                  </div>
+                </div>
+                <span className="font-syne font-black text-xl text-[#111111] flex-shrink-0">
+                  {activeAccordion === 0 ? '↙' : '↗'}
                 </span>
               </div>
-            ))}
-          </div>
 
-        </div>
-      </section>
-
-
-      {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION G: INTERACTIVE / WALKTHROUGH SHOWCASE (Split Layout)
-          ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FAF7EE] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
-        <div className="max-w-6xl mx-auto space-y-10 sm:space-y-14">
-
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="max-w-2xl">
-              <h2 className="font-syne font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#111111] uppercase tracking-tight leading-tight">
-                VEYRO FITS INTO YOUR LEARNING JOURNEY SEAMLESSLY.
-              </h2>
-            </div>
-            <Link
-              to="/courses"
-              className="btn-sky-pill self-start sm:self-auto"
-            >
-              <span>DISCOVER HOW IT WORKS →</span>
-            </Link>
-          </div>
-
-          {/* Split Layout: App Preview Left + Numbered Accordion Right */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-
-            {/* Side 1: App screenshot preview inside frame */}
-            <div className="lg:col-span-5 relative">
-              <div className="bg-[#60C5F1] border-editorial-2 rounded-2xl p-4 shadow-brutal relative overflow-hidden">
-                <div className="rounded-xl overflow-hidden border-editorial aspect-[4/3] relative bg-black">
-                  <img
-                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80"
-                    alt="Cohort Learning Session"
-                    className="w-full h-full object-cover opacity-90"
-                  />
-                  {/* Floating badge 1 */}
-                  <div className="absolute top-3 left-3 status-pill shadow-sm">
-                    <span className="text-[9px] font-bold uppercase text-[#1E293B]/70">STUDENT</span>
-                    <span className="font-bold text-xs">Leila Chen</span>
-                    <img src={AVATARS.leila} alt="Leila" className="w-5 h-5 rounded-full border border-black" />
-                  </div>
-                  {/* Floating badge 2 */}
-                  <div className="absolute bottom-3 right-3 status-pill shadow-sm">
-                    <span className="text-[9px] font-bold uppercase text-[#1E293B]/70">INSTRUCTOR</span>
-                    <span className="font-bold text-xs">Devin Bennett</span>
-                    <img src={AVATARS.david} alt="Devin" className="w-5 h-5 rounded-full border border-black" />
-                  </div>
-                </div>
-                <div className="mt-2.5 text-center">
-                  <p className="text-[10px] font-bold text-[#111111] uppercase tracking-wider font-body">
-                    ACCREDITED PEER ASSESSMENT & PROCTORING
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Side 2: Numbered vertical accordion/tabs 1, 2, 3, 4 */}
-            <div className="lg:col-span-7 space-y-3">
-              {[
-                {
-                  num: '1',
-                  title: "Discover a Course and Enroll Instantly",
-                  desc: "Browse curated technical tracks across backend, frontend, devops, and security with interactive curriculum syllabi and instant enrollment."
-                },
-                {
-                  num: '2',
-                  title: "Learn Through Verified 90% Playback Streaming",
-                  desc: "Granular HTML5 timeupdate auditing ensures students stream at least 90% unique playback before unlocking assessments. Zero skipping, zero fake completions."
-                },
-                {
-                  num: '3',
-                  title: "Complete Server-Guarded Timed Assessments",
-                  desc: "Timers run strictly server-side, immune to client DOM tampering. Automatic question permutation and live tab-violation triggers lock down cheat vectors."
-                },
-                {
-                  num: '4',
-                  title: "Earn & Publicly Verify Tamper-Proof Credentials",
-                  desc: "Instant on-the-fly programmatic PDF generation with unique cryptographic hashes stamped on every document, verifiable via zero-auth public portals."
-                }
-              ].map((step, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setActiveAccordion(idx)}
-                  className={`border-editorial-2 rounded-xl p-4 sm:p-5 transition-colors cursor-pointer ${activeAccordion === idx
-                    ? 'bg-white shadow-brutal-sm'
-                    : 'bg-[#FAF7EE] hover:bg-white'
-                    }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm border-editorial-2 font-body ${activeAccordion === idx ? 'bg-[#60C5F1] text-[#111111]' : 'bg-[#FAF7EE] text-gray-700'
-                      }`}>
-                      {step.num}
-                    </span>
-                    <h3 className="text-card-heading text-sm sm:text-base text-[#111111] flex-1">
-                      {step.title}
-                    </h3>
-                    <span className="text-base font-bold text-gray-600 font-body">
-                      {activeAccordion === idx ? '−' : '+'}
-                    </span>
-                  </div>
-                  {activeAccordion === idx && (
-                    <p className="text-xs text-body-copy mt-2.5 pl-12 leading-relaxed">
-                      {step.desc}
+              {/* Row 2 */}
+              <div 
+                onClick={() => setActiveAccordion(1)}
+                className={`py-5 px-3 sm:px-4 cursor-pointer transition-colors ${activeAccordion === 1 ? 'bg-[#FFF490]/40' : 'hover:bg-black/5'} flex items-start justify-between gap-4`}
+              >
+                <div className="flex items-start gap-4">
+                  <span className="font-syne font-black text-lg sm:text-xl text-[#111111] w-6 flex-shrink-0">
+                    2
+                  </span>
+                  <div>
+                    <h4 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                      Effortless collaboration through automated Suggestions
+                    </h4>
+                    <p className={`text-xs text-slate-600 mt-1 leading-relaxed ${activeAccordion === 1 ? 'block' : 'hidden sm:block'}`}>
+                      Sync cohort study groups and auto-schedule proctored peer evaluations.
                     </p>
-                  )}
+                  </div>
                 </div>
-              ))}
+                <span className="font-syne font-black text-xl text-[#111111] flex-shrink-0">
+                  {activeAccordion === 1 ? '↙' : '↗'}
+                </span>
+              </div>
+
+              {/* Row 3 */}
+              <div 
+                onClick={() => setActiveAccordion(2)}
+                className={`py-5 px-3 sm:px-4 cursor-pointer transition-colors ${activeAccordion === 2 ? 'bg-[#FFF490]/40' : 'hover:bg-black/5'} flex items-start justify-between gap-4`}
+              >
+                <div className="flex items-start gap-4">
+                  <span className="font-syne font-black text-lg sm:text-xl text-[#111111] w-6 flex-shrink-0">
+                    3
+                  </span>
+                  <div>
+                    <h4 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                      Revitalise your Skill Culture with certified credentials
+                    </h4>
+                    <p className={`text-xs text-slate-600 mt-1 leading-relaxed ${activeAccordion === 2 ? 'block' : 'hidden sm:block'}`}>
+                      Issue verifiable cryptographically backed certificates your team and recruiters trust.
+                    </p>
+                  </div>
+                </div>
+                <span className="font-syne font-black text-xl text-[#111111] flex-shrink-0">
+                  {activeAccordion === 2 ? '↙' : '↗'}
+                </span>
+              </div>
+
+              {/* Row 4 */}
+              <div 
+                onClick={() => setActiveAccordion(3)}
+                className={`py-5 px-3 sm:px-4 cursor-pointer transition-colors ${activeAccordion === 3 ? 'bg-[#FFF490]/40' : 'hover:bg-black/5'} flex items-start justify-between gap-4`}
+              >
+                <div className="flex items-start gap-4">
+                  <span className="font-syne font-black text-lg sm:text-xl text-[#111111] w-6 flex-shrink-0">
+                    4
+                  </span>
+                  <div>
+                    <h4 className="font-syne font-bold text-base sm:text-lg text-[#111111] leading-snug">
+                      Understand how Course Content is being used
+                    </h4>
+                    <p className={`text-xs text-slate-600 mt-1 leading-relaxed ${activeAccordion === 3 ? 'block' : 'hidden sm:block'}`}>
+                      Deep telemetry on playback retention, quiz difficulty curves, and dropout bottlenecks.
+                    </p>
+                  </div>
+                </div>
+                <span className="font-syne font-black text-xl text-[#111111] flex-shrink-0">
+                  {activeAccordion === 3 ? '↙' : '↗'}
+                </span>
+              </div>
+
             </div>
 
           </div>
@@ -1093,27 +1199,25 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION H: THREE SIMPLE STEPS
+          SECTION E: THREE SIMPLE STEPS (Warm Olive Sand #D8D1BE)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section id="steps" className="bg-[#FAF7EE] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
+      <section id="steps" className="reveal-section bg-[#D8D1BE] py-16 sm:py-24 px-4 sm:px-8 lg:px-14 border-editorial-b relative">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
             {/* Left Column */}
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <h2 className="font-syne font-extrabold text-3xl sm:text-5xl text-[#111111] uppercase tracking-tight leading-[1.02]">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-syne font-black text-3xl sm:text-5xl md:text-6xl text-[#111111] uppercase tracking-tight leading-[1.02]">
                     THREE <br />
                     SIMPLE <br />
                     STEPS
                   </h2>
-                  <div className="hidden sm:inline-block">
-                    <ArrowRightHandDrawnHero />
-                  </div>
+                  <CurvedStepsArrow />
                 </div>
-                <p className="text-xs sm:text-sm text-body-copy">
-                  Getting certified on Veyro is transparent, rigorous, and fast.
+                <p className="text-xs sm:text-sm text-slate-800 leading-relaxed max-w-md">
+                  Getting certified on Veyro is transparent, rigorous, and automated from your first stream to ledger verification.
                 </p>
               </div>
 
@@ -1125,38 +1229,38 @@ export default function LandingPage() {
                   </span>
                   <div>
                     <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                      Choose your learning path
+                      1. Choose what you want to master
                     </h4>
-                    <p className="text-xs text-body-copy mt-0.5 leading-relaxed">
-                      Select your specialized curriculum in frontend, backend, or cloud architecture.
+                    <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
+                      Select your specialized curriculum in full-stack, distributed systems, or cloud architecture.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-3.5 items-start">
-                  <span className="w-8 h-8 rounded-full bg-[#60C5F1] text-[#111111] border-editorial-2 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm font-body">
+                  <span className="w-8 h-8 rounded-full bg-[#60C5F1] text-[#111111] border-2 border-[#111111] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm font-body">
                     02
                   </span>
                   <div>
                     <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                      Complete verified learning & assessments
+                      2. Learn with verified anti-cheat streaming
                     </h4>
-                    <p className="text-xs text-body-copy mt-0.5 leading-relaxed">
+                    <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
                       Stream verified 90% video playback and pass timed assessments with zero tab violations.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex gap-3.5 items-start">
-                  <span className="w-8 h-8 rounded-full bg-[#FFF490] text-[#111111] border-editorial-2 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm font-body">
+                  <span className="w-8 h-8 rounded-full bg-[#FFF490] text-[#111111] border-2 border-[#111111] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm font-body">
                     03
                   </span>
                   <div>
                     <h4 className="text-card-heading text-sm sm:text-base text-[#111111]">
-                      Earn your certificate
+                      3. Earn your tamper-proof certificate
                     </h4>
-                    <p className="text-xs text-body-copy mt-0.5 leading-relaxed">
-                      Download your tamper-proof vector PDF stamped with an immutable verification code.
+                    <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
+                      Download your vector PDF certificate stamped with an immutable cryptographic verification hash.
                     </p>
                   </div>
                 </div>
@@ -1165,46 +1269,30 @@ export default function LandingPage() {
               <div className="pt-2">
                 <Link
                   to="/register"
-                  className="btn-sky-pill shadow-brutal-sm"
+                  className="bg-[#60C5F1] text-[#111111] border-2 border-[#111111] rounded-full px-6 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider hover:bg-[#48b8e9] transition shadow-xs inline-flex items-center gap-2"
                 >
-                  Start Step 01 Now ↗
+                  <span>+ START STEP 01 NOW</span>
                 </Link>
               </div>
             </div>
 
-            {/* Right Column: Premium Realistic iPhone Device Mockup */}
+            {/* Right Column: Sleek Device Workspace Mockup */}
             <div className="lg:col-span-6 flex justify-center items-center py-4">
-              <div className="relative w-full max-w-[325px] sm:max-w-[345px]">
+              <div className="relative w-full max-w-[340px] sm:max-w-[360px]">
 
-                {/* Realistic ambient soft glow behind phone */}
-                <div className="absolute -inset-6 bg-gradient-to-tr from-[#60C5F1]/30 via-[#FFF490]/35 to-[#60C5F1]/20 rounded-[64px] blur-2xl -z-10 pointer-events-none" />
+                <div className="relative rounded-[46px] p-[3px] bg-gradient-to-b from-[#5c5c60] via-[#242426] to-[#3a3a3c] shadow-brutal-lg">
+                  <div className="rounded-[43px] p-[8px] bg-[#0c0d0f]">
+                    <div className="rounded-[36px] overflow-hidden bg-[#FAF7EE] relative flex flex-col justify-between min-h-[560px] p-4 sm:p-5 text-[#111111] space-y-3.5 border border-black/10">
 
-                {/* iPhone Outer Titanium Chassis with Sleek Metallic Edge */}
-                <div className="relative rounded-[50px] p-[3px] bg-gradient-to-b from-[#5c5c60] via-[#242426] to-[#3a3a3c] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.45),0_10px_20px_-5px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)]">
-
-                  {/* Subtle Side Button Accents (Left Volume & Right Power) */}
-                  <div className="absolute -left-[5px] top-[100px] w-[3px] h-[36px] bg-[#3a3a3c] rounded-l-sm" />
-                  <div className="absolute -left-[5px] top-[145px] w-[3px] h-[36px] bg-[#3a3a3c] rounded-l-sm" />
-                  <div className="absolute -right-[5px] top-[115px] w-[3px] h-[52px] bg-[#3a3a3c] rounded-r-sm" />
-
-                  {/* Ultra-thin Inner Bezel & Display Screen */}
-                  <div className="rounded-[47px] p-[8px] bg-[#0c0d0f] shadow-[inset_0_0_4px_rgba(255,255,255,0.1)]">
-                    <div className="rounded-[40px] overflow-hidden bg-[#FAF7EE] relative shadow-[inset_0_0_12px_rgba(0,0,0,0.15)] flex flex-col justify-between min-h-[580px] p-4 sm:p-5 text-[#111111] space-y-3.5">
-
-                      {/* Native iOS Status Bar & Dynamic Island */}
+                      {/* Top iOS Bar */}
                       <div className="flex items-center justify-between pt-1 pb-1 relative z-20">
-                        {/* Left: iOS Time */}
                         <span className="text-[12px] font-semibold text-[#111111] tracking-tight pl-2">
                           9:41
                         </span>
-
-                        {/* Center: Dynamic Island */}
-                        <div className="w-[100px] h-[24px] bg-black rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.4)] flex items-center justify-between px-2.5 mx-auto">
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#1c1c28] ring-1 ring-white/10" />
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#0a0a14] opacity-80" />
+                        <div className="w-[90px] h-[22px] bg-black rounded-full flex items-center justify-between px-2.5 mx-auto">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#1c1c28]" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#0a0a14]" />
                         </div>
-
-                        {/* Right: Native iOS Status Glyphs */}
                         <div className="flex items-center gap-1.5 pr-2 text-[#111111]">
                           <IosSignalIcon />
                           <IosWifiIcon />
@@ -1212,81 +1300,80 @@ export default function LandingPage() {
                         </div>
                       </div>
 
-                      {/* App Header */}
+                      {/* Veyro Pro Header */}
                       <div className="flex items-center justify-between pt-1">
-                        <span className="font-syne font-extrabold text-xl lowercase text-[#111111]">
+                        <span className="font-syne font-black text-xl lowercase text-[#111111]">
                           veyro<span className="text-[#60C5F1]">.</span>
                         </span>
-                        <span className="status-pill text-[10px] py-0.5 px-2 font-bold shadow-sm">
+                        <span className="text-[10px] font-bold bg-[#FFF490] border border-[#111111] px-2 py-0.5 rounded-full uppercase">
                           PRO LEARNER
                         </span>
                       </div>
 
-                      {/* Course Active Module Card */}
-                      <div className="bg-[#60C5F1] border-editorial-2 rounded-2xl p-4 shadow-brutal-sm space-y-2.5">
+                      {/* Active Learning Track Module */}
+                      <div className="bg-[#60C5F1] border-2 border-[#111111] rounded-2xl p-4 shadow-xs space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111111] text-white px-2 py-0.5 rounded-full font-body">
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111111] text-white px-2 py-0.5 rounded-full">
                             CURRENT MODULE
                           </span>
                           <span className="text-[10px] font-bold text-[#111111] font-mono-tag">
                             LESSON 7/9
                           </span>
                         </div>
-                        <h4 className="text-card-heading text-sm text-[#111111]">
-                          Full-Stack Distributed Systems
+                        <h4 className="font-syne font-bold text-sm text-[#111111]">
+                          Distributed Systems Architecture
                         </h4>
                         <div className="space-y-1">
-                          <div className="w-full bg-white/50 h-2.5 rounded-full overflow-hidden border border-black/15">
+                          <div className="w-full bg-white/60 h-2.5 rounded-full overflow-hidden border border-black/15">
                             <div className="bg-[#111111] h-full rounded-full" style={{ width: '84%' }} />
                           </div>
-                          <div className="flex justify-between text-[10px] font-bold text-[#111111] font-body">
+                          <div className="flex justify-between text-[10px] font-bold text-[#111111]">
                             <span>Progress: 84%</span>
                             <span>90% Threshold Required</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Anti-Cheat Badge */}
-                      <div className="bg-white border-editorial-2 rounded-xl p-3 flex items-center gap-3 shadow-brutal-sm">
+                      {/* Proctor Guard Ready Status */}
+                      <div className="bg-white border-2 border-[#111111] rounded-xl p-3 flex items-center gap-3 shadow-xs">
                         <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 border border-emerald-600/30">
                           <ShieldCheck className="w-4 h-4 text-emerald-700" />
                         </div>
                         <div>
                           <p className="text-xs font-bold leading-none text-[#111111]">Assessment Ready</p>
-                          <p className="text-[10px] text-body-subtle mt-0.5">Server Proctor Guard Armed (0 Violations)</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">Server Proctor Armed (0 Violations)</p>
                         </div>
                       </div>
 
-                      {/* Issued Certificate Pill */}
-                      <div className="bg-[#FFF490] border-editorial-2 rounded-xl p-3 flex items-center justify-between shadow-brutal-sm">
+                      {/* Verified Certificate Badge */}
+                      <div className="bg-[#FFF490] border-2 border-[#111111] rounded-xl p-3 flex items-center justify-between shadow-xs">
                         <div className="flex items-center gap-2">
                           <Award className="w-4 h-4 text-[#111111]" />
                           <span className="text-xs font-bold text-[#111111]">Certificate #VY-8921</span>
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111111] text-white px-2 py-0.5 rounded-full font-body">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[#111111] text-white px-2 py-0.5 rounded-full">
                           VERIFIED
                         </span>
                       </div>
 
-                      {/* Mobile CTA */}
+                      {/* Action Button */}
                       <div className="pt-1">
                         <Link
                           to="/courses"
-                          className="w-full btn-dark-pill text-center block text-xs py-2.5 shadow-brutal-sm"
+                          className="w-full bg-[#111111] text-white border-2 border-[#111111] text-center block text-xs font-bold py-2.5 rounded-full hover:bg-black transition shadow-xs uppercase tracking-wider"
                         >
                           Resume Study Session ↗
                         </Link>
                       </div>
 
-                      {/* iOS Home Indicator Bar */}
-                      <div className="pt-2">
+                      <div className="pt-1">
                         <div className="w-32 h-1 bg-[#111111]/25 rounded-full mx-auto" />
                       </div>
 
                     </div>
                   </div>
-
                 </div>
+
               </div>
             </div>
 
@@ -1296,13 +1383,12 @@ export default function LandingPage() {
 
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          SECTION I: FINAL CALL TO ACTION (Butter Yellow Panel)
+          SECTION F: FINAL CTA (Butter Yellow Panel)
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-[#FAF7EE] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
+      <section className="reveal-section bg-[#FAF7EE] py-14 sm:py-20 px-4 sm:px-8 lg:px-12 border-editorial-b relative">
         <div className="max-w-4xl mx-auto">
           <div className="bg-[#FFF490] border-editorial-2 rounded-3xl p-8 sm:p-14 shadow-brutal text-center space-y-6 relative overflow-hidden">
 
-            {/* Top Badge with Sparkle */}
             <div className="inline-flex items-center gap-2">
               <span className="sticker-yellow bg-white text-xs px-3.5 py-1">
                 START YOUR VERIFIED JOURNEY TODAY
@@ -1311,7 +1397,7 @@ export default function LandingPage() {
             </div>
 
             <h2 className="text-display-section text-[#111111] max-w-2xl mx-auto">
-              READY TO MAKE ONLINE LEARNING REALLY WORK?
+              READY TO MAKE FLEXIBLE LEARNING REALLY WORK?
             </h2>
 
             <p className="text-xs sm:text-sm text-body-copy max-w-lg mx-auto leading-relaxed">

@@ -12,9 +12,12 @@ const generateCertificate = async ({ studentName, courseTitle, completedAt, veri
   return new Promise((resolve, reject) => {
     const filename = `${verificationCode}.pdf`;
     const certDir = path.join(UPLOAD_ROOT, 'certificates');
+    if (!fs.existsSync(certDir)) {
+      fs.mkdirSync(certDir, { recursive: true });
+    }
     const filePath = path.join(certDir, filename);
 
-    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 50 });
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 40 });
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
 
@@ -32,19 +35,19 @@ const generateCertificate = async ({ studentName, courseTitle, completedAt, veri
       .fillColor('#f59e0b')
       .fontSize(36)
       .font('Helvetica-Bold')
-      .text('Certificate of Completion', 0, 80, { align: 'center' });
+      .text('Certificate of Completion', 0, 75, { align: 'center' });
 
     // Subtitle
     doc
       .fillColor('#94a3b8')
       .fontSize(14)
       .font('Helvetica')
-      .text('Veyro Online Distance Education Portal', 0, 130, { align: 'center' });
+      .text('Veyro Online Distance Education Portal', 0, 125, { align: 'center' });
 
     // Divider
     doc
-      .moveTo(100, 160)
-      .lineTo(doc.page.width - 100, 160)
+      .moveTo(100, 155)
+      .lineTo(doc.page.width - 100, 155)
       .lineWidth(1)
       .stroke('#334155');
 
@@ -53,25 +56,25 @@ const generateCertificate = async ({ studentName, courseTitle, completedAt, veri
       .fillColor('#e2e8f0')
       .fontSize(16)
       .font('Helvetica')
-      .text('This is to certify that', 0, 185, { align: 'center' });
+      .text('This is to certify that', 0, 180, { align: 'center' });
 
     doc
       .fillColor('#ffffff')
       .fontSize(32)
       .font('Helvetica-Bold')
-      .text(studentName, 0, 215, { align: 'center' });
+      .text(studentName, 0, 210, { align: 'center' });
 
     doc
       .fillColor('#e2e8f0')
       .fontSize(16)
       .font('Helvetica')
-      .text('has successfully completed the course', 0, 265, { align: 'center' });
+      .text('has successfully completed the course', 0, 260, { align: 'center' });
 
     doc
       .fillColor('#f59e0b')
       .fontSize(22)
       .font('Helvetica-Bold')
-      .text(courseTitle, 0, 295, { align: 'center' });
+      .text(courseTitle, 0, 290, { align: 'center' });
 
     const dateStr = new Date(completedAt).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -83,14 +86,17 @@ const generateCertificate = async ({ studentName, courseTitle, completedAt, veri
       .fillColor('#94a3b8')
       .fontSize(12)
       .font('Helvetica')
-      .text(`Completed on: ${dateStr}`, 0, 345, { align: 'center' });
+      .text(`Completed on: ${dateStr}`, 0, 340, { align: 'center' });
 
-    // Verification code
+    // Verification code inside gold border
     doc
-      .fillColor('#475569')
+      .fillColor('#64748b')
       .fontSize(10)
-      .text(`Verification Code: ${verificationCode}`, 0, doc.page.height - 60, {
+      .font('Helvetica')
+      .text(`Verification Code: ${verificationCode}`, 0, doc.page.height - 55, {
         align: 'center',
+        width: doc.page.width,
+        lineBreak: false,
       });
 
     doc.end();

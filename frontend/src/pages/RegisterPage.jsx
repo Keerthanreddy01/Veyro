@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Loader2, Sparkles, GraduationCap, Briefcase } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Loader2, Sparkles, GraduationCap, Briefcase, ShieldCheck, ArrowRight } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import AuthArtBanner from '../components/AuthArtBanner';
 import toast from 'react-hot-toast';
 
 const roles = [
-  { value: 'student', label: 'Student', icon: GraduationCap, desc: 'Enroll & learn from top courses' },
-  { value: 'instructor', label: 'Instructor', icon: Briefcase, desc: 'Author & publish curricula' },
+  { value: 'student', label: 'Student', icon: GraduationCap, desc: 'Enroll & earn verified certifications' },
+  { value: 'instructor', label: 'Instructor', icon: Briefcase, desc: 'Author video curricula & quizzes' },
 ];
 
 export default function RegisterPage() {
@@ -35,79 +35,89 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#e9ebe4] overflow-hidden">
-      {/* Ambient Impressionist Background Glow */}
-      <div className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(217,119,6,0.3),rgba(101,163,13,0.15),transparent_70%)]" />
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-300/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-lime-300/30 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#FAF7EE] overflow-hidden selection:bg-[#FFF490] selection:text-[#111111]">
+      {/* Ambient background glows */}
+      <div className="absolute top-0 right-0 w-[30rem] h-[30rem] bg-gradient-to-bl from-[#60C5F1]/20 via-[#FFF490]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-tr from-[#FFF490]/25 via-emerald-100/20 to-transparent rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Split Editorial Card */}
-      <div className="relative w-full max-w-4xl bg-[#fcfbf9] text-slate-900 rounded-[2.5rem] shadow-2xl border border-black/5 p-3 sm:p-5 lg:p-6 transition-all duration-300 animate-slide-up">
+      <div className="relative w-full max-w-4xl bg-white text-slate-900 rounded-[2.5rem] shadow-xl border border-[#111111]/15 p-4 sm:p-6 lg:p-7 transition-all duration-300 animate-slide-up">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
           
           {/* Left: Impressionist Fine-Art Banner */}
           <div className="hidden lg:block lg:col-span-5 h-full">
-            <AuthArtBanner caption="Veyro Creative Academy" />
+            <AuthArtBanner caption="Veyro Academic Portal" />
           </div>
 
           {/* Right: Editorial Form Section */}
-          <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-8 lg:p-6">
+          <div className="lg:col-span-7 flex flex-col justify-between p-2 sm:p-6 lg:p-4">
             
-            {/* Top Navigation */}
             <div>
+              {/* Top Navigation Back Link */}
               <Link
                 to="/"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors mb-6 group"
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-black transition-colors mb-5 group"
               >
                 <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                <span>Back</span>
+                <span>Return to Home</span>
               </Link>
 
               {/* Eyebrow & Headline */}
               <div className="mb-6">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Create account on</p>
-                <h1 className="font-serif text-3xl sm:text-4xl text-slate-900 tracking-tight leading-tight">
-                  Where Curiosity <br className="hidden sm:inline" />
-                  <span className="italic font-normal">Finds Its Path</span>
+                <div className="inline-flex items-center gap-1.5 bg-[#FFF490] border border-[#111111]/20 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#111111] mb-2">
+                  <Sparkles size={12} />
+                  <span>Join the Academy</span>
+                </div>
+                <h1 className="font-syne font-extrabold text-2xl sm:text-3xl text-[#111111] tracking-tight leading-tight uppercase">
+                  Create Your Veyro Account.
                 </h1>
+                <p className="text-[#111111]/55 text-xs mt-1.5 font-body leading-relaxed">
+                  Start learning accredited courses with verified progress tracking.
+                </p>
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-3.5 max-w-md">
                 <div>
-                  <label className="sr-only">Full name</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={set('name')}
-                    className="w-full bg-[#f1f1ed] hover:bg-[#eaeae5] focus:bg-white text-slate-800 placeholder:text-slate-400 rounded-2xl py-3 px-4 text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:shadow-sm"
-                    placeholder="Full name (e.g. Keerthan Reddy)"
+                    className="w-full bg-[#FAF7EE] hover:bg-[#f5f1e5] focus:bg-white text-slate-900 placeholder:text-slate-400 rounded-2xl py-2.5 px-4 text-sm font-medium border border-[#111111]/15 outline-none transition-all focus:ring-2 focus:ring-[#111111]/20 focus:border-[#111111]"
+                    placeholder="Keerthan Reddy"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div>
-                  <label className="sr-only">Email address</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                    Email Address
+                  </label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={set('email')}
-                    className="w-full bg-[#f1f1ed] hover:bg-[#eaeae5] focus:bg-white text-slate-800 placeholder:text-slate-400 rounded-2xl py-3 px-4 text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:shadow-sm"
-                    placeholder="Enter email address"
+                    className="w-full bg-[#FAF7EE] hover:bg-[#f5f1e5] focus:bg-white text-slate-900 placeholder:text-slate-400 rounded-2xl py-2.5 px-4 text-sm font-medium border border-[#111111]/15 outline-none transition-all focus:ring-2 focus:ring-[#111111]/20 focus:border-[#111111]"
+                    placeholder="name@example.com"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="sr-only">Password</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1">
+                    Password
+                  </label>
                   <div className="relative">
                     <input
                       type={showPwd ? 'text' : 'password'}
                       value={form.password}
                       onChange={set('password')}
-                      className="w-full bg-[#f1f1ed] hover:bg-[#eaeae5] focus:bg-white text-slate-800 placeholder:text-slate-400 rounded-2xl py-3 px-4 pr-12 text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-slate-900/10 focus:shadow-sm"
-                      placeholder="Create password (min. 8 chars)"
+                      className="w-full bg-[#FAF7EE] hover:bg-[#f5f1e5] focus:bg-white text-slate-900 placeholder:text-slate-400 rounded-2xl py-2.5 px-4 pr-12 text-sm font-medium border border-[#111111]/15 outline-none transition-all focus:ring-2 focus:ring-[#111111]/20 focus:border-[#111111]"
+                      placeholder="Minimum 8 characters"
                       required
                     />
                     <button
@@ -121,10 +131,12 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Role Selector in clean soft pills */}
+                {/* Role Switcher */}
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">I am joining as</p>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block mb-1.5">
+                    Select Account Role
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
                     {roles.map(({ value, label, icon: Icon, desc }) => {
                       const selected = form.role === value;
                       return (
@@ -134,13 +146,13 @@ export default function RegisterPage() {
                           onClick={() => setForm((f) => ({ ...f, role: value }))}
                           className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between ${
                             selected
-                              ? 'bg-[#18181b] text-white border-slate-900 shadow-sm'
-                              : 'bg-[#f1f1ed] hover:bg-[#eaeae5] text-slate-700 border-transparent'
+                              ? 'bg-[#111111] text-white border-[#111111] shadow-xs'
+                              : 'bg-[#FAF7EE] hover:bg-[#f5f1e5] text-slate-800 border-[#111111]/15'
                           }`}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Icon size={16} className={selected ? 'text-amber-400' : 'text-slate-500'} />
-                            <span className="font-semibold text-xs">{label}</span>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Icon size={15} className={selected ? 'text-[#60C5F1]' : 'text-slate-600'} />
+                            <span className="font-bold text-xs">{label}</span>
                           </div>
                           <span className={`text-[10px] leading-tight ${selected ? 'text-slate-300' : 'text-slate-500'}`}>
                             {desc}
@@ -153,33 +165,36 @@ export default function RegisterPage() {
 
                 {/* Error Banner */}
                 {error && (
-                  <div className="text-xs font-medium text-red-600 bg-red-50 border border-red-200/80 rounded-2xl px-4 py-2.5 animate-fade-in flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  <div className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-2.5 animate-fade-in flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                     <span>{error}</span>
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Submit Action Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#18181b] hover:bg-black text-white font-semibold py-3.5 px-6 rounded-2xl shadow-md hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm mt-1"
+                  className="btn-dark-pill w-full py-3.5 text-xs shadow-md mt-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
                       <Loader2 size={16} className="animate-spin text-slate-300" />
-                      <span>Creating account…</span>
+                      <span>Creating Account…</span>
                     </>
                   ) : (
-                    <span>Create account</span>
+                    <>
+                      <span>Create Account</span>
+                      <ArrowRight size={14} />
+                    </>
                   )}
                 </button>
 
-                {/* Switch to Sign in */}
+                {/* Switch to Login */}
                 <div className="text-center pt-1">
                   <p className="text-xs text-slate-500 font-medium">
                     Already have an account?{' '}
-                    <Link to="/login" className="text-slate-900 font-semibold hover:underline underline-offset-4">
+                    <Link to="/login" className="text-slate-900 font-bold hover:underline underline-offset-4">
                       Sign in
                     </Link>
                   </p>
@@ -188,15 +203,14 @@ export default function RegisterPage() {
             </div>
 
             {/* Bottom Brand Mark & Tagline */}
-            <div className="pt-6 border-t border-slate-200/60 mt-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-white">
-                  <Sparkles size={13} />
-                </div>
-                <span className="font-bold text-slate-900 tracking-tight text-base">veyro</span>
+            <div className="pt-5 border-t border-slate-100 mt-6 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="font-syne font-extrabold text-lg tracking-tight text-[#111111] lowercase">
+                  veyro<span className="text-[#60C5F1]">.</span>
+                </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
-                Shared Knowledge for a Curious Mind.
+                Verified Mastery & Accredited Learning.
               </p>
             </div>
 

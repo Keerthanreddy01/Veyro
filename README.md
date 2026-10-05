@@ -63,6 +63,42 @@
       </ul>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <h3>🔔 Real-Time Notification Pipeline</h3>
+      <ul>
+        <li>In-app notification bell with unread counters and entity routing.</li>
+        <li>Automated dispatch for submissions, reviews, enrollments, completions, and revisions.</li>
+        <li>Server-authoritative recipient derivation and complete IDOR isolation.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>📑 Immutable Platform Audit & Compliance</h3>
+      <ul>
+        <li>Append-only cryptographic audit ledger tracking state mutations across the platform.</li>
+        <li>Multi-dimensional filtering by action, actor role, entity, and date range.</li>
+        <li>One-click administrative CSV and JSON compliance data export.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🔄 Safe Course Versioning & Retraction</h3>
+      <ul>
+        <li>Mutation-protected published curricula preventing broken learner references.</li>
+        <li>Branching draft revisions (v1 &rarr; v2) with deep curriculum duplication.</li>
+        <li>Revision alert banners for enrolled learners without forced progress migration.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>🎓 Complete Enrollment Lifecycle</h3>
+      <ul>
+        <li>Reversible course drop with complete historical progress preservation.</li>
+        <li>Re-enrollment re-activation without document duplication or race conditions.</li>
+        <li>Cohort roster analytics with active, completed, and dropped status filters.</li>
+      </ul>
+    </td>
+  </tr>
 </table>
 
 ---
@@ -154,11 +190,22 @@ npm run dev
 | | `POST` | `/api/auth/login` | Public | Issue access & refresh token |
 | | `POST` | `/api/auth/refresh` | Public | Rotate refresh token |
 | | `POST` | `/api/auth/logout` | User | Revoke current device session |
-| **Courses** | `GET` | `/api/courses` | Public | Browse course catalog |
+| **Courses** | `GET` | `/api/courses` | Public | Browse published course catalog |
 | | `POST` | `/api/courses` | Instructor | Create course curriculum |
-| | `PATCH` | `/api/courses/:id/review` | Admin | Approve / Reject course submission |
-| | `POST` | `/api/courses/:id/enroll` | Student | Enroll in course |
-| **Lessons** | `POST` | `/api/lessons/:id/progress` | Student | Stream granular video watch time |
+| | `POST` | `/api/courses/:id/submit` | Instructor | Submit course for administrative review |
+| | `POST` | `/api/courses/:id/retract` | Instructor | Retract under-review course to draft |
+| | `POST` | `/api/courses/:id/revision` | Instructor | Branch draft revision from published course |
+| | `GET` | `/api/courses/:id/analytics` | Instructor/Admin | Course cohort completion and roster analytics |
+| | `PATCH` | `/api/courses/:id/review` | Admin | Approve or Reject course submission |
+| **Enrollment** | `POST` | `/api/courses/:id/enroll` | Student | Enroll or re-enroll in course |
+| | `DELETE` | `/api/courses/:id/enroll` | Student | Soft-drop course with historical preservation |
+| | `GET` | `/api/enrollments/my` | Student | List user's active/completed/dropped courses |
+| **Notifications** | `GET` | `/api/notifications` | User | Paginated notifications with unread counts |
+| | `PATCH` | `/api/notifications/read-all` | User | Mark all recipient notifications as read |
+| | `PATCH` | `/api/notifications/:id/read` | User | Mark individual notification as read |
+| **Audit Logs** | `GET` | `/api/admin/audit-logs` | Admin | Paginated multi-filtered audit log explorer |
+| | `GET` | `/api/admin/audit-logs/export` | Admin | Stream/export audit trail in CSV or JSON |
+| **Lessons** | `POST` | `/api/lessons/:id/progress` | Student | Stream granular video watch time (90% rule) |
 | **Quizzes** | `POST` | `/api/quizzes/:id/start` | Student | Start timer-enforced quiz session |
 | | `PATCH` | `/api/quizzes/attempts/:id/answer` | Student | Persist attempt answer |
 | | `POST` | `/api/quizzes/attempts/:id/submit` | Student | Score attempt and finalize results |

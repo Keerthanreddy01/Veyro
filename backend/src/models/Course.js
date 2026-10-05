@@ -25,7 +25,7 @@ const courseSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'pending', 'published', 'rejected'],
+      enum: ['draft', 'under_review', 'pending', 'approved', 'published', 'rejected'],
       default: 'draft',
     },
     // thumbnail: relative path inside /uploads, easy to swap for a full URL (S3/Cloudinary)
@@ -38,17 +38,45 @@ const courseSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    submittedAt: {
+      type: Date,
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
     category: {
       type: String,
       trim: true,
       default: 'General',
     },
     tags: [{ type: String, trim: true }],
+    // Versioning & Safe Revisions
+    version: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    parentCourseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course',
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true }
 );
 
 // Text index for search
 courseSchema.index({ title: 'text', description: 'text', tags: 'text' });
+// Query indexes for catalog and studio queries
+courseSchema.index({ status: 1 });
+courseSchema.index({ instructorId: 1 });
+courseSchema.index({ category: 1 });
 
 module.exports = mongoose.model('Course', courseSchema);

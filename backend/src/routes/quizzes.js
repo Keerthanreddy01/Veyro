@@ -1,11 +1,13 @@
 const router = require('express').Router();
 const { authenticate, authorize } = require('../middleware/auth');
 const {
-  getQuiz, startQuiz, saveAnswer, submitQuiz,
+  getQuiz, updateQuiz, deleteQuiz, startQuiz, saveAnswer, submitQuiz,
   reportViolation, getMyAttempts, getAttemptResult,
 } = require('../controllers/quizController');
 
 router.get('/:id', authenticate, getQuiz);
+router.put('/:id', authenticate, authorize('instructor'), updateQuiz);
+router.delete('/:id', authenticate, authorize('instructor', 'admin'), deleteQuiz);
 router.post('/:id/start', authenticate, authorize('student'), startQuiz);
 router.get('/:id/attempts', authenticate, authorize('student'), getMyAttempts);
 router.get('/:id/results/:attemptId', authenticate, getAttemptResult);

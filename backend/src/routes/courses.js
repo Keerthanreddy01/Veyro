@@ -5,9 +5,11 @@ const { upload } = require('../utils/fileUpload');
 const { validate } = require('../middleware/validate');
 const {
   getCourses, getCourseById, createCourse, updateCourse,
-  deleteCourse, submitForReview, reviewCourse, getAllUsers, toggleUserStatus,
+  deleteCourse, submitForReview, publishCourse, reviewCourse,
+  retractCourse, createCourseRevision, getCourseAnalytics,
+  getAllUsers, toggleUserStatus,
 } = require('../controllers/courseController');
-const { enrollInCourse, getCourseProgress, getCourseStudents, completeCourse } = require('../controllers/enrollmentController');
+const { enrollInCourse, dropCourse, getCourseProgress, getCourseStudents, completeCourse } = require('../controllers/enrollmentController');
 const { createModule, getModules } = require('../controllers/moduleController');
 
 // Validation rules for Course
@@ -51,17 +53,26 @@ router.get('/:id', (req, res, next) => {
   next();
 }, getCourseById);
 
-// Instructor CRUD
+// Instructor CRUD & Lifecycle
 router.post('/', authenticate, authorize('instructor'), upload.single('thumbnail'), createCourseRules, validate, createCourse);
 router.put('/:id', authenticate, authorize('instructor'), upload.single('thumbnail'), updateCourseRules, validate, updateCourse);
 router.delete('/:id', authenticate, authorize('instructor', 'admin'), deleteCourse);
+router.post('/:id/submit', authenticate, authorize('instructor'), submitForReview);
 router.patch('/:id/submit', authenticate, authorize('instructor'), submitForReview);
+router.post('/:id/retract', authenticate, authorize('instructor', 'admin'), retractCourse);
+router.patch('/:id/retract', authenticate, authorize('instructor', 'admin'), retractCourse);
+router.post('/:id/revision', authenticate, authorize('instructor', 'admin'), createCourseRevision);
+router.post('/:id/publish', authenticate, authorize('instructor', 'admin'), publishCourse);
+router.patch('/:id/publish', authenticate, authorize('instructor', 'admin'), publishCourse);
+router.get('/:id/analytics', authenticate, authorize('instructor', 'admin'), getCourseAnalytics);
 
-// Admin review
+// Admin review / status moderation
+router.put('/:id/status', authenticate, authorize('admin'), reviewCourse);
 router.patch('/:id/review', authenticate, authorize('admin'), reviewCourse);
 
 // Enrollment
 router.post('/:courseId/enroll', authenticate, authorize('student'), enrollInCourse);
+router.delete('/:courseId/enroll', authenticate, authorize('student'), dropCourse);
 router.get('/:courseId/progress', authenticate, authorize('student'), getCourseProgress);
 router.post('/:courseId/complete', authenticate, authorize('student'), completeCourse);
 router.get('/:courseId/students', authenticate, authorize('instructor', 'admin'), getCourseStudents);

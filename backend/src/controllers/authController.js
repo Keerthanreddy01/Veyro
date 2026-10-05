@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 /**
  * POST /api/auth/register
@@ -65,11 +66,25 @@ const login = async (req, res, next) => {
     // Explicitly select passwordHash since it's excluded by default
     const user = await User.findOne({ email }).select('+passwordHash +refreshTokens');
     if (!user || !user.isActive) {
+      await logAudit({
+        req,
+        action: AUDIT_ACTIONS.LOGIN_FAILURE,
+        entityType: 'auth',
+        metadata: { email, reason: !user ? 'User not found' : 'Account deactivated' },
+      });
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      await logAudit({
+        req,
+        actorId: user._id,
+        actorRole: user.role,
+        action: AUDIT_ACTIONS.LOGIN_FAILURE,
+        entityType: 'auth',
+        metadata: { email, reason: 'Invalid password' },
+      });
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -77,6 +92,16 @@ const login = async (req, res, next) => {
     const refreshToken = generateRefreshToken(user._id, user.role);
 
     await User.findByIdAndUpdate(user._id, { $push: { refreshTokens: refreshToken } });
+
+    await logAudit({
+      req,
+      actorId: user._id,
+      actorRole: user.role,
+      action: AUDIT_ACTIONS.LOGIN_SUCCESS,
+      entityType: 'auth',
+      entityId: user._id,
+      metadata: { email: user.email },
+    });
 
     res.json({
       message: 'Logged in successfully.',
@@ -105,12 +130,26 @@ const refresh = async (req, res, next) => {
     try {
       decoded = verifyRefreshToken(refreshToken);
     } catch {
+      await logAudit({
+        req,
+        action: AUDIT_ACTIONS.SESSION_REVOKED,
+        entityType: 'auth',
+        metadata: { reason: 'Malformed or expired token' },
+      });
       return res.status(401).json({ error: 'Invalid or expired refresh token.' });
     }
 
     // Verify token is still in the user's list (allows per-device logout)
     const user = await User.findById(decoded.userId).select('+refreshTokens');
     if (!user || !user.refreshTokens.includes(refreshToken)) {
+      await logAudit({
+        req,
+        actorId: decoded.userId,
+        actorRole: decoded.role,
+        action: AUDIT_ACTIONS.SESSION_REVOKED,
+        entityType: 'auth',
+        metadata: { reason: 'Token already revoked or reused' },
+      });
       return res.status(401).json({ error: 'Refresh token has been revoked.' });
     }
 
@@ -141,6 +180,16 @@ const logout = async (req, res, next) => {
         $pull: { refreshTokens: refreshToken },
       });
     }
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.LOGOUT,
+      entityType: 'auth',
+      entityId: req.user.userId,
+    });
+
     res.json({ message: 'Logged out successfully.' });
   } catch (err) {
     next(err);

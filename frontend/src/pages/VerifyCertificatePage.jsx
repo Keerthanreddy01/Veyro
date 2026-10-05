@@ -1,7 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Award, CheckCircle, XCircle, BookOpen, ArrowLeft } from 'lucide-react';
+import {
+  Award,
+  CheckCircle,
+  XCircle,
+  BookOpen,
+  ArrowLeft,
+  ShieldCheck,
+  Calendar,
+  Sparkles,
+  Printer,
+  Copy
+} from 'lucide-react';
 import api from '../api/axios';
+import toast from 'react-hot-toast';
 
 export default function VerifyCertificatePage() {
   const { code } = useParams();
@@ -11,65 +23,142 @@ export default function VerifyCertificatePage() {
 
   useEffect(() => {
     api.get(`/verify/${code}`)
-      .then(({ data: d }) => { setData(d); setValid(true); })
+      .then(({ data: d }) => {
+        setData(d);
+        setValid(true);
+      })
       .catch(() => setValid(false))
       .finally(() => setLoading(false));
   }, [code]);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f0f4fa]">
-      <div className="bg-white rounded-3xl p-12 w-80 animate-pulse shadow-sm" />
-    </div>
-  );
+  const copyCode = () => {
+    navigator.clipboard.writeText(code);
+    toast.success('Certificate code copied to clipboard!');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF7EE] p-6">
+        <div className="bg-white rounded-[2.5rem] p-12 max-w-md w-full animate-pulse border border-[#111111]/10" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f0f4fa] px-4 py-8">
-      <div className="w-full max-w-lg animate-slide-up">
-        <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 text-center shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-slate-200/80">
+    <div className="min-h-screen flex items-center justify-center bg-[#FAF7EE] text-slate-900 px-4 py-12 selection:bg-[#FFF490] selection:text-[#111111]">
+      <div className="w-full max-w-xl animate-slide-up space-y-6">
+        
+        {/* Main Certificate / Diploma Card */}
+        <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 text-center shadow-xl border border-[#111111]/15 relative overflow-hidden">
+          
+          {/* Subtle Corner Accents */}
+          <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-[#FFF490]/30 to-transparent rounded-full blur-2xl pointer-events-none" />
+          
           {valid ? (
-            <>
-              <div className="w-16 h-16 rounded-3xl bg-[#fff3c4] text-amber-700 flex items-center justify-center mx-auto mb-4 shadow-2xs">
-                <Award size={36} />
+            <div className="space-y-6 relative z-10">
+              {/* Seal Stamp */}
+              <div className="w-20 h-20 rounded-3xl bg-[#FFF490] border-2 border-[#111111] text-[#111111] flex items-center justify-center mx-auto shadow-xs">
+                <Award size={42} />
               </div>
-              <div className="inline-flex items-center gap-1.5 text-emerald-800 bg-[#d4f4dd] px-3.5 py-1 rounded-full text-xs font-bold mb-4">
-                <CheckCircle size={14} /> <span>Official Verified Certificate</span>
+
+              <div>
+                <div className="inline-flex items-center gap-1.5 text-emerald-900 bg-[#d4f4dd] border border-emerald-300 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+                  <CheckCircle size={14} className="text-emerald-700" />
+                  <span>Officially Verified Credential</span>
+                </div>
+                
+                <h1 className="font-syne font-extrabold text-3xl sm:text-4xl text-slate-900 tracking-tight leading-tight">
+                  {data.student?.name}
+                </h1>
+                
+                <p className="text-slate-500 text-xs uppercase tracking-wider font-bold mt-2">
+                  Has successfully fulfilled all accredited requirements for
+                </p>
+
+                <p className="font-syne font-bold text-xl sm:text-2xl text-slate-900 mt-2 leading-snug">
+                  {data.course?.title}
+                </p>
               </div>
               
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">{data.student?.name}</h1>
-              <p className="text-slate-500 text-xs mb-3">has successfully completed the curriculum for</p>
-              <p className="text-lg font-extrabold text-indigo-900 mb-6">{data.course?.title}</p>
-              
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-50 rounded-2xl p-3.5 text-left border border-slate-100">
-                  <p className="text-slate-400 text-[10px] uppercase tracking-wider font-extrabold">Issued Date</p>
-                  <p className="text-slate-800 font-bold text-xs mt-0.5">
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="bg-[#FAF7EE] rounded-2xl p-4 text-left border border-[#111111]/10">
+                  <p className="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Issued Date</p>
+                  <p className="text-slate-900 font-bold text-xs sm:text-sm mt-0.5">
                     {new Date(data.completedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
-                <div className="bg-slate-50 rounded-2xl p-3.5 text-left border border-slate-100">
-                  <p className="text-slate-400 text-[10px] uppercase tracking-wider font-extrabold">Verification Code</p>
-                  <p className="text-slate-800 font-mono font-bold text-xs mt-0.5">{code}</p>
+                
+                <div className="bg-[#FAF7EE] rounded-2xl p-4 text-left border border-[#111111]/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Audit Code</p>
+                    <p className="text-slate-900 font-mono font-bold text-xs sm:text-sm mt-0.5">{code}</p>
+                  </div>
+                  <button
+                    onClick={copyCode}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-black hover:bg-black/5 transition-colors"
+                    title="Copy certificate hash"
+                  >
+                    <Copy size={15} />
+                  </button>
                 </div>
               </div>
-              <p className="text-emerald-700 text-xs font-bold">✓ Authenticity verified by Veyro Distance Education Portal</p>
-            </>
+
+              <div className="pt-2">
+                <p className="text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5">
+                  <ShieldCheck size={14} />
+                  <span>Tamper-proof authenticity certified by Veyro Ledger</span>
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  onClick={() => window.print()}
+                  className="px-5 py-2.5 rounded-full bg-[#111111] text-white text-xs font-bold hover:bg-black transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <Printer size={14} />
+                  <span>Print Credential</span>
+                </button>
+                <Link
+                  to="/courses"
+                  className="px-5 py-2.5 rounded-full bg-white border border-[#111111]/20 text-slate-800 text-xs font-bold hover:bg-[#FAF7EE] transition-all"
+                >
+                  Explore More Courses
+                </Link>
+              </div>
+            </div>
           ) : (
-            <>
-              <div className="w-16 h-16 rounded-3xl bg-rose-100 text-rose-700 flex items-center justify-center mx-auto mb-4 shadow-2xs">
+            <div className="space-y-5">
+              <div className="w-16 h-16 rounded-3xl bg-rose-100 text-rose-700 border border-rose-200 flex items-center justify-center mx-auto shadow-xs">
                 <XCircle size={36} />
               </div>
-              <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Invalid Certificate</h1>
-              <p className="text-slate-500 text-xs">No active certificate records found for code: <span className="font-mono font-bold text-slate-700">{code}</span></p>
-            </>
+              <h1 className="font-syne font-extrabold text-2xl text-slate-900">Invalid Certificate Code</h1>
+              <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                No active certificate record could be verified on the public ledger for code: <span className="font-mono font-bold text-slate-800">{code}</span>
+              </p>
+              <Link
+                to="/courses"
+                className="btn-dark-pill text-xs px-5 py-2.5 inline-flex"
+              >
+                <span>Browse Valid Catalog</span>
+              </Link>
+            </div>
           )}
 
+        </div>
+
+        {/* Back Link */}
+        <div className="text-center">
           <Link
             to="/dashboard"
-            className="mt-6 inline-flex items-center gap-1.5 text-slate-700 hover:text-slate-950 font-bold text-xs transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-black transition-colors"
           >
-            <ArrowLeft size={14} /> Back to Veyro
+            <ArrowLeft size={14} />
+            <span>Return to Dashboard</span>
           </Link>
         </div>
+
       </div>
     </div>
   );

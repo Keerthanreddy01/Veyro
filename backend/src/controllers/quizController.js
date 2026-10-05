@@ -3,6 +3,7 @@ const QuizAttempt = require('../models/QuizAttempt');
 const Module = require('../models/Module');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 /** Shuffle an array (Fisher-Yates) */
 const shuffle = (arr) => {
@@ -25,22 +26,57 @@ const createQuiz = async (req, res, next) => {
 
     const { title, timeLimitSeconds, passingScore, maxAttempts, questions } = req.body;
     const quiz = await Quiz.create({ moduleId: mod._id, title, timeLimitSeconds, passingScore, maxAttempts, questions });
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.QUIZ_CREATED,
+      entityType: 'quiz',
+      entityId: quiz._id,
+      metadata: { title: quiz.title, moduleId: mod._id, courseId: course._id },
+    });
+
     res.status(201).json({ message: 'Quiz created.', quiz });
   } catch (err) { next(err); }
 };
 
 /**
- * GET /api/quizzes/:id — Get quiz info (NO correctOptionIndex sent to client).
- * Design Decision: correctOptionIndex is stripped from the response here.
- * Validation always happens server-side in submitQuiz(). Even if someone
- * intercepts the network response, they cannot see correct answers.
+ * GET /api/quizzes/:id — Get quiz info.
+ * Instructors/Admins owning the course receive the full quiz with correct answers for editing.
+ * Students receive safeQuiz where correctOptionIndex is stripped.
  */
 const getQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
 
-    // Strip correct answers before sending to client
+    const mod = await Module.findById(quiz.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    const course = await Course.findById(mod.courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    const isManager =
+      req.user.role === 'admin' ||
+      (req.user.role === 'instructor' && course.instructorId.toString() === req.user.userId);
+
+    if (isManager) {
+      return res.json({ quiz });
+    }
+
+    if (req.user.role === 'student') {
+      const enrolled = await Enrollment.findOne({
+        studentId: req.user.userId,
+        courseId: mod.courseId,
+        status: { $in: ['active', 'completed'] },
+      });
+      if (!enrolled) {
+        return res.status(403).json({ error: 'You must enroll in this course to access this quiz.' });
+      }
+    }
+
+    // Strip correct answers before sending to student
     const safeQuiz = {
       _id: quiz._id,
       moduleId: quiz.moduleId,
@@ -61,6 +97,110 @@ const getQuiz = async (req, res, next) => {
 };
 
 /**
+ * PUT /api/quizzes/:id — Instructor updates their quiz
+ */
+const updateQuiz = async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
+
+    const mod = await Module.findById(quiz.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    const course = await Course.findById(mod.courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    if (course.instructorId.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. You can only edit quizzes in your own courses.' });
+    }
+
+    if (['pending', 'published'].includes(course.status)) {
+      return res.status(400).json({
+        error: 'Cannot edit quizzes for a course that is pending review or published. Retract to draft first.',
+      });
+    }
+
+    const { title, timeLimitSeconds, passingScore, maxAttempts, questions } = req.body;
+    if (title !== undefined) quiz.title = title.trim();
+    if (timeLimitSeconds !== undefined) quiz.timeLimitSeconds = Math.max(30, Number(timeLimitSeconds) || 30);
+    if (passingScore !== undefined) quiz.passingScore = Math.min(100, Math.max(0, Number(passingScore) || 50));
+    if (maxAttempts !== undefined) quiz.maxAttempts = Math.max(1, Number(maxAttempts) || 1);
+
+    if (questions !== undefined) {
+      if (!Array.isArray(questions) || questions.length === 0) {
+        return res.status(400).json({ error: 'Quiz must have at least one question.' });
+      }
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q.questionText || !q.questionText.trim()) {
+          return res.status(400).json({ error: `Question ${i + 1} must have question text.` });
+        }
+        if (!Array.isArray(q.options) || q.options.length < 2) {
+          return res.status(400).json({ error: `Question ${i + 1} must have at least 2 options.` });
+        }
+        const optIdx = Number(q.correctOptionIndex);
+        if (isNaN(optIdx) || optIdx < 0 || optIdx >= q.options.length) {
+          return res.status(400).json({ error: `Question ${i + 1} has an invalid correctOptionIndex.` });
+        }
+      }
+      quiz.questions = questions;
+    }
+
+    await quiz.save();
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.QUIZ_UPDATED,
+      entityType: 'quiz',
+      entityId: quiz._id,
+      metadata: { title: quiz.title, questionCount: quiz.questions?.length },
+    });
+
+    res.json({ message: 'Quiz updated successfully.', quiz });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * DELETE /api/quizzes/:id — Instructor/Admin deletes a quiz
+ */
+const deleteQuiz = async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
+
+    const mod = await Module.findById(quiz.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    const course = await Course.findById(mod.courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    if (course.instructorId.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. You can only delete quizzes in your own courses.' });
+    }
+
+    await Quiz.findByIdAndDelete(quiz._id);
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.QUIZ_DELETED,
+      entityType: 'quiz',
+      entityId: quiz._id,
+      metadata: { title: quiz.title },
+    });
+
+    res.json({ message: 'Quiz deleted successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * POST /api/quizzes/:id/start — Student starts a quiz attempt.
  *
  * Anti-cheat: startedAt is set BY THE SERVER here, not by the client.
@@ -71,6 +211,18 @@ const startQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
+
+    const mod = await Module.findById(quiz.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    const enrolled = await Enrollment.findOne({
+      studentId: req.user.userId,
+      courseId: mod.courseId,
+      status: { $in: ['active', 'completed'] },
+    });
+    if (!enrolled) {
+      return res.status(403).json({ error: 'You must enroll in this course to start the quiz.' });
+    }
 
     // Check max attempts
     const attemptCount = await QuizAttempt.countDocuments({
@@ -114,6 +266,16 @@ const startQuiz = async (req, res, next) => {
       optionOrders,
       answers: new Array(quiz.questions.length).fill(-1),
       maxViolationsAllowed: parseInt(process.env.MAX_TAB_VIOLATIONS) || 3,
+    });
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.QUIZ_ATTEMPT_STARTED,
+      entityType: 'quiz',
+      entityId: quiz._id,
+      metadata: { attemptId: attempt._id, title: quiz.title },
     });
 
     const secondsRemaining = quiz.timeLimitSeconds;
@@ -177,6 +339,17 @@ const submitQuiz = async (req, res, next) => {
     }
 
     const scored = await _scoreAndSave(attempt, quiz, false, null);
+
+    await logAudit({
+      req,
+      actorId: req.user.userId,
+      actorRole: req.user.role,
+      action: AUDIT_ACTIONS.QUIZ_ATTEMPT_SUBMITTED,
+      entityType: 'quiz',
+      entityId: quiz._id,
+      metadata: { attemptId: scored._id, score: scored.score, passed: scored.passed, title: quiz.title },
+    });
+
     res.json({ message: 'Quiz submitted!', attempt: scored });
   } catch (err) { next(err); }
 };
@@ -231,9 +404,18 @@ const getMyAttempts = async (req, res, next) => {
 const getAttemptResult = async (req, res, next) => {
   try {
     const attempt = await QuizAttempt.findById(req.params.attemptId).populate('quizId');
-    if (!attempt) return res.status(404).json({ error: 'Attempt not found.' });
-    if (attempt.studentId.toString() !== req.user.userId && req.user.role === 'student')
-      return res.status(403).json({ error: 'Access denied.' });
+    if (attempt.studentId.toString() !== req.user.userId) {
+      if (req.user.role === 'student') {
+        return res.status(403).json({ error: 'Access denied.' });
+      }
+      if (req.user.role === 'instructor') {
+        const mod = await Module.findById(attempt.quizId.moduleId);
+        const course = mod ? await Course.findById(mod.courseId) : null;
+        if (!course || course.instructorId.toString() !== req.user.userId) {
+          return res.status(403).json({ error: 'Access denied.' });
+        }
+      }
+    }
     if (!attempt.submittedAt)
       return res.status(400).json({ error: 'Quiz not yet submitted.' });
 
@@ -300,4 +482,15 @@ const _safeAttempt = (attempt, quiz) => ({
   submittedAt: attempt.submittedAt,
 });
 
-module.exports = { createQuiz, getQuiz, startQuiz, saveAnswer, submitQuiz, reportViolation, getMyAttempts, getAttemptResult };
+module.exports = {
+  createQuiz,
+  getQuiz,
+  updateQuiz,
+  deleteQuiz,
+  startQuiz,
+  saveAnswer,
+  submitQuiz,
+  reportViolation,
+  getMyAttempts,
+  getAttemptResult,
+};
