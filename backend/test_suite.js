@@ -1205,13 +1205,14 @@ async function runAllTests() {
   console.log('\n📦 GROUP 18: Render Production Readiness & Health Monitoring');
 
   runTest('Health endpoint returns service name and database state', () => {
-    const buildHealthResponse = (readyState) => {
+    const buildHealthResponse = (readyState, diagnostics) => {
       const isDbConnected = readyState === 1;
       const dbState = isDbConnected ? 'connected' : 'disconnected';
       return {
         status: isDbConnected ? 'ok' : 'degraded',
         service: 'veyro-api',
         database: dbState,
+        ...(diagnostics ? { diagnostics } : {}),
         timestamp: new Date().toISOString(),
       };
     };
@@ -1221,9 +1222,10 @@ async function runAllTests() {
     assert.strictEqual(healthy.service, 'veyro-api');
     assert.strictEqual(healthy.database, 'connected');
 
-    const degraded = buildHealthResponse(0);
+    const degraded = buildHealthResponse(0, { category: 'AUTHENTICATION_FAILED' });
     assert.strictEqual(degraded.status, 'degraded');
     assert.strictEqual(degraded.database, 'disconnected');
+    assert.strictEqual(degraded.diagnostics.category, 'AUTHENTICATION_FAILED');
   });
 
   runTest('Server configuration respects Render PORT with 10000 fallback', () => {

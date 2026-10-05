@@ -92,12 +92,19 @@ app.patch('/api/admin/courses/:id/status', authenticate, authorize('admin'), rev
 
 // Health check
 app.get('/api/health', (req, res) => {
-  const isDbConnected = mongoose.connection.readyState === 1;
-  const dbState = isDbConnected ? 'connected' : 'disconnected';
+  const diag = typeof connectDB.getDiagnostics === 'function' ? connectDB.getDiagnostics() : {
+    state: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    hasUriConfigured: Boolean(process.env.MONGODB_URI || process.env.MONGO_URI),
+  };
+  const isDbConnected = diag.state === 'connected';
+
   res.json({
     status: isDbConnected ? 'ok' : 'degraded',
     service: 'veyro-api',
-    database: dbState,
+    database: diag.state,
+    clusterHost: diag.configuredHost || undefined,
+    uriConfigured: diag.hasUriConfigured,
+    ...(diag.lastError ? { diagnostics: diag.lastError } : {}),
     timestamp: new Date().toISOString(),
   });
 });
