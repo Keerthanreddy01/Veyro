@@ -1201,6 +1201,92 @@ async function runAllTests() {
     assert.strictEqual(resolveActiveCurriculum(currentEnrolledCourseId, newerVersionAvailable), 'course_v1');
   });
 
+  // ── TEST GROUP 18: Render Production Readiness & Health Monitoring ────────
+  console.log('\n📦 GROUP 18: Render Production Readiness & Health Monitoring');
+
+  runTest('Health endpoint returns service name and database state', () => {
+    const buildHealthResponse = (readyState) => {
+      const isDbConnected = readyState === 1;
+      const dbState = isDbConnected ? 'connected' : 'disconnected';
+      return {
+        status: isDbConnected ? 'ok' : 'degraded',
+        service: 'veyro-api',
+        database: dbState,
+        timestamp: new Date().toISOString(),
+      };
+    };
+
+    const healthy = buildHealthResponse(1);
+    assert.strictEqual(healthy.status, 'ok');
+    assert.strictEqual(healthy.service, 'veyro-api');
+    assert.strictEqual(healthy.database, 'connected');
+
+    const degraded = buildHealthResponse(0);
+    assert.strictEqual(degraded.status, 'degraded');
+    assert.strictEqual(degraded.database, 'disconnected');
+  });
+
+  runTest('Server configuration respects Render PORT with 10000 fallback', () => {
+    const resolvePort = (envPort) => parseInt(envPort, 10) || 10000;
+    assert.strictEqual(resolvePort('10000'), 10000);
+    assert.strictEqual(resolvePort('5000'), 5000);
+    assert.strictEqual(resolvePort(undefined), 10000);
+  });
+
+  runTest('MongoDB URI parser accepts MONGODB_URI and strips accidental quotes/whitespace', () => {
+    const parseMongoUri = (env) => {
+      const raw = env.MONGODB_URI || env.MONGO_URI;
+      return raw ? raw.trim().replace(/^["']|["']$/g, '') : null;
+    };
+
+    const clean1 = parseMongoUri({ MONGODB_URI: '  "mongodb+srv://user:pass@cluster.mongodb.net/db"  ' });
+    assert.strictEqual(clean1, 'mongodb+srv://user:pass@cluster.mongodb.net/db');
+
+    const clean2 = parseMongoUri({ MONGO_URI: " 'mongodb://localhost:27017/db' " });
+    assert.strictEqual(clean2, 'mongodb://localhost:27017/db');
+  });
+
+  runTest('Hostname sanitization never leaks credentials or passwords in logs', () => {
+    const getSanitizedHost = (connectionUri) => {
+      if (!connectionUri) return 'undefined';
+      try {
+        const match = connectionUri.match(/@([^/?:]+)/);
+        if (match) return match[1];
+        const plainMatch = connectionUri.match(/\/\/([^/?:]+)/);
+        if (plainMatch) return plainMatch[1];
+        return 'hidden-host';
+      } catch {
+        return 'unknown-host';
+      }
+    };
+
+    const uriWithSecret = 'mongodb+srv://fakeTestUser:FakeTestPass123@fake-cluster.example.mongodb.net/test_db?retryWrites=true';
+    const host = getSanitizedHost(uriWithSecret);
+
+    assert.strictEqual(host, 'cluster0.abcde.mongodb.net');
+    assert.ok(!host.includes('REDACTED_CREDENTIAL'));
+    assert.ok(!host.includes('adminUser'));
+  });
+
+  runTest('CORS normalizer allows production Vercel frontend and strips trailing slashes', () => {
+    const checkOriginAllowed = (rawClientUrl, requestOrigin) => {
+      const allowedOrigins = (rawClientUrl || 'http://localhost:5173')
+        .split(',')
+        .map((u) => u.trim().replace(/\/+$/, ''))
+        .filter(Boolean);
+
+      if (!requestOrigin) return true;
+      const normalized = requestOrigin.replace(/\/+$/, '');
+      return allowedOrigins.includes(normalized) || allowedOrigins.includes('*');
+    };
+
+    const config = 'http://localhost:5173, https://veyro-sandy.vercel.app/ ';
+    assert.strictEqual(checkOriginAllowed(config, 'https://veyro-sandy.vercel.app'), true);
+    assert.strictEqual(checkOriginAllowed(config, 'https://veyro-sandy.vercel.app/'), true);
+    assert.strictEqual(checkOriginAllowed(config, 'http://localhost:5173'), true);
+    assert.strictEqual(checkOriginAllowed(config, 'https://malicious-site.com'), false);
+  });
+
   // ── SUMMARY REPORT ───────────────────────────────────────────────────────
   console.log('\n======================================================');
   console.log(`📊 TEST RESULTS: ${passedTests}/${totalTests} PASSED`);

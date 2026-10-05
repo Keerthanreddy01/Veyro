@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
 
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
@@ -32,20 +33,33 @@ app.use(helmet({
 }));
 
 // ─── CORS Lockdown ───────────────────────────────────────────────────────────
-const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server) or matching allowedOrigin
-    if (!origin || origin === allowedOrigin) {
-      callback(null, true);
-    } else {
+const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawClientUrl
+  .split(',')
+  .map((u) => u.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+// Always ensure default local dev origin is allowed when not in strict production
+if (process.env.NODE_ENV !== 'production' && !allowedOrigins.includes('http://localhost:5173')) {
+  allowedOrigins.push('http://localhost:5173');
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server, curl, mobile apps, or matching origins
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalized) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
       callback(new Error(`CORS blocked for origin: ${origin}`));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -77,7 +91,16 @@ app.put('/api/admin/courses/:id/status', authenticate, authorize('admin'), revie
 app.patch('/api/admin/courses/:id/status', authenticate, authorize('admin'), reviewCourse);
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+app.get('/api/health', (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  const dbState = isDbConnected ? 'connected' : 'disconnected';
+  res.json({
+    status: isDbConnected ? 'ok' : 'degraded',
+    service: 'veyro-api',
+    database: dbState,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 app.use(notFound);
