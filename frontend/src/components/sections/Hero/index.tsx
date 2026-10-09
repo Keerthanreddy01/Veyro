@@ -2,7 +2,6 @@ import * as motion from "motion/react-client";
 import Image from "next/image";
 import StyledLink from "@/components/StyledLink";
 import Section from "@/components/Section";
-import Google from "@/components/SVGs/Hero/Google";
 import HeroClient from "./HeroClient";
 import HeroBackground from "./Herobackground";
 
@@ -36,25 +35,26 @@ const imgProps: imgPropProps[] = [
 export default function Hero() {
   return (
     <Section id="hero">
-      <div className="card-shadow px-2 lg:p-20 lg:pb-10 mt-[84px] grid max-lg:grid-rows-[auto_1fr] gap-4 lg:grid-cols-2 lg:gap-10 bg-white rounded-xl border border-gray font-matter overflow-hidden relative pb-2">
+      <div className="card-shadow p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 mt-[84px] flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10 items-center bg-white rounded-2xl border border-gray font-matter overflow-hidden relative">
+        {/* Left Column: Text & Primary CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: "30px" }}
+          initial={{ opacity: 0, y: "24px" }}
           animate={{ opacity: 1, y: "0px" }}
-          transition={{ ease: "easeOut" }}
-          className="relative z-10 max-lg:p-4 max-lg:pt-[64px] flex flex-col gap-4 lg:gap-7 max-lg:items-center max-lg:text-center"
+          transition={{ ease: "easeOut", duration: 0.5 }}
+          className="relative z-10 w-full lg:col-span-6 xl:col-span-5 flex flex-col gap-4 lg:gap-6 max-lg:items-center max-lg:text-center"
         >
-          <span className="rounded-full bg-[#f5f5f5] border border-gray font-matter text-[12px] py-1 px-[14px] shadow-md w-fit text-[#242424] max-lg:mx-auto">
+          <span className="rounded-full bg-[#f5f5f5] border border-gray font-matter text-[11px] sm:text-[12px] py-1 px-3.5 shadow-xs w-fit text-[#242424] max-lg:mx-auto">
             Veyro — Next-Generation Learning Management System
           </span>
-          <h1 className="text-[40px] md:text-[55px] xl:text-[70px] font-cal text-primary-black leading-none text-balance">
+          <h1 className="text-[34px] sm:text-[44px] md:text-[50px] lg:text-[40px] xl:text-[52px] font-cal text-primary-black leading-[1.08] text-balance">
             Learn without limits. Prove what you know.
           </h1>
-          <p className="text-[#898989] text-[16px] lg:text-[18px] max-w-md lg:max-w-2xl">
+          <p className="text-[#6B7280] text-sm sm:text-base lg:text-[15px] xl:text-[16px] leading-relaxed max-w-md lg:max-w-lg">
             Accredited technical curricula with 90% real-time video watch progress auditing,
             server-authoritative anti-cheat assessments, and cryptographic completion certificates.
           </p>
-          <div className="w-[90%] space-y-4 md:max-w-[600px] max-w-[400px] lg:max-w-[400px] max-lg:mx-auto max-lg:px-2">
-            <div className="flex gap-4 md:flex-row flex-col lg:flex-col">
+          <div className="w-full space-y-3 max-w-[420px] max-lg:mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
               <StyledLink
                 href="/courses"
                 className="flex-1"
@@ -69,14 +69,18 @@ export default function Hero() {
                 Create Student Account
               </StyledLink>
             </div>
-            <p className="text-center text-[#898989] text-[14px]">
+            <p className="text-center sm:text-left text-[#898989] text-[12px] sm:text-[13px]">
               Free enrollment • Verifiable certificates • Anti-cheat proctored
             </p>
           </div>
         </motion.div>
-        <div className="relative z-30">
-          <HeroClient />
-          <div className="hidden lg:flex items-center flex-nowrap gap-12 mt-8 mx-2">
+
+        {/* Right Column: Interactive Student Dashboard Preview */}
+        <div className="relative z-20 w-full lg:col-span-6 xl:col-span-7 flex flex-col items-center lg:items-end">
+          <div className="w-full max-w-xl lg:max-w-none">
+            <HeroClient />
+          </div>
+          <div className="hidden xl:flex items-center justify-end gap-8 mt-5 px-2 opacity-85">
             {imgProps.map(({ src, width, height, alt }) => (
               <Image
                 unoptimized
@@ -93,6 +97,7 @@ export default function Hero() {
             ))}
           </div>
         </div>
+
         <HeroBackground />
       </div>
     </Section>

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -8,15 +8,11 @@ import {
   CheckCircle2,
   Award,
   ShieldCheck,
-  Clock,
   ArrowRight,
   Sparkles,
-  GraduationCap,
   FileCheck,
   Video,
   Check,
-  ExternalLink,
-  ChevronRight,
   TrendingUp,
 } from "lucide-react";
 import useAuthStore from "@/store/authStore";
@@ -27,6 +23,7 @@ interface IllustrativeCurriculum {
   category: string;
   level: string;
   title: string;
+  shortTitle: string;
   instructor: string;
   instructorRole: string;
   progressPercent: number;
@@ -54,22 +51,23 @@ interface IllustrativeCurriculum {
 const ILLUSTRATIVE_COURSES: IllustrativeCurriculum[] = [
   {
     id: "dist-sys-2026",
-    category: "Cloud & Systems",
+    category: "Cloud Systems",
     level: "Advanced",
     title: "Distributed Systems & Scalable Architecture",
+    shortTitle: "Distributed Sys",
     instructor: "Dr. Sarah Miller",
-    instructorRole: "Systems Architect & Faculty Lead",
+    instructorRole: "Faculty Lead",
     progressPercent: 78,
     totalLessons: 28,
     completedLessons: 22,
     currentLesson: {
-      title: "Lesson 14: Raft Consensus & State Machine Replication",
+      title: "Lesson 14: Raft Consensus & Log Replication",
       watchedTime: "18m 20s",
       totalTime: "20m 00s",
       watchPercent: 91,
     },
     assessment: {
-      title: "Module 3 Proctored Exam",
+      title: "Module 3 Exam",
       score: "96%",
       violations: 0,
       status: "Anti-Cheat Verified",
@@ -82,22 +80,23 @@ const ILLUSTRATIVE_COURSES: IllustrativeCurriculum[] = [
   },
   {
     id: "fullstack-react-node",
-    category: "Web Engineering",
+    category: "Web Eng",
     level: "Intermediate",
     title: "Full-Stack Web Architecture & Security",
+    shortTitle: "Full-Stack Web",
     instructor: "John Smith",
-    instructorRole: "Principal Security Engineer",
+    instructorRole: "Security Engineer",
     progressPercent: 52,
     totalLessons: 24,
     completedLessons: 12,
     currentLesson: {
-      title: "Lesson 8: Server-Authoritative RBAC & Session Rotation",
+      title: "Lesson 8: Server-Authoritative RBAC Security",
       watchedTime: "16m 40s",
       totalTime: "18m 00s",
       watchPercent: 92,
     },
     assessment: {
-      title: "Module 2 Architecture Audit",
+      title: "Module 2 Audit",
       score: "92%",
       violations: 0,
       status: "Anti-Cheat Verified",
@@ -105,25 +104,26 @@ const ILLUSTRATIVE_COURSES: IllustrativeCurriculum[] = [
   },
   {
     id: "applied-deep-learning",
-    category: "Artificial Intelligence",
+    category: "Machine Learning",
     level: "Advanced",
     title: "Applied Deep Learning & PyTorch Foundations",
+    shortTitle: "Deep Learning",
     instructor: "Sophia Davis",
-    instructorRole: "AI Research Scientist",
+    instructorRole: "AI Scientist",
     progressPercent: 100,
     totalLessons: 30,
     completedLessons: 30,
     currentLesson: {
-      title: "Capstone Defense: Transformer Attention Diagnostics",
+      title: "Capstone: Transformer Attention Diagnostics",
       watchedTime: "25m 00s",
       totalTime: "25m 00s",
       watchPercent: 100,
     },
     assessment: {
-      title: "Final Capstone Evaluation",
+      title: "Final Capstone",
       score: "98%",
       violations: 0,
-      status: "Tamper-Proof Ledger Recorded",
+      status: "Verified",
     },
     certificate: {
       code: "VY-PYTORCH-8821",
@@ -137,9 +137,7 @@ export default function HeroClient() {
   const { user } = useAuthStore();
   const [activeCourseIndex, setActiveCourseIndex] = useState(0);
   const [realEnrollments, setRealEnrollments] = useState<any[]>([]);
-  const [isLoadingAuthData, setIsLoadingAuthData] = useState(false);
 
-  // If user is authenticated, query their real enrollments
   useEffect(() => {
     if (!user) {
       setRealEnrollments([]);
@@ -147,20 +145,15 @@ export default function HeroClient() {
     }
 
     let isMounted = true;
-    setIsLoadingAuthData(true);
-
     api
       .get("/enrollments/my")
       .then(({ data }) => {
-        if (isMounted && data.enrollments && data.enrollments.length > 0) {
+        if (isMounted && data?.enrollments?.length > 0) {
           setRealEnrollments(data.enrollments);
         }
       })
       .catch(() => {
-        // Fallback safely to illustrative preview if offline or error
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingAuthData(false);
+        // Fallback to illustrative preview safely
       });
 
     return () => {
@@ -168,11 +161,9 @@ export default function HeroClient() {
     };
   }, [user]);
 
-  // Derived user statistics
   const stats = useMemo(() => {
     if (user && realEnrollments.length > 0) {
       const active = realEnrollments.filter((e) => e.status === "active").length;
-      const completed = realEnrollments.filter((e) => e.status === "completed").length;
       const certs = realEnrollments.filter((e) => Boolean(e.certificateCode)).length;
       const totalLessonsDone = realEnrollments.reduce(
         (sum, e) => sum + (e.completedLessons?.length || 0),
@@ -184,7 +175,6 @@ export default function HeroClient() {
         lessonsCompleted: totalLessonsDone || 18,
         quizzesPassed: "100%",
         certificatesIssued: certs,
-        isReal: true,
       };
     }
 
@@ -193,213 +183,210 @@ export default function HeroClient() {
       lessonsCompleted: 24,
       quizzesPassed: "96%",
       certificatesIssued: 1,
-      isReal: false,
     };
   }, [user, realEnrollments]);
 
-  // Select active curriculum
   const activeCurriculum = ILLUSTRATIVE_COURSES[activeCourseIndex];
 
   return (
     <motion.div
-      initial={{ scale: 0.96, opacity: 0 }}
+      initial={{ scale: 0.98, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full max-w-full font-inter select-none"
+      className="w-full font-inter select-none"
     >
       {/* Outer Shell with refined subtle border and card shadow */}
-      <div className="bg-[#FAF9F5]/90 backdrop-blur-xs p-2 sm:p-3 border border-[#E5E7EB] rounded-2xl shadow-xl space-y-3">
+      <div className="w-full bg-[#FAF9F5]/90 backdrop-blur-xs p-2.5 sm:p-3 border border-[#E5E7EB] rounded-2xl shadow-lg space-y-2.5 sm:space-y-3">
         
         {/* Top Bar: Workspace Header & Mode Badge */}
-        <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 sm:p-4 flex items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="bg-white rounded-xl border border-[#E5E7EB] px-3 py-2 sm:px-3.5 sm:py-2.5 flex items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-2 min-w-0">
             <div className="relative flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-[#111111] text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-full bg-[#111111] text-white flex items-center justify-center font-bold text-[11px]">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "V"}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white" />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs sm:text-sm font-bold text-[#111111] truncate">
+                <span className="text-xs sm:text-[13px] font-bold text-[#111111] truncate">
                   {user?.name || "Student Learning Dashboard"}
                 </span>
                 {!user ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB]">
-                    <Sparkles size={10} className="text-[#60C5F1]" />
-                    Illustrative Preview
+                  <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB]">
+                    <Sparkles size={9} className="text-[#60C5F1]" />
+                    Preview
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <Check size={10} />
+                  <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <Check size={9} />
                     Active Learner
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-[#6B7280] truncate">
-                {user ? user.email : "90% Video Audit Telemetry • Server-Authoritative Anti-Cheat"}
+              <p className="text-[10px] text-[#6B7280] truncate">
+                {user ? user.email : "90% Video Watch Auditing • Anti-Cheat Integrity"}
               </p>
             </div>
           </div>
 
           <Link
             to={user ? "/dashboard" : "/courses"}
-            className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-[#111111] hover:text-[#0284c7] transition-colors py-1.5 px-3 rounded-lg hover:bg-[#F3F4F6]"
+            className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-[#111111] hover:text-[#0284c7] transition-colors py-1 px-2.5 rounded-lg hover:bg-[#F3F4F6]"
           >
-            <span className="hidden sm:inline">{user ? "Open Dashboard" : "Browse Catalog"}</span>
-            <span className="sm:hidden">{user ? "Dashboard" : "Catalog"}</span>
-            <ArrowRight size={13} />
+            <span>{user ? "Dashboard" : "Browse"}</span>
+            <ArrowRight size={11} />
           </Link>
         </div>
 
         {/* Small Statistics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[#6B7280] mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider">In Progress</span>
-              <BookOpen size={13} className="text-[#111111]" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-2 sm:p-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-[#6B7280] mb-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-wider">In Progress</span>
+              <BookOpen size={11} className="text-[#111111]" />
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[#111111]">{stats.activeCourses}</span>
-              <span className="text-[10px] text-[#6B7280]">Curricula</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[#6B7280] mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Audited</span>
-              <Video size={13} className="text-[#0284c7]" />
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[#111111]">{stats.lessonsCompleted}</span>
-              <span className="text-[10px] text-emerald-600 font-semibold">90%+ Watch</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-base font-bold text-[#111111]">{stats.activeCourses}</span>
+              <span className="text-[9px] text-[#6B7280]">Courses</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[#6B7280] mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Quiz Score</span>
-              <ShieldCheck size={13} className="text-emerald-600" />
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-2 sm:p-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-[#6B7280] mb-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Audited</span>
+              <Video size={11} className="text-[#0284c7]" />
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[#111111]">{stats.quizzesPassed}</span>
-              <span className="text-[10px] text-[#6B7280]">Anti-Cheat</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-base font-bold text-[#111111]">{stats.lessonsCompleted}</span>
+              <span className="text-[9px] text-emerald-600 font-semibold">90%+ Watch</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 shadow-2xs">
-            <div className="flex items-center justify-between text-[#6B7280] mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Certificates</span>
-              <Award size={13} className="text-amber-500" />
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-2 sm:p-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-[#6B7280] mb-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Quiz Score</span>
+              <ShieldCheck size={11} className="text-emerald-600" />
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-[#111111]">{stats.certificatesIssued}</span>
-              <span className="text-[10px] text-purple-600 font-semibold">Verified</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-base font-bold text-[#111111]">{stats.quizzesPassed}</span>
+              <span className="text-[9px] text-[#6B7280]">Passed</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-2 sm:p-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-[#6B7280] mb-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Certificates</span>
+              <Award size={11} className="text-amber-500" />
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-base font-bold text-[#111111]">{stats.certificatesIssued}</span>
+              <span className="text-[9px] text-purple-600 font-semibold">Verified</span>
             </div>
           </div>
         </div>
 
         {/* Course Switcher Tabs (Interactive) */}
-        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E5E7EB] overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E5E7EB]">
           {ILLUSTRATIVE_COURSES.map((course, idx) => (
             <button
               key={course.id}
               onClick={() => setActiveCourseIndex(idx)}
-              className={`flex-1 min-w-[100px] text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex-1 min-w-0 text-center sm:text-left px-2 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium transition-all ${
                 activeCourseIndex === idx
                   ? "bg-[#111111] text-white shadow-xs font-semibold"
                   : "text-[#4B5563] hover:text-[#111111] hover:bg-[#F3F4F6]"
               }`}
             >
-              <div className="truncate text-[11px]">{course.title.split("&")[0].trim()}</div>
-              <div className={`text-[10px] ${activeCourseIndex === idx ? "text-[#60C5F1]" : "text-[#9CA3AF]"}`}>
-                {course.progressPercent}% done
+              <div className="truncate">{course.shortTitle}</div>
+              <div className={`text-[9px] ${activeCourseIndex === idx ? "text-[#60C5F1]" : "text-[#9CA3AF]"}`}>
+                {course.progressPercent}%
               </div>
             </button>
           ))}
         </div>
 
         {/* “Continue Learning” Featured Active Course Card */}
-        <div className="bg-white rounded-xl border border-[#E5E7EB] p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-3 sm:p-3.5 shadow-xs space-y-2.5">
           
           {/* Header of Course */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="inline-block px-2 py-0.5 rounded-full bg-[#FFF490] border border-[#111111]/15 text-[#111111] text-[10px] font-bold uppercase tracking-wider">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 space-y-0.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-block px-1.5 py-0.5 rounded-full bg-[#FFF490] border border-[#111111]/15 text-[#111111] text-[9px] font-bold uppercase tracking-wider">
                   {activeCurriculum.category}
                 </span>
-                <span className="text-[10px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
+                <span className="text-[9px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-1.5 py-0.5 rounded-full">
                   {activeCurriculum.level}
                 </span>
               </div>
-              <h3 className="font-cal text-base sm:text-lg text-[#111111] leading-tight">
+              <h3 className="font-cal text-xs sm:text-sm text-[#111111] leading-tight truncate">
                 {activeCurriculum.title}
               </h3>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-[10px] text-[#6B7280] truncate">
                 {activeCurriculum.instructor} • {activeCurriculum.instructorRole}
               </p>
             </div>
 
             <Link
               to="/courses"
-              className="w-10 h-10 rounded-full bg-[#111111] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#0284c7] transition-all hover:scale-105 active:scale-95 shadow-xs"
+              className="size-8 rounded-full bg-[#111111] text-white flex items-center justify-center flex-shrink-0 hover:bg-[#0284c7] transition-all hover:scale-105 active:scale-95 shadow-2xs"
               title="Resume Lesson"
             >
-              <Play size={16} className="fill-current ml-0.5" />
+              <Play size={13} className="fill-current ml-0.5" />
             </Link>
           </div>
 
           {/* Overall Course Progress Bar */}
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#374151] font-medium flex items-center gap-1.5">
-                <TrendingUp size={13} className="text-[#0284c7]" />
-                <span>Curriculum Completion</span>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-[#374151] font-medium flex items-center gap-1">
+                <TrendingUp size={11} className="text-[#0284c7]" />
+                <span>Progress</span>
               </span>
               <span className="font-bold text-[#111111]">{activeCurriculum.progressPercent}%</span>
             </div>
-            <div className="h-2 w-full bg-[#F3F4F6] rounded-full overflow-hidden p-0.5 border border-[#E5E7EB]">
+            <div className="h-1.5 w-full bg-[#F3F4F6] rounded-full overflow-hidden border border-[#E5E7EB]">
               <motion.div
                 className="h-full bg-gradient-to-r from-[#111111] via-[#1e293b] to-[#60C5F1] rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${activeCurriculum.progressPercent}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
               />
             </div>
-            <div className="flex justify-between text-[11px] text-[#6B7280]">
+            <div className="flex justify-between text-[9px] text-[#6B7280]">
               <span>{activeCurriculum.completedLessons} of {activeCurriculum.totalLessons} lessons completed</span>
-              <span>Passing grade required: 80%</span>
+              <span>80% pass req</span>
             </div>
           </div>
 
           {/* Video Lesson Telemetry Panel */}
-          <div className="bg-[#FAF9F5] border border-[#E5E7EB] rounded-lg p-3 space-y-2">
+          <div className="bg-[#FAF9F5] border border-[#E5E7EB] rounded-lg p-2 sm:p-2.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-6 h-6 rounded-md bg-[#111111] text-white flex items-center justify-center flex-shrink-0">
-                  <Video size={13} className="text-[#60C5F1]" />
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="size-5 rounded bg-[#111111] text-white flex items-center justify-center flex-shrink-0">
+                  <Video size={10} className="text-[#60C5F1]" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-semibold text-[#111111] truncate">
+                  <div className="text-[11px] font-semibold text-[#111111] truncate">
                     {activeCurriculum.currentLesson.title}
                   </div>
-                  <div className="text-[10px] text-[#6B7280] flex items-center gap-2">
-                    <span>{activeCurriculum.currentLesson.watchedTime} watched of {activeCurriculum.currentLesson.totalTime}</span>
+                  <div className="text-[9px] text-[#6B7280] flex items-center gap-1.5">
+                    <span>{activeCurriculum.currentLesson.watchedTime} / {activeCurriculum.currentLesson.totalTime}</span>
                     <span>•</span>
-                    <span className="text-emerald-700 font-bold">{activeCurriculum.currentLesson.watchPercent}% recorded</span>
+                    <span className="text-emerald-700 font-bold">{activeCurriculum.currentLesson.watchPercent}% watched</span>
                   </div>
                 </div>
               </div>
 
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex-shrink-0">
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex-shrink-0">
                 ✓ 90% Met
               </span>
             </div>
 
             {/* Video progress track with 90% threshold notch */}
-            <div className="relative pt-1">
+            <div className="relative pt-0.5">
               <div className="h-1.5 w-full bg-[#E5E7EB] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-emerald-600 rounded-full"
@@ -407,29 +394,29 @@ export default function HeroClient() {
                 />
               </div>
               <div
-                className="absolute top-0 w-0.5 h-3 bg-red-500 rounded-full -translate-x-1/2"
+                className="absolute top-0 w-0.5 h-2.5 bg-red-500 rounded-full -translate-x-1/2"
                 style={{ left: "90%" }}
                 title="90% Server Audit Threshold"
               />
             </div>
-            <div className="flex items-center justify-between text-[10px] text-[#6B7280]">
-              <span className="text-emerald-700 font-medium flex items-center gap-1">
-                <CheckCircle2 size={11} /> Server-audited watch time qualifies for module exam
+            <div className="flex items-center justify-between text-[9px] text-[#6B7280]">
+              <span className="text-emerald-700 font-medium flex items-center gap-1 truncate">
+                <CheckCircle2 size={10} /> 90% watch audited — exam unlocked
               </span>
-              <span className="font-mono text-red-600 font-semibold">90% req</span>
+              <span className="font-mono text-red-600 font-semibold flex-shrink-0">90% min</span>
             </div>
           </div>
 
           {/* Assessment Integrity Micro-card */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#E5E7EB] text-xs">
-            <div className="flex items-center gap-1.5 text-[#374151]">
-              <ShieldCheck size={14} className="text-emerald-600" />
-              <span className="font-medium">{activeCurriculum.assessment.title}</span>
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#E5E7EB] text-[10px] sm:text-[11px]">
+            <div className="flex items-center gap-1 text-[#374151] truncate">
+              <ShieldCheck size={12} className="text-emerald-600 flex-shrink-0" />
+              <span className="font-medium truncate">{activeCurriculum.assessment.title}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="font-bold text-[#111111]">{activeCurriculum.assessment.score}</span>
-              <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                0 tab violations
+              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                0 violations
               </span>
             </div>
           </div>
@@ -438,61 +425,53 @@ export default function HeroClient() {
 
         {/* Certificate Achievement Card (if available for selected curriculum) */}
         {activeCurriculum.certificate ? (
-          <div className="bg-gradient-to-br from-[#111111] via-[#1a1f2c] to-[#0f172a] text-white p-3.5 sm:p-4 rounded-xl border border-white/10 shadow-md space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#60C5F1]">
-                <Award size={15} />
-                <span className="uppercase tracking-wider text-[10px] font-bold">Verifiable Credential</span>
+          <div className="bg-gradient-to-r from-[#111111] via-[#1a1f2c] to-[#0f172a] text-white px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-white/10 shadow-xs flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 text-[9px] font-semibold text-[#60C5F1]">
+                <Award size={11} />
+                <span className="uppercase tracking-wider font-bold">Verifiable Credential</span>
               </div>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                ✓ Cryptographic SHA-256
-              </span>
+              <h4 className="font-cal text-[11px] sm:text-xs text-white truncate">
+                {activeCurriculum.certificate.credentialTitle}
+              </h4>
+              <p className="text-[9px] text-slate-400 font-mono truncate">
+                Code: {activeCurriculum.certificate.code} • SHA-256 Ledger
+              </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h4 className="font-cal text-sm sm:text-base text-white">
-                  {activeCurriculum.certificate.credentialTitle}
-                </h4>
-                <p className="text-[11px] text-slate-400 font-mono">
-                  Code: {activeCurriculum.certificate.code} • Issued {activeCurriculum.certificate.issuedDate}
-                </p>
-              </div>
-
-              <Link
-                to={`/verify/${activeCurriculum.certificate.code}`}
-                className="inline-flex items-center justify-center gap-1 text-xs font-bold bg-[#60C5F1] text-[#111111] hover:bg-white transition-colors py-1.5 px-3 rounded-lg flex-shrink-0"
-              >
-                <FileCheck size={13} />
-                <span>Verify on Ledger</span>
-              </Link>
-            </div>
+            <Link
+              to={`/verify/${activeCurriculum.certificate.code}`}
+              className="inline-flex items-center justify-center gap-1 text-[10px] font-bold bg-[#60C5F1] text-[#111111] hover:bg-white transition-colors py-1 px-2.5 rounded-md flex-shrink-0"
+            >
+              <FileCheck size={11} />
+              <span>Verify</span>
+            </Link>
           </div>
         ) : (
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-[#4B5563]">
-              <Award size={15} className="text-[#9CA3AF]" />
-              <span>Complete remaining 6 lessons to unlock cryptographic certificate</span>
+          <div className="bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 flex items-center justify-between gap-2 text-[10px] text-[#4B5563]">
+            <div className="flex items-center gap-1.5 truncate">
+              <Award size={12} className="text-[#9CA3AF] flex-shrink-0" />
+              <span className="truncate">Complete remaining lessons to unlock certificate</span>
             </div>
             <Link
               to="/courses"
-              className="font-bold text-[#111111] hover:text-[#0284c7] inline-flex items-center gap-1 text-xs flex-shrink-0"
+              className="font-bold text-[#111111] hover:text-[#0284c7] inline-flex items-center gap-0.5 text-[10px] flex-shrink-0"
             >
               <span>Continue</span>
-              <ArrowRight size={12} />
+              <ArrowRight size={10} />
             </Link>
           </div>
         )}
 
         {/* Footer / Context Notice */}
-        <div className="px-1 text-[11px] text-[#6B7280] flex items-center justify-between flex-wrap gap-2">
-          <span>
+        <div className="px-1 text-[9px] sm:text-[10px] text-[#6B7280] flex items-center justify-between flex-wrap gap-1">
+          <span className="truncate">
             {user
-              ? `Logged in as ${user.name}. Progress synchronizes with server ledger.`
-              : "Interactive demonstration. Sign in or create an account to record your progress."}
+              ? `Signed in as ${user.name}. Synced with server ledger.`
+              : "Demonstration mode with illustrative learning telemetry."}
           </span>
           {!user && (
-            <div className="flex items-center gap-2 font-semibold">
+            <div className="flex items-center gap-1.5 font-semibold flex-shrink-0">
               <Link to="/login" className="text-[#111111] hover:underline">
                 Sign In
               </Link>

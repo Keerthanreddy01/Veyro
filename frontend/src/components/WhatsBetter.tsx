@@ -11,11 +11,12 @@ export default function WhatsBetter() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-30 font-matter text-xs font-semibold px-4 py-2 rounded-full bg-[#171717] text-white hover:bg-[#242424] shadow-lg border border-white/10 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+        className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-30 font-matter text-xs font-semibold px-3.5 py-2 rounded-full bg-[#171717]/95 backdrop-blur-xs text-white hover:bg-[#242424] shadow-lg border border-white/10 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
         aria-label="View Veyro Advantages"
       >
         <span className="w-2 h-2 rounded-full bg-[#60C5F1] animate-pulse" />
-        <span>The Veyro Advantage</span>
+        <span className="hidden sm:inline">The Veyro Advantage</span>
+        <span className="sm:hidden">Advantage</span>
       </button>
 
       <AnimatePresence>
