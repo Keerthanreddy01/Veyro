@@ -15,7 +15,16 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/public/*": ["public/*"],
+      "next/image": ["src/components/common/Image.tsx"],
+      "next/link": ["src/components/common/Link.tsx"],
+      "motion/react-client": ["src/components/common/motion-client.ts"]
+    }
   },
   "include": ["src"]
 }

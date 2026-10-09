@@ -1,4 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Cal Sans';
+  src: url('/fonts/CalSans-SemiBold.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Matter';
+  src: url('/fonts/Matter.woff2') format('woff2');
+  font-weight: 400 500 600 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── Tailwind v4 theme tokens ─────────────────────────────────────────────── */
 @theme {
@@ -6,6 +23,16 @@
   --font-display: 'Syne', sans-serif;
   --font-serif: 'Newsreader', Georgia, serif;
   --font-mono: 'Space Grotesk', monospace;
+  --font-cal: 'Cal Sans', sans-serif;
+  --font-matter: 'Matter', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+
+  /* Veyro UI theme colors */
+  --color-primary-black: #171717;
+  --color-secondary-black: #242424;
+  --color-gray-700: #898989;
+  --color-gray: #c0c2c4;
+  --color-border-primary: #e1e2e3;
 
   /* Brand / Editorial */
   --color-ink:       #111111;
@@ -29,6 +56,90 @@
   /* Shadows */
   --shadow-glow:    0 0 20px rgba(96,197,241,0.25);
   --shadow-card:    3px 3px 0px rgba(17,17,17,0.88);
+}
+
+/* Veyro UI specific utility classes */
+.font-cal {
+  font-family: 'Cal Sans', sans-serif !important;
+}
+.font-matter {
+  font-family: 'Matter', sans-serif !important;
+}
+.font-inter {
+  font-family: 'Inter', sans-serif !important;
+}
+.font-mono {
+  font-family: 'Roboto Mono', monospace !important;
+}
+
+.text-primary-black {
+  color: #171717;
+}
+.text-secondary-black {
+  color: #242424;
+}
+.text-gray-700 {
+  color: #898989;
+}
+.border-gray {
+  border-color: #C0C2C4;
+}
+.border-r-gray {
+  border-right-color: #C0C2C4;
+}
+.border-x-gray {
+  border-left-color: #C0C2C4;
+  border-right-color: #C0C2C4;
+}
+.border-y-gray {
+  border-top-color: #C0C2C4;
+  border-bottom-color: #C0C2C4;
+}
+.divide-gray > * + * {
+  border-color: #C0C2C4;
+}
+
+.card-shadow {
+  box-shadow:
+    rgba(36, 36, 36, 0.7) 0px 1px 5px -4px,
+    rgba(36, 36, 36, 0.05) 0px 4px 8px 0px;
+}
+
+.bg-AcceptedPayments {
+  background-image: url('/benefits/Accept payments.svg');
+}
+.bg-BuiltInVideoConferencing {
+  background-image: url('/benefits/Built-in video conferencing.svg');
+}
+.bg-ShortBookingLinks {
+  background-image: url('/benefits/Short booking links.svg');
+}
+.bg-PrivacyFirst {
+  background-image: url('/benefits/Privacy first.svg');
+}
+.bg-65\+Languages,
+.bg-65Languages {
+  background-image: url('/benefits/65+languages.svg');
+}
+.bg-EasyEmbeds {
+  background-image: url('/benefits/Easy embeds.svg');
+}
+.bg-AllYourFavoriteApps {
+  background-image: url('/benefits/All your favorite apps.svg');
+}
+.bg-SimpleCustomization {
+  background-image: url('/benefits/Simple customization.svg');
+}
+
+.bg-squared {
+  background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 1) 90%),
+    linear-gradient(rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0) 80%, rgba(255, 255, 255, 0.3) 100%),
+    url('/SquaredBackground.png');
+}
+
+.bg-hero {
+  background-image: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 1) 42%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.4)),
+    url('/SquaredBackground.png');
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */

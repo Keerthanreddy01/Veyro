@@ -1,0 +1,100 @@
+import * as motion from "motion/react-client";
+import Image from "next/image";
+import StyledLink from "@/components/StyledLink";
+import Section from "@/components/Section";
+import Google from "@/components/SVGs/Hero/Google";
+import HeroClient from "./HeroClient";
+import HeroBackground from "./Herobackground";
+
+interface imgPropProps {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+const imgProps: imgPropProps[] = [
+  {
+    src: "/achievements/TrustPilot.svg",
+    alt: "Featured on Trust Pilot",
+    width: 120,
+    height: 54,
+  },
+  {
+    src: "/achievements/ProductHunt.svg",
+    alt: "Featured on Product Hunt",
+    width: 116,
+    height: 54,
+  },
+  {
+    src: "/achievements/G2.svg",
+    alt: "Featured on G2",
+    width: 112,
+    height: 54,
+  },
+];
+
+export default function Hero() {
+  return (
+    <Section id="hero">
+      <div className="card-shadow px-2 lg:p-20 lg:pb-10 mt-[84px] grid max-lg:grid-rows-[auto_1fr] gap-4 lg:grid-cols-2 lg:gap-10 bg-white rounded-xl border border-gray font-matter overflow-hidden relative pb-2">
+        <motion.div
+          initial={{ opacity: 0, y: "30px" }}
+          animate={{ opacity: 1, y: "0px" }}
+          transition={{ ease: "easeOut" }}
+          className="relative z-10 max-lg:p-4 max-lg:pt-[64px] flex flex-col gap-4 lg:gap-7 max-lg:items-center max-lg:text-center"
+        >
+          <span className="rounded-full bg-[#f5f5f5] border border-gray font-matter text-[12px] py-1 px-[14px] shadow-md w-fit text-[#242424] max-lg:mx-auto">
+            Veyro — Next-Generation Learning Management System
+          </span>
+          <h1 className="text-[40px] md:text-[55px] xl:text-[70px] font-cal text-primary-black leading-none text-balance">
+            Learn without limits. Prove what you know.
+          </h1>
+          <p className="text-[#898989] text-[16px] lg:text-[18px] max-w-md lg:max-w-2xl">
+            Accredited technical curricula with 90% real-time video watch progress auditing,
+            server-authoritative anti-cheat assessments, and cryptographic completion certificates.
+          </p>
+          <div className="w-[90%] space-y-4 md:max-w-[600px] max-w-[400px] lg:max-w-[400px] max-lg:mx-auto max-lg:px-2">
+            <div className="flex gap-4 md:flex-row flex-col lg:flex-col">
+              <StyledLink
+                href="/courses"
+                className="flex-1"
+              >
+                <span>Explore Curricula</span>
+              </StyledLink>
+              <StyledLink
+                variant="light"
+                href="/register"
+                className="flex-1 shadow-none"
+              >
+                Create Student Account
+              </StyledLink>
+            </div>
+            <p className="text-center text-[#898989] text-[14px]">
+              Free enrollment • Verifiable certificates • Anti-cheat proctored
+            </p>
+          </div>
+        </motion.div>
+        <div className="relative z-30">
+          <HeroClient />
+          <div className="hidden lg:flex items-center flex-nowrap gap-12 mt-8 mx-2">
+            {imgProps.map(({ src, width, height, alt }) => (
+              <Image
+                unoptimized
+                key={alt}
+                src={src}
+                alt={alt}
+                width={width}
+                height={height}
+                style={{
+                  width,
+                  height,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        <HeroBackground />
+      </div>
+    </Section>
+  );
+}
