@@ -40,7 +40,6 @@ export default function Navbar() {
         ]
     : [
         { to: '/courses', label: 'Browse Courses', icon: Compass },
-        { to: '/verify/VY-DEMO-2026', label: 'Verify Credential', icon: ShieldCheck },
       ];
 
   return (

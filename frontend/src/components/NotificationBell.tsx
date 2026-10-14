@@ -106,8 +106,6 @@ export default function NotificationBell() {
     // Entity-based navigation
     if (n.entityType === 'Course' && n.entityId) {
       navigate(`/courses/${n.entityId}`);
-    } else if (n.entityType === 'Certificate' && n.entityId) {
-      navigate(`/verify/${n.entityId}`);
     } else {
       navigate('/dashboard');
     }

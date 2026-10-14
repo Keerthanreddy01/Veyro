@@ -70,12 +70,12 @@ export default function Footer() {
       listItems: [
         { key: "Video Watch Auditing", href: "/courses" },
         { key: "Anti-Cheat Proctoring", href: "/dashboard" },
-        { key: "Cryptographic Certificates", href: "/verify/VY-DEMO-2026" },
+        { key: "Cryptographic Certificates", href: "/courses" },
         { key: "Interactive Quizzes", href: "/courses" },
         { key: "Student Dashboard", href: "/dashboard" },
         { key: "Instructor Studio", href: "/instructor/courses/new" },
         { key: "Live Mentorship", href: "#hero" },
-        { key: "Verification Registry", href: "/verify/VY-DEMO-2026" },
+        { key: "Verification Registry", href: "/courses" },
       ],
     },
     {
@@ -83,10 +83,10 @@ export default function Footer() {
       listItems: [
         { key: "Course Catalog", href: "/courses" },
         { key: "Student Portal", href: "/dashboard" },
-        { key: "Credential Verification", href: "/verify/VY-DEMO-2026" },
+        { key: "Credential Verification", href: "/courses" },
         { key: "Curriculum API", href: "/dashboard" },
         { key: "Proctoring Guidelines", href: "/dashboard" },
-        { key: "Academic Integrity", href: "/verify/VY-DEMO-2026" },
+        { key: "Academic Integrity", href: "/dashboard" },
         { key: "Developer Docs", href: "/dashboard" },
       ],
     },

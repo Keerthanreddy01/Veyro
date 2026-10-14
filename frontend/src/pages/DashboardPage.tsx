@@ -379,13 +379,7 @@ function StudentDashboard({ user }: { user: AuthUser }) {
                         <p className="font-semibold text-[#171717] truncate">{e.courseId?.title}</p>
                         <p className="text-[#77736D] font-mono text-[11px] mt-0.5">{e.certificateCode}</p>
                       </div>
-                      {e.certificateCode && (
-                        <Link to={`/verify/${e.certificateCode}`}>
-                          <Button variant="secondary" size="sm">
-                            Verify
-                          </Button>
-                        </Link>
-                      )}
+                      <Badge variant="published">Verified</Badge>
                     </div>
                   ))}
                 </div>

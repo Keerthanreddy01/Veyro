@@ -34,7 +34,7 @@ export default function EarnCertificateVisual() {
         </div>
 
         <Link
-          href="/verify/VY-DEMO-2026"
+          href="/courses"
           className="block text-center text-xs font-semibold py-1.5 px-3 rounded-lg bg-[#111111] text-white hover:bg-[#242424] transition-colors"
         >
           Check Authenticity Ledger →

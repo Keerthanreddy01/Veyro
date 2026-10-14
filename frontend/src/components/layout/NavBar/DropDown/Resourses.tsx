@@ -11,7 +11,7 @@ const Resources = () => {
     {
       title: "Credential Verification",
       description: "Verify authentic certificates in real-time",
-      href: "/verify/VY-DEMO-2026",
+      href: "/courses",
       icon: "📜",
     },
     {
@@ -71,7 +71,7 @@ const Resources = () => {
     {
       title: "Academic Integrity",
       description: "Cryptographic SHA-256 certificate hashing",
-      href: "/verify/VY-DEMO-2026",
+      href: "/dashboard",
       icon: "🛡️",
     },
   ];

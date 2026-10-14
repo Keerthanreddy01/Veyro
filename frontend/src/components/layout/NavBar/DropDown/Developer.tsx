@@ -15,7 +15,7 @@ const Developer = () => {
       description: "Server-authoritative proctoring, focus loss detection & integrity checks",
     },
     {
-      href: "/verify/VY-DEMO-2026",
+      href: "/courses",
       icon: "📜",
       title: "Certificate Engine",
       description:

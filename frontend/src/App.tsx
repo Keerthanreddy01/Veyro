@@ -14,7 +14,6 @@ import LessonViewerPage from './pages/LessonViewerPage';
 import QuizPage from './pages/QuizPage';
 import CreateCoursePage from './pages/CreateCoursePage';
 import EditCoursePage from './pages/EditCoursePage';
-import VerifyCertificatePage from './pages/VerifyCertificatePage';
 
 import type { ReactNode } from 'react';
 
@@ -50,7 +49,6 @@ export default function App() {
           {/* Public routes (no navbar for auth pages) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/verify/:code" element={<VerifyCertificatePage />} />
 
           {/* Routes with Navbar */}
           <Route path="/*" element={

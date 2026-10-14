@@ -133,15 +133,6 @@ const NavBar = () => {
             <li>
               <Link href="#benefits" className="hover:text-black font-medium transition-colors">About</Link>
             </li>
-            <li>
-              <Link
-                href="/verify/VY-DEMO-2026"
-                className="px-3 py-1 rounded-full bg-[#f0f0f0] hover:bg-[#e4e4e4] text-xs font-semibold border border-black/10 transition-colors flex items-center gap-1.5"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#60C5F1]" />
-                <span>Verify Credential</span>
-              </Link>
-            </li>
           </ol>
           <div className="hidden gap-3 lg:flex items-center">
             <Link

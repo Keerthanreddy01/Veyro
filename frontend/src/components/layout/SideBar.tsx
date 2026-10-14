@@ -19,7 +19,6 @@ const SideBar = () => {
           { label: "Courses", href: "/courses" },
           { label: "Learning Paths", href: "/courses" },
           { label: "For Instructors", href: "/instructor/courses/new" },
-          { label: "Verify Credential", href: "/verify/VY-DEMO-2026" },
           { label: "About Veyro", href: "#benefits" },
           { label: "How It Works", href: "#how-it-works" },
         ].map((eachTab) => (

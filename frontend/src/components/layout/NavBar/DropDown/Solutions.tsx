@@ -55,7 +55,7 @@ const Solutions = () => {
         icon: "🌐",
       },
       {
-        href: "/verify/VY-DEMO-2026",
+        href: "/dashboard",
         title: "Tamper-Proof Certificates",
         icon: "📜",
       },

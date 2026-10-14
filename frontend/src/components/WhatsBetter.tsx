@@ -97,14 +97,7 @@ export default function WhatsBetter() {
                         Cryptographic SHA-256 Completion Certificates
                       </h3>
                       <p className="text-sm leading-relaxed text-[#6f6f6f]">
-                        Every graduate receives a tamper-proof PDF certificate with a verifiable SHA-256 hash and a live verification route at&nbsp;
-                        <Link
-                          href="/verify/VY-DEMO-2026"
-                          className="text-[#0561A2] font-semibold underline underline-offset-2"
-                        >
-                          /verify/VY-DEMO-2026
-                        </Link>
-                        . Employers and institutions can independently validate credentials in seconds.
+                        Every graduate receives a tamper-proof PDF certificate with a verifiable SHA-256 hash. Employers and institutions can independently validate credentials with cryptographic certainty.
                       </p>
                     </div>
                   </div>
