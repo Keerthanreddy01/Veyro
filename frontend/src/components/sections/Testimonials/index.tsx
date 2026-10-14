@@ -15,7 +15,7 @@ export default function Testimonials() {
             Proven by students & instructors
           </SectionHeader.Title>
           <SectionHeader.Description>
-            Perspectives from beta cohort learners and educators mastering technical curricula on Veyro (Beta Showcase).
+            Perspectives from active learners and educators mastering technical curricula on Veyro.
           </SectionHeader.Description>
         </SectionHeader>
         <TestimonialsClient />
