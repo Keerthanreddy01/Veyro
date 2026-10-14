@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🎓 VEYRO LMS
-### *Enterprise Learning Management System with Cryptographic Verification & Proctored Assessment Engine*
+### *Full-Stack Learning Management System for Academic Institutions & Modern Education*
 
 [![Live Platform](https://img.shields.io/badge/Platform-Live-10B981?style=for-the-badge&logo=vercel&logoColor=white)](https://veyroofficial.vercel.app/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
@@ -21,12 +21,6 @@
 ---
 
 </div>
-
-## 🌐 Live Platform Access
-
-* **Official Frontend Application**: [`https://veyroofficial.vercel.app`](https://veyroofficial.vercel.app)
-* **Backend API Gateway**: [`https://veyro-y6gj.onrender.com/api`](https://veyro-y6gj.onrender.com/api)
-* **API Health Telemetry**: [`https://veyro-y6gj.onrender.com/api/health`](https://veyro-y6gj.onrender.com/api/health)
 
 ---
 
@@ -201,15 +195,6 @@ npm run dev
 > Application launches on `http://localhost:5173`
 
 ---
-
-## 🧪 Automated Testing
-
-Veyro includes an automated verification test suite covering RBAC, video auditing, anti-cheat timers, and data isolation:
-
-```bash
-cd backend
-node test_suite.js
-```
 
 ---
 
