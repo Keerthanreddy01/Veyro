@@ -16,7 +16,7 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: CLIENT_URL
-        value: https://veyro-sandy.vercel.app
+        value: https://veyroofficial.vercel.app,https://veyro-sandy.vercel.app
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

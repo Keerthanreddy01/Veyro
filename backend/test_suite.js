@@ -1335,7 +1335,9 @@ async function runAllTests() {
       return allowedOrigins.includes(normalized) || allowedOrigins.includes('*');
     };
 
-    const config = 'http://localhost:5173, https://veyro-sandy.vercel.app/ ';
+    const config = 'http://localhost:5173, https://veyroofficial.vercel.app, https://veyro-sandy.vercel.app/ ';
+    assert.strictEqual(checkOriginAllowed(config, 'https://veyroofficial.vercel.app'), true);
+    assert.strictEqual(checkOriginAllowed(config, 'https://veyroofficial.vercel.app/'), true);
     assert.strictEqual(checkOriginAllowed(config, 'https://veyro-sandy.vercel.app'), true);
     assert.strictEqual(checkOriginAllowed(config, 'https://veyro-sandy.vercel.app/'), true);
     assert.strictEqual(checkOriginAllowed(config, 'http://localhost:5173'), true);
