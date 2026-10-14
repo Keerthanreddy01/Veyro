@@ -1,10 +1,20 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import CrossSVG from "@/components/CrossSVG";
 import Image from "next/image";
-import { Star, X, CheckCircle2, MessageSquarePlus, Info, Loader2 } from "lucide-react";
+import {
+  Star,
+  X,
+  CheckCircle2,
+  MessageSquarePlus,
+  Info,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Quote,
+  ShieldCheck,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import useToggleState from "@/hooks/useToggleState";
 import api from "@/api/axios";
 
 export interface Testimonial {
@@ -57,6 +67,8 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 
 export default function TestimonialsClient() {
   const [list, setList] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
@@ -70,7 +82,8 @@ export default function TestimonialsClient() {
   // Fetch approved testimonials from live API
   useEffect(() => {
     let isMounted = true;
-    api.get("/testimonials")
+    api
+      .get("/testimonials")
       .then(({ data }) => {
         if (isMounted && data?.testimonials && data.testimonials.length > 0) {
           const mapped: Testimonial[] = data.testimonials.map((t: any) => ({
@@ -92,23 +105,22 @@ export default function TestimonialsClient() {
     };
   }, []);
 
-  const { ref, state } = useToggleState<HTMLDivElement>(
-    { from: 0, to: list.length },
-    5000
-  );
+  // Auto-rotation every 5.5 seconds, paused on hover
+  useEffect(() => {
+    if (list.length <= 1 || isPaused) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % list.length);
+    }, 5500);
+    return () => clearInterval(interval);
+  }, [list.length, isPaused]);
 
-  const orderedTestimonials: Testimonial[] = useMemo(() => {
-    if (list.length === 0) return [];
-    let i = state % list.length;
-    const ordered: Testimonial[] = [];
-    let count = 0;
-    while (count < list.length) {
-      ordered.push(list[i]);
-      i = (i + 1) % list.length;
-      count++;
-    }
-    return ordered;
-  }, [state, list]);
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + list.length) % list.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % list.length);
+  };
 
   const handleOpenModal = () => {
     setIsSubmittedSuccess(false);
@@ -154,10 +166,10 @@ export default function TestimonialsClient() {
         rating,
       };
 
-      // Keep locally so user can see it previewed
+      // Keep locally and highlight it
       setList((prev) => [newTestimonial, ...prev]);
+      setCurrentIndex(0);
 
-      // Show professional confirmation inside modal
       setIsSubmittedSuccess(true);
       toast.success("Thank you! Your testimonial has been received for review.");
     } catch (err: any) {
@@ -166,6 +178,15 @@ export default function TestimonialsClient() {
       setIsSubmitting(false);
     }
   };
+
+  // Safe cyclic indices for left, center, right
+  const len = list.length;
+  const prevIndex = (currentIndex - 1 + len) % len;
+  const nextIndex = (currentIndex + 1) % len;
+
+  const currentItem = list[currentIndex] || DEFAULT_TESTIMONIALS[0];
+  const prevItem = list[prevIndex] || DEFAULT_TESTIMONIALS[0];
+  const nextItem = list[nextIndex] || DEFAULT_TESTIMONIALS[0];
 
   return (
     <div className="space-y-6">
@@ -180,86 +201,164 @@ export default function TestimonialsClient() {
         </button>
       </div>
 
-      {/* Testimonials Carousel Container */}
+      {/* Testimonials Showcase Container */}
       <div
-        ref={ref}
-        className="px-1 h-[370px] sm:h-[280px] border-y border-y-gray flex justify-center relative overflow-x-clip"
+        className="relative max-w-6xl mx-auto px-2 sm:px-6 py-2 select-none"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
-        {orderedTestimonials.map((testimonial, index) => {
-          const isPendingPreview = testimonial.id?.startsWith("pending-");
-          return (
-            <motion.div
-              key={testimonial.id || testimonial.name}
-              layoutId={testimonial.id || testimonial.name}
-              initial={{
-                opacity: index == 2 ? 0 : index == 0 ? 1 : 0.5,
-              }}
-              style={{
-                position: index == 2 ? "absolute" : "relative",
-                display: index == 2 ? "hidden" : "block",
-                zIndex: index == 2 ? 1 : 2,
-                order: index == 0 ? 2 : index,
-              }}
-              animate={{
-                opacity: index == 2 ? 0 : index == 0 ? 1 : 0.5,
-              }}
-              transition={{
-                layout: { duration: 0.8 },
-                opacity: { duration: 0.8 },
-              }}
-              className="w-[85%] sm:w-[75%] md:w-[65%] lg:w-[50%] h-full shrink-0 relative p-3 border-r-gray border-r"
-            >
-              <CrossSVG className="absolute -left-3 -bottom-3" />
-              <CrossSVG className="absolute -right-3 -bottom-3" />
-              <CrossSVG className="absolute -left-3 -top-3" />
-              <CrossSVG className="absolute -right-3 -top-3" />
+        {/* Navigation Arrows */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 sm:left-2 z-30">
+          <button
+            onClick={handlePrev}
+            aria-label="Previous testimonial"
+            className="size-10 sm:size-11 rounded-full bg-white/95 hover:bg-white text-[#171717] border border-[#E7E2DA] shadow-md hover:shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        </div>
 
-              <motion.div className="card-shadow border border-gray rounded-xl bg-white h-full flex flex-col justify-between p-5 lg:p-6 font-matter text-left">
-                <p className="text-[17px] sm:text-[19px] lg:text-[21px] text-[#141414] [text-indent:-6px] font-semibold leading-snug line-clamp-4">
-                  &quot;{testimonial.testimonial}&quot;
-                </p>
+        <div className="absolute top-1/2 -translate-y-1/2 right-0 sm:right-2 z-30">
+          <button
+            onClick={handleNext}
+            aria-label="Next testimonial"
+            className="size-10 sm:size-11 rounded-full bg-white/95 hover:bg-white text-[#171717] border border-[#E7E2DA] shadow-md hover:shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
 
-                <div className="flex items-center justify-between gap-3 pt-4 border-t border-black/5">
+        {/* 3-Card Staged Showcase (Desktop) / Focused Single Card (Mobile) */}
+        <div className="flex items-center justify-center gap-3 sm:gap-6 min-h-[300px] sm:min-h-[290px] relative overflow-hidden py-4">
+          {/* Left Preview Card (Desktop only, click to view) */}
+          <div
+            onClick={handlePrev}
+            className="hidden md:flex flex-col justify-between w-[26%] shrink-0 h-[260px] p-5 rounded-2xl bg-white/60 border border-[#E7E2DA]/80 opacity-40 hover:opacity-75 scale-95 transition-all duration-300 cursor-pointer shadow-xs text-left"
+          >
+            <p className="text-sm text-[#555] line-clamp-4 leading-relaxed font-matter">
+              &ldquo;{prevItem.testimonial}&rdquo;
+            </p>
+            <div className="flex items-center gap-2.5 pt-3 border-t border-black/5">
+              <div className="size-8 rounded-lg bg-[#EAE6DF] text-[#171717] flex items-center justify-center font-bold text-xs shrink-0">
+                {prevItem.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="truncate text-xs">
+                <p className="font-semibold text-[#171717] truncate">{prevItem.name}</p>
+                <p className="text-[#777] text-[11px] truncate">{prevItem.occupation}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Highlight / Active Featured Card (Center) */}
+          <div className="w-full md:w-[54%] shrink-0 relative z-20">
+            <CrossSVG className="absolute -left-2.5 -bottom-2.5 hidden sm:block pointer-events-none" />
+            <CrossSVG className="absolute -right-2.5 -bottom-2.5 hidden sm:block pointer-events-none" />
+            <CrossSVG className="absolute -left-2.5 -top-2.5 hidden sm:block pointer-events-none" />
+            <CrossSVG className="absolute -right-2.5 -top-2.5 hidden sm:block pointer-events-none" />
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentItem.id || currentItem.name}
+                initial={{ opacity: 0, scale: 0.98, y: 6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: -6 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="rounded-2xl border-2 border-[#171717]/15 bg-white p-6 sm:p-7 shadow-lg flex flex-col justify-between min-h-[270px] text-left relative overflow-hidden"
+              >
+                {/* Decorative Top Accent Bar */}
+                <div className="flex items-center justify-between pb-3 mb-2 border-b border-[#E7E2DA]/80">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF8F4] border border-[#E7E2DA] text-[#171717] text-xs font-semibold">
+                    <ShieldCheck size={13} className="text-emerald-600" />
+                    <span>Verified Review</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-[#FAF9F5] px-2.5 py-1 rounded-md border border-black/5">
+                    {[...Array(currentItem.rating || 5)].map((_, starIdx) => (
+                      <Star key={starIdx} size={13} className="fill-amber-400 text-amber-500" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Testimonial Quote */}
+                <div className="space-y-2 py-1">
+                  <Quote size={22} className="text-[#171717]/25 -scale-x-100" />
+                  <p className="text-base sm:text-lg lg:text-[19px] text-[#171717] font-semibold leading-snug font-matter">
+                    &ldquo;{currentItem.testimonial}&rdquo;
+                  </p>
+                </div>
+
+                {/* Author Info */}
+                <div className="flex items-center justify-between pt-4 mt-2 border-t border-black/5">
                   <div className="flex items-center gap-3">
-                    {testimonial.profilePicture ? (
+                    {currentItem.profilePicture ? (
                       <Image
-                        src={testimonial.profilePicture}
-                        width={40}
-                        height={40}
-                        className="size-[38px] sm:size-[40px] rounded-lg object-cover border border-black/10"
-                        alt={testimonial.name}
+                        src={currentItem.profilePicture}
+                        width={42}
+                        height={42}
+                        className="size-10 sm:size-11 rounded-xl object-cover border border-[#E7E2DA]"
+                        alt={currentItem.name}
                       />
                     ) : (
-                      <div className="size-[38px] sm:size-[40px] rounded-lg bg-[#171717] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                        {testimonial.name.slice(0, 2).toUpperCase()}
+                      <div className="size-10 sm:size-11 rounded-xl bg-[#171717] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                        {currentItem.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
-                    <div className="text-[13px] sm:text-[14px]">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[#111827] font-semibold">{testimonial.name}</span>
-                        {isPendingPreview && (
-                          <span className="text-[9.5px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
+                    <div className="text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#171717] font-bold text-sm sm:text-base">
+                          {currentItem.name}
+                        </span>
+                        {currentItem.id?.startsWith("pending-") && (
+                          <span className="text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
                             UNDER REVIEW
                           </span>
                         )}
                       </div>
-                      <p className="text-[#6b7280] text-xs sm:text-[12.5px] truncate max-w-[200px] sm:max-w-[260px]">
-                        {testimonial.occupation}
+                      <p className="text-[#6b7280] text-xs sm:text-[13px] truncate max-w-[220px] sm:max-w-[320px]">
+                        {currentItem.occupation}
                       </p>
                     </div>
                   </div>
-
-                  {/* Clean Star Rating Badge */}
-                  <div className="flex items-center gap-0.5 text-amber-500 flex-shrink-0 bg-[#FAF9F5] px-2.5 py-1 rounded-md border border-black/5">
-                    {[...Array(testimonial.rating || 5)].map((_, starIdx) => (
-                      <Star key={starIdx} size={11} className="fill-amber-400 text-amber-500" />
-                    ))}
-                  </div>
                 </div>
               </motion.div>
-            </motion.div>
-          );
-        })}
+            </AnimatePresence>
+          </div>
+
+          {/* Right Preview Card (Desktop only, click to view) */}
+          <div
+            onClick={handleNext}
+            className="hidden md:flex flex-col justify-between w-[26%] shrink-0 h-[260px] p-5 rounded-2xl bg-white/60 border border-[#E7E2DA]/80 opacity-40 hover:opacity-75 scale-95 transition-all duration-300 cursor-pointer shadow-xs text-left"
+          >
+            <p className="text-sm text-[#555] line-clamp-4 leading-relaxed font-matter">
+              &ldquo;{nextItem.testimonial}&rdquo;
+            </p>
+            <div className="flex items-center gap-2.5 pt-3 border-t border-black/5">
+              <div className="size-8 rounded-lg bg-[#EAE6DF] text-[#171717] flex items-center justify-center font-bold text-xs shrink-0">
+                {nextItem.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="truncate text-xs">
+                <p className="font-semibold text-[#171717] truncate">{nextItem.name}</p>
+                <p className="text-[#777] text-[11px] truncate">{nextItem.occupation}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pagination Dots */}
+        <div className="flex items-center justify-center gap-2 pt-3">
+          {list.map((item, idx) => (
+            <button
+              key={item.id || idx}
+              onClick={() => setCurrentIndex(idx)}
+              aria-label={`Go to testimonial ${idx + 1}`}
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
+                idx === currentIndex
+                  ? "w-7 h-2 bg-[#171717]"
+                  : "w-2 h-2 bg-[#E7E2DA] hover:bg-[#A99B8A]"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Professional Rectangular Box Modal */}
