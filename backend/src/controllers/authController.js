@@ -5,9 +5,8 @@ const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 /**
  * POST /api/auth/register
- * Creates a new user account.
- * Role is accepted from the request body but defaults to 'student'.
- * Admin accounts should be created directly in the DB or via a protected seed route.
+ * Creates a new user account backed directly by MongoDB.
+ * Role defaults to 'student'; self-assigning 'admin' is prohibited.
  */
 const register = async (req, res, next) => {
   try {
@@ -18,7 +17,7 @@ const register = async (req, res, next) => {
 
     const { name, email, password, role } = req.body;
 
-    // Prevent self-assigning admin role via API
+    // Prevent self-assigning admin role via public registration
     const allowedRoles = ['student', 'instructor'];
     const assignedRole = allowedRoles.includes(role) ? role : 'student';
 
@@ -30,14 +29,14 @@ const register = async (req, res, next) => {
     const user = await User.create({
       name,
       email,
-      passwordHash: password, // pre-save hook in User model hashes this
+      passwordHash: password, // Pre-save hook in User model hashes this with bcrypt
       role: assignedRole,
     });
 
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id, user.role);
 
-    // Store the refresh token (the model could hash it too — keeping plain for simplicity here)
+    // Save refresh token to user record
     await User.findByIdAndUpdate(user._id, { $push: { refreshTokens: refreshToken } });
 
     res.status(201).json({
@@ -53,6 +52,7 @@ const register = async (req, res, next) => {
 
 /**
  * POST /api/auth/login
+ * Verifies credentials against MongoDB and issues JWT pair.
  */
 const login = async (req, res, next) => {
   try {
@@ -63,7 +63,7 @@ const login = async (req, res, next) => {
 
     const { email, password } = req.body;
 
-    // Explicitly select passwordHash since it's excluded by default
+    // Explicitly select passwordHash and refreshTokens since they are hidden by default
     const user = await User.findOne({ email }).select('+passwordHash +refreshTokens');
     if (!user || !user.isActive) {
       await logAudit({
@@ -116,8 +116,8 @@ const login = async (req, res, next) => {
 
 /**
  * POST /api/auth/refresh
- * Issues a new access token using a valid refresh token.
- * Implements token rotation — old refresh token is invalidated.
+ * Issues a new access token using a valid database-stored refresh token.
+ * Rotates the refresh token.
  */
 const refresh = async (req, res, next) => {
   try {
@@ -139,7 +139,7 @@ const refresh = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid or expired refresh token.' });
     }
 
-    // Verify token is still in the user's list (allows per-device logout)
+    // Verify token is still present in the user's refreshTokens array
     const user = await User.findById(decoded.userId).select('+refreshTokens');
     if (!user || !user.refreshTokens.includes(refreshToken)) {
       await logAudit({
@@ -153,7 +153,7 @@ const refresh = async (req, res, next) => {
       return res.status(401).json({ error: 'Refresh token has been revoked.' });
     }
 
-    // Rotate: remove old, add new
+    // Rotate: remove old refresh token, append new refresh token
     const newAccessToken = generateAccessToken(user._id, user.role);
     const newRefreshToken = generateRefreshToken(user._id, user.role);
 
@@ -170,7 +170,7 @@ const refresh = async (req, res, next) => {
 
 /**
  * POST /api/auth/logout
- * Invalidates the provided refresh token for this device.
+ * Invalidates the provided refresh token in the database.
  */
 const logout = async (req, res, next) => {
   try {
@@ -198,7 +198,7 @@ const logout = async (req, res, next) => {
 
 /**
  * GET /api/auth/me
- * Returns the current authenticated user's profile.
+ * Returns the current authenticated user's profile from MongoDB.
  */
 const getMe = async (req, res, next) => {
   try {

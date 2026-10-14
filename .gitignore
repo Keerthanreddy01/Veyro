@@ -21,8 +21,14 @@ atlas-credentials.env
 # Build outputs
 dist/
 frontend/dist/
+build/
+backend/build/
 dist-ssr/
 *.local
+
+# Test Coverage
+coverage/
+.nyc_output/
 
 # Uploads & Media Storage
 uploads/

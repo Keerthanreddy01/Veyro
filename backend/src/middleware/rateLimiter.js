@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: process.env.NODE_ENV === 'test' ? 1000 : 50,
   standardHeaders: true, // Return standard RateLimit-* headers
   legacyHeaders: false, // Disable X-RateLimit-* headers
   message: {

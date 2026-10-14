@@ -30,12 +30,19 @@ export default function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          style: { background: '#1a1a2e', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.08)' },
-          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-          error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+          style: {
+            background: '#171717',
+            color: '#FFFFFF',
+            border: '1px solid #E7E2DA',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontFamily: 'Manrope, sans-serif',
+          },
+          success: { iconTheme: { primary: '#556943', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#BE123C', secondary: '#fff' } },
         }}
       />
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-[#FAF8F4] font-sans">
         <Routes>
           {/* Landing page - public */}
           <Route path="/" element={<LandingPage />} />
@@ -71,13 +78,13 @@ export default function App() {
                     } />
 
                     <Route path="*" element={
-                      <div className="page-container text-center py-24 animate-fade-in">
-                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4 border border-black/10">
-                          <span className="font-syne font-extrabold text-2xl text-slate-800">404</span>
+                      <div className="page-container text-center py-24 animate-fade-in font-sans">
+                        <div className="w-16 h-16 rounded-2xl bg-[#F6F2EC] border border-[#E7E2DA] flex items-center justify-center mx-auto mb-4">
+                          <span className="font-serif text-2xl text-[#171717]">404</span>
                         </div>
-                        <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Page Not Found</h1>
-                        <p className="text-slate-500 text-xs max-w-sm mx-auto mb-6">The curriculum or destination you requested does not exist or has been relocated.</p>
-                        <Link to="/courses" className="btn-dark-pill text-xs">
+                        <h1 className="font-serif text-3xl font-normal text-[#171717] mb-2">Page Not Found</h1>
+                        <p className="text-[#77736D] text-xs max-w-sm mx-auto mb-6">The curriculum or destination you requested does not exist or has been relocated.</p>
+                        <Link to="/courses" className="btn-primary text-xs">
                           <span>Explore Courses</span>
                         </Link>
                       </div>

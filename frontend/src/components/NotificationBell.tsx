@@ -156,13 +156,13 @@ export default function NotificationBell() {
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className="relative p-2 rounded-full border border-[#111111]/15 bg-white text-[#111111] hover:bg-[#FAF7EE] hover:border-[#111111]/30 transition-all shadow-2xs"
+        className="relative p-2 rounded-xl border border-[#E7E2DA] bg-white text-[#202020] hover:bg-[#FAF8F4] hover:border-[#A99B8A] transition-colors"
         aria-label="View notifications"
         title="Notifications"
       >
-        <Bell size={16} className="text-[#111111]" />
+        <Bell size={16} className="text-[#202020]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4.5 min-w-[1.125rem] px-1 items-center justify-center rounded-full bg-rose-500 text-[10px] font-extrabold text-white shadow-xs border-2 border-white animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-[#171717] text-[9px] font-bold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -170,13 +170,13 @@ export default function NotificationBell() {
 
       {/* Notifications Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-3xl border-2 border-[#111111] bg-white shadow-[6px_6px_0px_#111111] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-[#E7E2DA] bg-white shadow-elevated z-50 overflow-hidden animate-slide-up font-sans">
           {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-[#111111] bg-[#FAF7EE] px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[#E7E2DA] bg-[#FAF8F4] px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="font-syne text-sm font-extrabold text-[#111111]">Notifications</span>
+              <span className="font-sans text-sm font-semibold text-[#171717]">Notifications</span>
               {unreadCount > 0 && (
-                <span className="rounded-full bg-[#60C5F1] px-2 py-0.5 text-[10px] font-extrabold text-[#111111] border border-[#111111]">
+                <span className="rounded-full bg-[#F0E9DF] px-2 py-0.5 text-[10px] font-semibold text-[#202020] border border-[#E7E2DA]">
                   {unreadCount} unread
                 </span>
               )}
