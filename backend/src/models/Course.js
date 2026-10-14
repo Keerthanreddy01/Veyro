@@ -55,6 +55,19 @@ const courseSchema = new mongoose.Schema(
       trim: true,
       default: 'General',
     },
+    level: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced', 'all levels'],
+      default: 'beginner',
+      set: (v) => (v ? v.toLowerCase() : 'beginner'),
+    },
+    price: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    learningObjectives: [{ type: String, trim: true }],
+    prerequisites: [{ type: String, trim: true }],
     tags: [{ type: String, trim: true }],
     // Versioning & Safe Revisions
     version: {

@@ -184,7 +184,7 @@ const getCourseById = async (req, res, next) => {
  */
 const createCourse = async (req, res, next) => {
   try {
-    const { title, description, category, tags } = req.body;
+    const { title, description, category, tags, level, price, learningObjectives, prerequisites } = req.body;
     const thumbnailPath = req.file ? getRelativePath(req.file) : null;
 
     let parsedTags = [];
@@ -196,10 +196,32 @@ const createCourse = async (req, res, next) => {
       }
     }
 
+    let parsedObjectives = [];
+    if (learningObjectives) {
+      try {
+        parsedObjectives = Array.isArray(learningObjectives) ? learningObjectives : JSON.parse(learningObjectives);
+      } catch {
+        parsedObjectives = String(learningObjectives).split('\n').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    let parsedPrerequisites = [];
+    if (prerequisites) {
+      try {
+        parsedPrerequisites = Array.isArray(prerequisites) ? prerequisites : JSON.parse(prerequisites);
+      } catch {
+        parsedPrerequisites = String(prerequisites).split('\n').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
     const course = await Course.create({
       title,
       description,
       category,
+      level: level ? level.toLowerCase() : 'beginner',
+      price: price ? Math.max(0, Number(price) || 0) : 0,
+      learningObjectives: parsedObjectives,
+      prerequisites: parsedPrerequisites,
       tags: parsedTags,
       instructorId: req.user.userId,
       thumbnail: thumbnailPath,
@@ -241,10 +263,29 @@ const updateCourse = async (req, res, next) => {
       return res.status(400).json({ error: 'Cannot directly edit a course while under review or published. Retract the submission or create a new draft revision.' });
     }
 
-    const { title, description, category, tags } = req.body;
+    const { title, description, category, tags, level, price, learningObjectives, prerequisites } = req.body;
     if (title) course.title = title;
     if (description) course.description = description;
     if (category) course.category = category;
+    if (level) course.level = level.toLowerCase();
+    if (price !== undefined) course.price = Math.max(0, Number(price) || 0);
+
+    if (learningObjectives !== undefined) {
+      try {
+        course.learningObjectives = Array.isArray(learningObjectives) ? learningObjectives : JSON.parse(learningObjectives);
+      } catch {
+        course.learningObjectives = String(learningObjectives).split('\n').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    if (prerequisites !== undefined) {
+      try {
+        course.prerequisites = Array.isArray(prerequisites) ? prerequisites : JSON.parse(prerequisites);
+      } catch {
+        course.prerequisites = String(prerequisites).split('\n').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
     if (tags) {
       try {
         course.tags = Array.isArray(tags) ? tags : JSON.parse(tags);
@@ -504,6 +545,15 @@ const reviewCourse = async (req, res, next) => {
         metadata: { courseTitle: course.title, rejectionReason: course.rejectionReason },
       });
     } else if (['publish', 'published'].includes(targetAction)) {
+      await createNotification({
+        recipientId: course.instructorId,
+        type: 'COURSE_APPROVED',
+        title: 'Course Approved & Published',
+        message: `Congratulations! Your course "${course.title}" (v${course.version || 1}) has been approved and published to the catalog.`,
+        entityType: 'Course',
+        entityId: course._id,
+        metadata: { courseTitle: course.title, version: course.version },
+      });
       await notifyRevisionPublished(course);
     }
 

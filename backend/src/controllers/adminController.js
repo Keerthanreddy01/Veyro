@@ -1,5 +1,8 @@
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
+const Enrollment = require('../models/Enrollment');
+const Course = require('../models/Course');
+const Testimonial = require('../models/Testimonial');
 const { sanitizeMetadata } = require('../utils/auditLogger');
 
 /**
@@ -150,7 +153,114 @@ const exportAuditLogs = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/admin/certificates
+ * Administrative view of all cryptographically issued certificates.
+ */
+const getCertificatesLedger = async (req, res, next) => {
+  try {
+    const { search } = req.query;
+    const query = { certificateCode: { $ne: null } };
+
+    const records = await Enrollment.find(query)
+      .populate('studentId', 'name email role')
+      .populate('courseId', 'title category level')
+      .sort({ completedAt: -1 })
+      .lean();
+
+    let filtered = records;
+    if (search && search.trim()) {
+      const s = search.trim().toLowerCase();
+      filtered = records.filter((r) => {
+        const studentName = r.studentId?.name?.toLowerCase() || '';
+        const studentEmail = r.studentId?.email?.toLowerCase() || '';
+        const courseTitle = r.courseId?.title?.toLowerCase() || '';
+        const code = (r.certificateCode || '').toLowerCase();
+        return (
+          studentName.includes(s) ||
+          studentEmail.includes(s) ||
+          courseTitle.includes(s) ||
+          code.includes(s)
+        );
+      });
+    }
+
+    res.json({
+      success: true,
+      certificates: filtered,
+      total: filtered.length,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/admin/metrics
+ * Comprehensive administrative platform telemetry and counters.
+ */
+const getPlatformMetrics = async (req, res, next) => {
+  try {
+    const [
+      totalUsers,
+      studentsCount,
+      instructorsCount,
+      adminsCount,
+      totalCourses,
+      pendingCourses,
+      publishedCourses,
+      certificatesIssued,
+      pendingTestimonials,
+      totalTestimonials,
+      totalAuditLogs,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: 'student' }),
+      User.countDocuments({ role: 'instructor' }),
+      User.countDocuments({ role: 'admin' }),
+      Course.countDocuments(),
+      Course.countDocuments({ status: 'under_review' }),
+      Course.countDocuments({ status: 'published' }),
+      Enrollment.countDocuments({ certificateCode: { $ne: null } }),
+      Testimonial.countDocuments({ status: 'pending' }),
+      Testimonial.countDocuments(),
+      AuditLog.countDocuments(),
+    ]);
+
+    res.json({
+      success: true,
+      metrics: {
+        users: {
+          total: totalUsers,
+          students: studentsCount,
+          instructors: instructorsCount,
+          admins: adminsCount,
+        },
+        courses: {
+          total: totalCourses,
+          pending: pendingCourses,
+          published: publishedCourses,
+        },
+        certificates: {
+          totalIssued: certificatesIssued,
+        },
+        testimonials: {
+          pending: pendingTestimonials,
+          total: totalTestimonials,
+        },
+        auditLogs: {
+          total: totalAuditLogs,
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getAuditLogs,
   exportAuditLogs,
+  getCertificatesLedger,
+  getPlatformMetrics,
 };

@@ -33,9 +33,7 @@ const enrollmentSchema = new mongoose.Schema(
     // Certificate verification code (UUID), set on completion
     certificateCode: {
       type: String,
-      default: null,
-      unique: true,
-      sparse: true,
+      default: undefined,
     },
   },
   { timestamps: true }
@@ -43,5 +41,11 @@ const enrollmentSchema = new mongoose.Schema(
 
 // A student can only enroll once per course
 enrollmentSchema.index({ studentId: 1, courseId: 1 }, { unique: true });
+
+// Certificate code is strictly unique for issued certificates (excludes unissued/null)
+enrollmentSchema.index(
+  { certificateCode: 1 },
+  { unique: true, partialFilterExpression: { certificateCode: { $type: 'string' } } }
+);
 
 module.exports = mongoose.model('Enrollment', enrollmentSchema);

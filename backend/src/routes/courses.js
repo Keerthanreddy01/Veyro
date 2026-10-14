@@ -17,7 +17,7 @@ const createCourseRules = [
   body('title').trim().notEmpty().withMessage('Course title is required').isLength({ max: 200 }).withMessage('Title cannot exceed 200 characters').escape(),
   body('description').optional().trim().escape(),
   body('category').optional().trim().escape(),
-  body('level').optional().trim().isIn(['beginner', 'intermediate', 'advanced']).withMessage('Level must be beginner, intermediate, or advanced'),
+  body('level').optional().trim().toLowerCase().isIn(['beginner', 'intermediate', 'advanced', 'all levels']).withMessage('Level must be beginner, intermediate, advanced, or all levels'),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
 ];
 
@@ -25,7 +25,7 @@ const updateCourseRules = [
   body('title').optional().trim().notEmpty().withMessage('Course title cannot be empty').isLength({ max: 200 }).withMessage('Title cannot exceed 200 characters').escape(),
   body('description').optional().trim().escape(),
   body('category').optional().trim().escape(),
-  body('level').optional().trim().isIn(['beginner', 'intermediate', 'advanced']).withMessage('Level must be beginner, intermediate, or advanced'),
+  body('level').optional().trim().toLowerCase().isIn(['beginner', 'intermediate', 'advanced', 'all levels']).withMessage('Level must be beginner, intermediate, advanced, or all levels'),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
 ];
 

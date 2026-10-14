@@ -35,6 +35,9 @@ const AUDIT_ACTIONS = {
   // User Administration
   USER_STATUS_CHANGED: 'USER_STATUS_CHANGED',
   USER_ROLE_CHANGED: 'USER_ROLE_CHANGED',
+
+  // Testimonials
+  TESTIMONIAL_MODERATED: 'TESTIMONIAL_MODERATED',
 };
 
 // Blacklist of sensitive keys that must NEVER be persisted in audit logs (lowercase for case-insensitive matching)

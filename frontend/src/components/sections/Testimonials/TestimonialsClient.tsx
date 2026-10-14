@@ -1,11 +1,11 @@
-"use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import CrossSVG from "@/components/CrossSVG";
 import Image from "next/image";
-import { Star, X, CheckCircle2, MessageSquarePlus, Info } from "lucide-react";
+import { Star, X, CheckCircle2, MessageSquarePlus, Info, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import useToggleState from "@/hooks/useToggleState";
+import api from "@/api/axios";
 
 export interface Testimonial {
   id?: string;
@@ -60,11 +60,37 @@ export default function TestimonialsClient() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [occupation, setOccupation] = useState("");
   const [testimonialText, setTestimonialText] = useState("");
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
+
+  // Fetch approved testimonials from live API
+  useEffect(() => {
+    let isMounted = true;
+    api.get("/testimonials")
+      .then(({ data }) => {
+        if (isMounted && data?.testimonials && data.testimonials.length > 0) {
+          const mapped: Testimonial[] = data.testimonials.map((t: any) => ({
+            id: t._id || t.id,
+            name: t.name,
+            occupation: t.occupation,
+            testimonial: t.testimonial,
+            rating: t.rating || 5,
+            profilePicture: t.profilePicture,
+          }));
+          setList(mapped);
+        }
+      })
+      .catch(() => {
+        // Fallback gracefully to default testimonials
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const { ref, state } = useToggleState<HTMLDivElement>(
     { from: 0, to: list.length },
@@ -100,7 +126,7 @@ export default function TestimonialsClient() {
     }, 200);
   };
 
-  const handleAddReview = (e: React.FormEvent) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Please enter your name");
@@ -111,20 +137,34 @@ export default function TestimonialsClient() {
       return;
     }
 
-    const newTestimonial: Testimonial = {
-      id: `pending-${Date.now()}`,
-      name: name.trim(),
-      occupation: occupation.trim() || "Veyro Learner",
-      testimonial: testimonialText.trim(),
-      rating,
-    };
+    setIsSubmitting(true);
+    try {
+      const { data } = await api.post("/testimonials", {
+        name: name.trim(),
+        occupation: occupation.trim() || "Veyro Learner",
+        testimonial: testimonialText.trim(),
+        rating,
+      });
 
-    // Keep locally so user can see it previewed
-    setList((prev) => [newTestimonial, ...prev]);
+      const newTestimonial: Testimonial = {
+        id: data?.testimonial?._id || `pending-${Date.now()}`,
+        name: name.trim(),
+        occupation: occupation.trim() || "Veyro Learner",
+        testimonial: testimonialText.trim(),
+        rating,
+      };
 
-    // Show professional confirmation inside modal
-    setIsSubmittedSuccess(true);
-    toast.success("Thank you! Your testimonial has been received for review.");
+      // Keep locally so user can see it previewed
+      setList((prev) => [newTestimonial, ...prev]);
+
+      // Show professional confirmation inside modal
+      setIsSubmittedSuccess(true);
+      toast.success("Thank you! Your testimonial has been received for review.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to submit testimonial");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -373,9 +413,11 @@ export default function TestimonialsClient() {
                       </button>
                       <button
                         type="submit"
-                        className="px-4 sm:px-5 py-2 rounded-lg bg-[#171717] hover:bg-[#2A2A2A] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs hover:shadow cursor-pointer"
+                        disabled={isSubmitting}
+                        className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-lg bg-[#171717] hover:bg-[#2A2A2A] disabled:opacity-60 text-white text-xs sm:text-sm font-semibold transition-all shadow-xs hover:shadow cursor-pointer"
                       >
-                        Submit Testimonial
+                        {isSubmitting && <Loader2 size={13} className="animate-spin" />}
+                        <span>{isSubmitting ? "Submitting..." : "Submit Testimonial"}</span>
                       </button>
                     </div>
                   </form>

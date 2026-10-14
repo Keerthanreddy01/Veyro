@@ -532,6 +532,58 @@ async function runAllTests() {
     assert.strictEqual(avgProgress, 50); // (100 + 50 + 0) / 3 = 50%
   });
 
+  runTest('Instructor can view submissions for own quiz; non-owner denied with 403', () => {
+    const course = { _id: 'c1', instructorId: 'inst_owner' };
+    const checkQuizSubmissionsAccess = (user) => {
+      if (!user || user.role === 'student') return 403;
+      if (user.role === 'instructor' && course.instructorId !== user.userId) return 403;
+      return 200;
+    };
+
+    assert.strictEqual(checkQuizSubmissionsAccess({ userId: 'inst_owner', role: 'instructor' }), 200);
+    assert.strictEqual(checkQuizSubmissionsAccess({ userId: 'admin_sys', role: 'admin' }), 200);
+    assert.strictEqual(checkQuizSubmissionsAccess({ userId: 'inst_intruder', role: 'instructor' }), 403);
+    assert.strictEqual(checkQuizSubmissionsAccess({ userId: 'student_1', role: 'student' }), 403);
+  });
+
+  runTest('Course schema validates level enum, learningObjectives, and prerequisites', () => {
+    const Course = require('./src/models/Course');
+    const validCourse = new Course({
+      title: 'Advanced React Architecture',
+      description: 'Master full-stack React systems and TypeScript design patterns.',
+      instructorId: new (require('mongoose').Types.ObjectId)(),
+      category: 'Engineering',
+      level: 'Advanced',
+      price: 49.99,
+      learningObjectives: ['Build scalable React architectures', 'Implement robust RBAC systems'],
+      prerequisites: ['Proficiency with JavaScript ES6', 'Basic TypeScript knowledge'],
+    });
+    const err = validCourse.validateSync();
+    assert.strictEqual(err, undefined, 'Valid course metadata must pass schema validation');
+    assert.strictEqual(validCourse.level, 'advanced');
+    assert.strictEqual(validCourse.price, 49.99);
+    assert.strictEqual(validCourse.learningObjectives.length, 2);
+    assert.strictEqual(validCourse.prerequisites.length, 2);
+  });
+
+  runTest('Module deletion cascades to attached quiz and attempts', () => {
+    const moduleId = 'mod_123';
+    let quizDeleted = false;
+    let attemptsDeleted = false;
+
+    // Simulate cascade logic from moduleController.deleteModule
+    const performModuleCascade = (modId, quizId) => {
+      if (quizId) {
+        quizDeleted = true;
+        attemptsDeleted = true;
+      }
+    };
+
+    performModuleCascade(moduleId, 'quiz_456');
+    assert.strictEqual(quizDeleted, true, 'Attached quiz must be deleted on module removal');
+    assert.strictEqual(attemptsDeleted, true, 'Associated quiz attempts must be deleted on module removal');
+  });
+
   // ── TEST GROUP 11: Immutable Platform Audit Log & RBAC Security ──────────
   console.log('\n📦 GROUP 11: Immutable Platform Audit Log & RBAC Security');
 

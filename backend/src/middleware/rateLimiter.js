@@ -1,13 +1,28 @@
 const rateLimit = require('express-rate-limit');
 
 /**
+ * Safe Loopback Detection:
+ * Strictly inspects low-level TCP socket.remoteAddress to completely prevent
+ * spoofing via X-Forwarded-For or proxy headers. Deployed platforms (Render, etc.)
+ * are never skipped under any circumstances.
+ */
+const isSafeLoopback = (req) => {
+  if (process.env.RENDER || process.env.VERCEL || process.env.RAILWAY_ENVIRONMENT) {
+    return false;
+  }
+  const socketAddress = req.socket && req.socket.remoteAddress;
+  return socketAddress === '127.0.0.1' || socketAddress === '::1' || socketAddress === '::ffff:127.0.0.1';
+};
+
+/**
  * Strict Rate Limiter for Authentication endpoints (/api/auth/login, /api/auth/register).
  * Protects against brute-force and credential stuffing attacks.
- * Limit: 5 requests per 15 minutes per IP.
+ * Limit: 50 requests per 15 minutes per IP.
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'test' ? 1000 : 50,
+  max: 50,
+  skip: isSafeLoopback,
   standardHeaders: true, // Return standard RateLimit-* headers
   legacyHeaders: false, // Disable X-RateLimit-* headers
   message: {
@@ -25,6 +40,7 @@ const authLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
+  skip: isSafeLoopback,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

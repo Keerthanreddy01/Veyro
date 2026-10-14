@@ -50,9 +50,18 @@ const deleteModule = async (req, res, next) => {
     if (course.instructorId.toString() !== req.user.userId && req.user.role !== 'admin')
       return res.status(403).json({ error: 'Access denied.' });
 
+    const Quiz = require('../models/Quiz');
+    const QuizAttempt = require('../models/QuizAttempt');
+
     await Lesson.deleteMany({ moduleId: mod._id });
+    const quizzes = await Quiz.find({ moduleId: mod._id });
+    const quizIds = quizzes.map((q) => q._id);
+    if (quizIds.length > 0) {
+      await QuizAttempt.deleteMany({ quizId: { $in: quizIds } });
+      await Quiz.deleteMany({ moduleId: mod._id });
+    }
     await Module.findByIdAndDelete(mod._id);
-    res.json({ message: 'Module and its lessons deleted.' });
+    res.json({ message: 'Module, lessons, and assessment quizzes deleted.' });
   } catch (err) { next(err); }
 };
 

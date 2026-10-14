@@ -13,6 +13,7 @@ export interface Lesson {
   durationSeconds?: number;
   order: number;
   summary?: string;
+  isPreview?: boolean;
 }
 
 export interface QuizQuestion {
@@ -28,6 +29,7 @@ export interface Quiz {
   moduleId: string;
   title: string;
   passingScore?: number;
+  timeLimitSeconds?: number;
   questions?: QuizQuestion[];
   isLocked?: boolean;
 }
@@ -55,15 +57,20 @@ export interface Course {
   category: string;
   level?: CourseLevel;
   price?: number;
+  learningObjectives?: string[];
+  prerequisites?: string[];
+  tags?: string[];
   thumbnail?: string;
   status: CourseStatus;
   rejectionReason?: string;
   version?: number;
+  parentCourseId?: string;
   previousVersionId?: string;
   lessonsCount?: number;
   studentsEnrolled?: number;
   createdAt?: string;
   updatedAt?: string;
+  submittedAt?: string;
 }
 
 export interface Enrollment {
@@ -89,4 +96,55 @@ export interface LessonProgress {
   completed: boolean;
   watchedSeconds: number;
   lastPosition: number;
+}
+
+export interface QuizSubmission {
+  _id: string;
+  student?: { _id: string; name: string; email: string };
+  score: number;
+  passed: boolean;
+  tabViolations: number;
+  autoSubmitted: boolean;
+  autoSubmitReason?: string | null;
+  startedAt: string;
+  submittedAt: string;
+}
+
+export interface CourseStudent {
+  _id: string;
+  name: string;
+  email: string;
+  enrolledAt: string;
+  status: string; // 'active' | 'completed' | 'dropped'
+  progressPercent: number;
+  lessonsCompleted: number;
+  quizzesAttempted?: number;
+  quizAverage?: number;
+  lastActivity?: string;
+  certificateCode?: string;
+}
+
+export interface CourseAnalyticsData {
+  course: {
+    _id: string;
+    title: string;
+    status: string;
+    totalLessons: number;
+    totalQuizzes: number;
+  };
+  metrics: {
+    totalEnrolled: number;
+    activeLearners: number;
+    completedStudents: number;
+    completionRate: number;
+    avgCourseProgress: number;
+    avgQuizScore: number;
+  };
+  moduleProgress: Array<{
+    moduleId: string;
+    title: string;
+    lessonsCount: number;
+    quiz?: { _id: string; title: string; passingScore: number } | null;
+  }>;
+  students: CourseStudent[];
 }

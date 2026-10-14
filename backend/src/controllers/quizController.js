@@ -441,6 +441,56 @@ const getAttemptResult = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+/** GET /api/quizzes/:id/submissions — Instructor: list student attempts for their quiz */
+const getQuizSubmissions = async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) return res.status(404).json({ error: 'Quiz not found.' });
+
+    const mod = await Module.findById(quiz.moduleId);
+    if (!mod) return res.status(404).json({ error: 'Module not found.' });
+
+    const course = await Course.findById(mod.courseId);
+    if (!course) return res.status(404).json({ error: 'Course not found.' });
+
+    if (course.instructorId.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. You can only view submissions for your own quizzes.' });
+    }
+
+    const attempts = await QuizAttempt.find({
+      quizId: quiz._id,
+      submittedAt: { $ne: null },
+    })
+      .populate('studentId', 'name email')
+      .sort({ submittedAt: -1 })
+      .lean();
+
+    const submissions = attempts.map((a) => ({
+      _id: a._id,
+      student: a.studentId,
+      score: a.score,
+      passed: a.passed,
+      tabViolations: a.tabViolations || 0,
+      autoSubmitted: a.autoSubmitted || false,
+      autoSubmitReason: a.autoSubmitReason || null,
+      startedAt: a.startedAt,
+      submittedAt: a.submittedAt,
+    }));
+
+    res.json({
+      quiz: {
+        _id: quiz._id,
+        title: quiz.title,
+        passingScore: quiz.passingScore,
+        timeLimitSeconds: quiz.timeLimitSeconds,
+        totalQuestions: quiz.questions?.length || 0,
+      },
+      submissions,
+      total: submissions.length,
+    });
+  } catch (err) { next(err); }
+};
+
 // ─── Internal helpers ──────────────────────────────────────────────────────────
 
 const _scoreAndSave = async (attempt, quiz, autoSubmitted, autoSubmitReason) => {
@@ -493,4 +543,5 @@ module.exports = {
   reportViolation,
   getMyAttempts,
   getAttemptResult,
+  getQuizSubmissions,
 };
