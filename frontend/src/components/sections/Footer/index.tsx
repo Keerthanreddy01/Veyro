@@ -1,56 +1,8 @@
-import Image from "next/image";
 import Logo from "../../SVGs/Logo";
 import Link from "next/link";
-import {
-  XLogo,
-  GithubLogo,
-  YoutubeLogo,
-  InstagramLogo,
-  DiscussionsLogo,
-  ProductHuntLogo,
-  YCombinatorLogo,
-} from "./SocialPlatforms";
 import GridTemplate from "./GridTemplate";
 
 export default function Footer() {
-  const Socials = [
-    {
-      label: "x",
-      href: "https://x.com",
-      Logo: <XLogo />,
-    },
-    {
-      label: "github",
-      href: "https://github.com",
-      Logo: <GithubLogo />,
-    },
-    {
-      label: "youtube",
-      href: "https://youtube.com",
-      Logo: <YoutubeLogo />,
-    },
-    {
-      label: "instagram",
-      href: "https://instagram.com",
-      Logo: <InstagramLogo />,
-    },
-
-    {
-      label: "discussions",
-      href: "/dashboard",
-      Logo: <DiscussionsLogo />,
-    },
-    {
-      label: "product_hunt",
-      href: "https://producthunt.com",
-      Logo: <ProductHuntLogo />,
-    },
-    {
-      label: "hacker_news",
-      href: "https://news.ycombinator.com",
-      Logo: <YCombinatorLogo />,
-    },
-  ];
   const data = [
     {
       listTitle: "Curricula",
@@ -99,7 +51,6 @@ export default function Footer() {
         { key: "Support", href: "mailto:support@veyro.com" },
         { key: "Privacy Policy", href: "#" },
         { key: "Terms of Service", href: "#" },
-        { key: "Security & SOC2", href: "#" },
       ],
     },
   ];
@@ -117,38 +68,8 @@ export default function Footer() {
         <div className=" text-[#111111] max-w-[250px]">
           Veyro™ Distance Learning & Education Platform. All rights reserved.
         </div>
-        <div className="flex gap-3 mt-6">
-          {[
-            "/Footer/ISO 27001.svg",
-            "/Footer/SOC2.svg",
-            "/Footer/CCPA.svg",
-            "/Footer/GDPR.svg",
-            "/Footer/HIPAA.svg",
-          ].map((eachLogo, i) => (
-            <Image
-              key={"security-logo-" + (i + 1)}
-              src={eachLogo}
-              alt={"security-logo-" + (i + 1)}
-              height={48}
-              width={48}
-              className="h-12 w-fit opacity-80 hover:opacity-100 hover:grayscale-0"
-            />
-          ))}
-        </div>
-        <nav aria-label="socials" className="flex mt-6 items-center">
-          {Socials.map((eachSocial) => (
-            <Link
-              key={eachSocial.label}
-              className="hover:invert p-2"
-              aria-label={eachSocial.label}
-              href={eachSocial.href}
-            >
-              {eachSocial.Logo}
-            </Link>
-          ))}
-        </nav>
-        <p className="mt-2 max-w-[350px] text-base">
-          Our mission is to empower high-caliber engineers and lifelong learners through verified, proctored education.
+        <p className="mt-5 max-w-[350px] text-sm text-[#555555] leading-relaxed">
+          Our mission is to empower high-caliber engineers and lifelong learners through structured, verified technical education.
         </p>
         <p className="mt-4">
           Need Help?&nbsp;

@@ -11,7 +11,6 @@ import WallOfLove from '@/components/sections/WallOfLove';
 import SchedulingFor from '@/components/sections/SchedulingFor';
 import GetStarted from '@/components/sections/GetStarted/GetStarted';
 import Footer from '@/components/sections/Footer';
-import WhatsBetter from '@/components/WhatsBetter';
 
 export default function LandingPage() {
   useEffect(() => {
@@ -33,7 +32,6 @@ export default function LandingPage() {
         <SchedulingFor className="[&>:last-child]:md:gap-y-14" />
         <GetStarted />
         <Footer />
-        <WhatsBetter />
       </main>
     </div>
   );
