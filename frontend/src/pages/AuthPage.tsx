@@ -119,27 +119,27 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         </div>
 
         {/* Right Form Panel */}
-        <div className="w-full lg:w-[52%] flex flex-col justify-between py-2 sm:py-3 pr-2 lg:pr-6 font-sans">
+        <div className="w-full lg:w-[52%] flex flex-col justify-between py-2 sm:py-4 pr-2 lg:pr-8 font-sans">
           <div>
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#77736D] hover:text-[#171717] transition-colors mb-4 sm:mb-5 w-fit"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#77736D] hover:text-[#171717] transition-colors mb-5 sm:mb-6 w-fit"
             >
               <ArrowLeft size={14} />
               <span>Back</span>
             </Link>
 
-            <div className="mb-4 sm:mb-6">
+            <div className="mb-5 sm:mb-6">
               <div className="text-sm font-medium text-[#77736D] mb-1 font-sans transition-all duration-200">
                 {isRegister ? 'Sign up to' : 'Login to'}
               </div>
-              <h1 className="font-serif text-[38px] sm:text-[44px] lg:text-[48px] font-normal leading-[1.03] text-[#171717] tracking-[-0.025em]">
+              <h1 className="font-serif text-[40px] sm:text-[46px] lg:text-[48px] font-normal leading-[1.04] text-[#171717] tracking-[-0.025em]">
                 Where Knowledge<br />
                 Comes Alive
               </h1>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-2.5 max-w-[380px]">
+            <form onSubmit={handleSubmit} className="space-y-3 max-w-[400px]">
               {/* Full Name field - smoothly appears in register mode */}
               {isRegister && (
                 <div className="animate-fade-in">
@@ -147,7 +147,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-2.5 sm:py-3 text-sm border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
+                    className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-3 text-[15px] border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
                     placeholder="Full name"
                     required
                     autoFocus
@@ -155,26 +155,26 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 </div>
               )}
 
-              {/* Email field - preserved across both modes */}
+              {/* Email field */}
               <div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-2.5 sm:py-3 text-sm border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
+                  className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-3 text-[15px] border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
                   placeholder="Enter email"
                   required
                   autoFocus={!isRegister}
                 />
               </div>
 
-              {/* Password field - preserved across both modes */}
+              {/* Password field */}
               <div className="relative">
                 <input
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-2.5 sm:py-3 pr-10 text-sm border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
+                  className="w-full bg-[#EFECE6] hover:bg-[#EAE6DF] focus:bg-[#EAE6DF] text-[#171717] placeholder:text-[#A99B8A] rounded-xl px-4 py-3 pr-11 text-[15px] border-0 outline-none transition-all focus:ring-2 focus:ring-[#6F8FA8]/30 font-sans"
                   placeholder={isRegister ? 'Create password (min 8 chars)' : 'Enter password'}
                   required
                 />
@@ -184,49 +184,49 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A99B8A] hover:text-[#171717] transition-colors p-1 cursor-pointer"
                   aria-label={showPwd ? 'Hide password' : 'Show password'}
                 >
-                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
 
-              {/* Role Selection - smoothly appears in register mode */}
+              {/* Role Selection */}
               {isRegister && (
-                <div className="grid grid-cols-2 gap-2 pt-0.5 animate-fade-in">
+                <div className="grid grid-cols-2 gap-2.5 pt-0.5 animate-fade-in">
                   <button
                     type="button"
                     onClick={() => setRole('student')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       role === 'student'
                         ? 'bg-[#171717] text-white shadow-xs'
                         : 'bg-[#EFECE6] text-[#77736D] hover:bg-[#EAE6DF]'
                     }`}
                   >
-                    <GraduationCap size={13} />
+                    <GraduationCap size={15} />
                     <span>Student</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setRole('instructor')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                       role === 'instructor'
                         ? 'bg-[#171717] text-white shadow-xs'
                         : 'bg-[#EFECE6] text-[#77736D] hover:bg-[#EAE6DF]'
                     }`}
                   >
-                    <Briefcase size={13} />
+                    <Briefcase size={15} />
                     <span>Instructor</span>
                   </button>
                 </div>
               )}
 
-              {/* Seamless Mode Switch Link (No page reload or card jump) */}
-              <div className="pt-0.5 text-xs text-[#77736D]">
+              {/* Properly Proportioned Switch Link */}
+              <div className="pt-1 pb-0.5 text-sm text-[#77736D]">
                 {isRegister ? (
                   <>
                     Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => toggleMode('login')}
-                      className="text-[#171717] font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity ml-0.5 cursor-pointer bg-transparent border-0 p-0"
+                      className="text-[#171717] font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity ml-0.5 cursor-pointer bg-transparent border-0 p-0 text-sm"
                     >
                       Log in
                     </button>
@@ -237,7 +237,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                     <button
                       type="button"
                       onClick={() => toggleMode('register')}
-                      className="text-[#171717] font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity ml-0.5 cursor-pointer bg-transparent border-0 p-0"
+                      className="text-[#171717] font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity ml-0.5 cursor-pointer bg-transparent border-0 p-0 text-sm"
                     >
                       Sign up
                     </button>
@@ -246,7 +246,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               </div>
 
               {error && (
-                <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-1.5 animate-fade-in">
+                <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3.5 py-2 animate-fade-in">
                   {error}
                 </div>
               )}
@@ -255,17 +255,17 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-[#171717] text-white hover:bg-[#2A2A2A] active:scale-[0.99] text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2 mt-2 cursor-pointer disabled:opacity-50 font-sans"
+                className="w-full py-3.5 px-5 rounded-xl bg-[#171717] text-white hover:bg-[#2A2A2A] active:scale-[0.99] text-[15px] font-semibold transition-all shadow-sm flex items-center justify-center gap-2 mt-3 cursor-pointer disabled:opacity-50 font-sans"
               >
                 {loading ? (
                   <>
-                    <Loader2 size={15} className="animate-spin text-zinc-400" />
+                    <Loader2 size={16} className="animate-spin text-zinc-400" />
                     <span>{isRegister ? 'Creating account…' : 'Signing in…'}</span>
                   </>
                 ) : (
                   <>
                     <span>{isRegister ? 'Create account' : 'Sign in'}</span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </>
                 )}
               </button>
@@ -273,9 +273,9 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           </div>
 
           {/* Footer Lockup */}
-          <div className="pt-4 flex items-center gap-3 text-[#171717] select-none font-sans">
+          <div className="pt-6 pb-1 flex items-center gap-3 text-[#171717] select-none font-sans">
             <div className="flex items-center gap-1.5">
-              <svg width="26" height="22" viewBox="0 0 32 26" fill="currentColor">
+              <svg width="28" height="24" viewBox="0 0 32 26" fill="currentColor">
                 <path d="M7 2a11 11 0 0 0-4 22h3a11 11 0 0 0 1-22H7z" fill="#171717" />
                 <circle cx="21" cy="13" r="10" fill="#171717" />
               </svg>
@@ -283,7 +283,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 veyro
               </span>
             </div>
-            <div className="text-[10px] leading-tight text-[#77736D] pl-1 font-sans">
+            <div className="text-xs leading-snug text-[#77736D] pl-1 font-sans">
               Shared Knowledge for an<br />Accredited Technical Future.
             </div>
           </div>
