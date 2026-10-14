@@ -3,20 +3,13 @@
 # 🎓 VEYRO LMS
 ### *Enterprise Learning Management System with Cryptographic Verification & Proctored Assessment Engine*
 
-[![Production Frontend](https://img.shields.io/badge/Production%20Web-veyroofficial.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white)](https://veyroofficial.vercel.app/)
-[![Production API](https://img.shields.io/badge/Production%20API-Render%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://veyro-y6gj.onrender.com/api/health)
-[![Test Suite](https://img.shields.io/badge/E2E%20Verification-80%2F80%20Passed-00C853?style=for-the-badge&logo=jest&logoColor=white)](#-automated-verification--test-suite)
+[![Live Platform](https://img.shields.io/badge/Platform-Live-10B981?style=for-the-badge&logo=vercel&logoColor=white)](https://veyroofficial.vercel.app/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-ISC-3B82F6?style=for-the-badge)](LICENSE)
-
-<br/>
-
-[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-5.0-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas_M0-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![JWT](https://img.shields.io/badge/JWT-Dual_Token_Rotation-FF6C37?style=flat-square&logo=json-web-tokens&logoColor=white)](https://jwt.io/)
 
 <p align="center">
   <b>Veyro</b> is an enterprise-engineered, full-stack Learning Management System designed for academic institutions, corporate academies, and modern technical bootcamps.<br/>
@@ -29,14 +22,11 @@
 
 </div>
 
-## 🌐 Production Deployments
+## 🌐 Live Platform Access
 
-| Component | Provider | Live URL | Status |
-|---|---|---|:---:|
-| **Official Frontend** | Vercel Edge | [`https://veyroofficial.vercel.app`](https://veyroofficial.vercel.app) | `ONLINE` |
-| **Backend REST API** | Render Web Service | [`https://veyro-y6gj.onrender.com/api`](https://veyro-y6gj.onrender.com/api) | `ONLINE` |
-| **System Health Check** | Render Automated | [`https://veyro-y6gj.onrender.com/api/health`](https://veyro-y6gj.onrender.com/api/health) | `HEALTHY` |
-| **Database Cluster** | MongoDB Atlas | AWS us-east-1 Replica Set | `CONNECTED` |
+* **Official Frontend Application**: [`https://veyroofficial.vercel.app`](https://veyroofficial.vercel.app)
+* **Backend API Gateway**: [`https://veyro-y6gj.onrender.com/api`](https://veyro-y6gj.onrender.com/api)
+* **API Health Telemetry**: [`https://veyro-y6gj.onrender.com/api/health`](https://veyro-y6gj.onrender.com/api/health)
 
 ---
 
