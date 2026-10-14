@@ -157,9 +157,12 @@ const refresh = async (req, res, next) => {
     const newAccessToken = generateAccessToken(user._id, user.role);
     const newRefreshToken = generateRefreshToken(user._id, user.role);
 
+    const updatedTokens = (user.refreshTokens || [])
+      .filter((t) => t !== refreshToken)
+      .concat(newRefreshToken);
+
     await User.findByIdAndUpdate(user._id, {
-      $pull: { refreshTokens: refreshToken },
-      $push: { refreshTokens: newRefreshToken },
+      $set: { refreshTokens: updatedTokens },
     });
 
     res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
