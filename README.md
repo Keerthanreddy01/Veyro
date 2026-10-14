@@ -176,39 +176,6 @@ Backend:
 
 ---
 
-## 🧪 Automated Verification & Test Suite
-
-Veyro includes a comprehensive automated test harness covering end-to-end workflows:
-
-```bash
-# Run the complete verification test suite
-cd backend
-node test_suite.js
-```
-
-### ✅ Verification Results (80/80 Tests Passing)
-
-* **Group 1**: Authentication & JWT Lifecycle (4/4 passed)
-* **Group 2**: RBAC Server-Side Middleware (3/3 passed)
-* **Group 3**: Granular Video Progress & 90% Audit Engine (4/4 passed)
-* **Group 4**: Quiz Anti-Cheat Engine & Server-Side Scoring (7/7 passed)
-* **Group 5**: Course Completion & Certificate Eligibility (3/3 passed)
-* **Group 6**: Dynamic PDF Certificate & Verification (1/1 passed)
-* **Group 7**: Course Submission & Lifecycle Security (3/3 passed)
-* **Group 8**: Course Visibility & Catalog Security (2/2 passed)
-* **Group 9**: Admin Moderation & Status Engine (3/3 passed)
-* **Group 10**: Course Analytics & Learner Cohort Metrics (5/5 passed)
-* **Group 11**: Immutable Platform Audit Log & RBAC Security (6/6 passed)
-* **Group 12**: Enrollment Lifecycle & Roster Metrics (6/6 passed)
-* **Group 13**: Course Retraction, Versioning & Learner Safety Engine (6/6 passed)
-* **Group 14**: Server-Authoritative IDOR & Actor Security (3/3 passed)
-* **Group 15**: Platform Notifications & Real-Time Alert Engine (9/9 passed)
-* **Group 16**: Audit Log Export & Compliance Engine (6/6 passed)
-* **Group 17**: Course Revision Lifecycle & Learner Invariance (4/4 passed)
-* **Group 18**: Render Production Readiness & Health Monitoring (5/5 passed)
-
----
-
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
@@ -220,7 +187,7 @@ node test_suite.js
 cd backend
 npm install
 cp .env.example .env
-# Fill in your MONGODB_URI and JWT_SECRET in .env
+# Configure your environment variables in .env
 npm run dev
 ```
 > Server runs on `http://localhost:5000`
@@ -235,13 +202,14 @@ npm run dev
 
 ---
 
-## 👥 Default Platform Credentials
+## 🧪 Automated Testing
 
-| Role | Email | Password | Access Area |
-|---|---|---|---|
-| **Administrator** | `admin@veyro.com` | `Admin@123` | `/dashboard` (Admin Audit & Review Console) |
-| **Instructor** | `preetham@gmail.com` | *(Registered password)* | `/dashboard` (Instructor Studio & Course Builder) |
-| **Student** | `student@veyro.com` | `Student@123` | `/profile` & `/dashboard` (Learning Roadmap & AI Assistant) |
+Veyro includes an automated verification test suite covering RBAC, video auditing, anti-cheat timers, and data isolation:
+
+```bash
+cd backend
+node test_suite.js
+```
 
 ---
 
