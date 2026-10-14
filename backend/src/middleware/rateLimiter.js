@@ -17,17 +17,17 @@ const isSafeLoopback = (req) => {
 /**
  * Strict Rate Limiter for Authentication endpoints (/api/auth/login, /api/auth/register).
  * Protects against brute-force and credential stuffing attacks.
- * Limit: 50 requests per 15 minutes per IP.
+ * Limit: 100 requests per 15 minutes per IP.
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50,
+  max: 100,
   skip: isSafeLoopback,
-  standardHeaders: true, // Return standard RateLimit-* headers
-  legacyHeaders: false, // Disable X-RateLimit-* headers
+  standardHeaders: true,
+  legacyHeaders: false,
   message: {
-    message: 'Too many attempts, please try again later.',
-    error: 'Too many attempts, please try again later.',
+    message: 'Too many login attempts from this IP, please try again in a few minutes.',
+    error: 'Too many login attempts from this IP, please try again in a few minutes.',
   },
   statusCode: 429,
 });
@@ -35,12 +35,12 @@ const authLimiter = rateLimit({
 /**
  * General API Rate Limiter for all other /api endpoints.
  * Protects against DoS and abusive scraping.
- * Limit: 100 requests per 15 minutes per IP.
+ * Limit: 1500 requests per 15 minutes per IP.
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  skip: isSafeLoopback,
+  max: 1500,
+  skip: (req) => isSafeLoopback(req) || req.path === '/health' || req.path.startsWith('/verify'),
   standardHeaders: true,
   legacyHeaders: false,
   message: {

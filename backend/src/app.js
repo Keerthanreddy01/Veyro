@@ -25,6 +25,9 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
+// Enable reverse proxy trust so req.ip correctly resolves client IPs on Render/Vercel
+app.set('trust proxy', 1);
+
 // ─── Database ────────────────────────────────────────────────────────────────
 connectDB();
 

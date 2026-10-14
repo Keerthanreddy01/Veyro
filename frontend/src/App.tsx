@@ -14,6 +14,8 @@ import LessonViewerPage from './pages/LessonViewerPage';
 import QuizPage from './pages/QuizPage';
 import CreateCoursePage from './pages/CreateCoursePage';
 import EditCoursePage from './pages/EditCoursePage';
+import StudentProfilePage from './pages/StudentProfilePage';
+import StudentOnboardingModal from './components/onboarding/StudentOnboardingModal';
 
 import type { ReactNode } from 'react';
 
@@ -26,6 +28,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <SmoothScroll />
+      <StudentOnboardingModal />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -58,6 +61,7 @@ export default function App() {
                 <RouteTransition>
                   <Routes>
                     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
                     <Route path="/courses" element={<CourseCatalogPage />} />
                     <Route path="/courses/:id" element={<CourseDetailPage />} />
                     <Route path="/lessons/:id" element={<ProtectedRoute><LessonViewerPage /></ProtectedRoute>} />

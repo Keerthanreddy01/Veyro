@@ -33,10 +33,12 @@ export default function Navbar() {
           { to: '/dashboard', label: 'Instructor Studio', icon: Layers },
           { to: '/courses', label: 'Browse Courses', icon: Compass },
           { to: '/instructor/courses/new', label: 'Create Course', icon: PlusCircle },
+          { to: '/profile', label: 'Student Profiles', icon: User },
         ]
       : [
           { to: '/dashboard', label: 'Learning Roadmap', icon: GraduationCap },
           { to: '/courses', label: 'Browse Courses', icon: Compass },
+          { to: '/profile', label: 'Student Profile', icon: User },
         ]
     : [
         { to: '/courses', label: 'Browse Courses', icon: Compass },
@@ -58,7 +60,7 @@ export default function Navbar() {
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-1">
               {navLinks.map(({ to, label }) => {
-                const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to) && to !== '/courses' ? true : location.pathname === to);
+                const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to) && to !== '/courses' && to !== '/profile' ? true : location.pathname === to);
                 return (
                   <Link
                     key={to}
@@ -85,8 +87,9 @@ export default function Navbar() {
                 <div className="h-4 w-px bg-[#E7E2DA] mx-1" />
 
                 <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-[#FAF8F4] transition-colors"
+                  to="/profile"
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-[#FAF8F4] transition-colors border border-transparent hover:border-[#E7E2DA]"
+                  title="Open Student Profile"
                 >
                   <div className="w-7 h-7 rounded-full bg-[#171717] text-white flex items-center justify-center text-xs font-semibold">
                     {user.name ? user.name[0].toUpperCase() : 'U'}

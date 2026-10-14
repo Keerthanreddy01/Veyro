@@ -61,6 +61,11 @@ const courseSchema = new mongoose.Schema(
       default: 'beginner',
       set: (v) => (v ? v.toLowerCase() : 'beginner'),
     },
+    targetGrade: {
+      type: String,
+      trim: true,
+      default: 'All Grades',
+    },
     price: {
       type: Number,
       default: 0,

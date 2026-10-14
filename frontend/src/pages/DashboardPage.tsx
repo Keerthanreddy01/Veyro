@@ -56,6 +56,7 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
+import { getMediaUrl } from '../utils/media';
 import type { Course, Enrollment, CourseStudent, CourseAnalyticsData, QuizSubmission } from '../types/course';
 import type { AuthUser } from '../types/auth';
 
@@ -945,15 +946,24 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
                       <div className="flex items-start gap-3.5 min-w-0">
                         {c.thumbnail ? (
                           <img
-                            src={c.thumbnail}
+                            src={getMediaUrl(c.thumbnail)}
                             alt={c.title}
                             className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-[#E7E2DA] flex-shrink-0"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const fallback = target.parentElement?.querySelector('.thumbnail-fallback');
+                              if (fallback) fallback.classList.remove('hidden');
+                            }}
                           />
-                        ) : (
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#F6F2EC] border border-[#E7E2DA] flex items-center justify-center flex-shrink-0 text-[#A99B8A]">
-                            <BookOpen size={24} />
-                          </div>
-                        )}
+                        ) : null}
+                        <div
+                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#F6F2EC] border border-[#E7E2DA] flex items-center justify-center flex-shrink-0 text-[#A99B8A] ${
+                            c.thumbnail ? 'hidden thumbnail-fallback' : ''
+                          }`}
+                        >
+                          <BookOpen size={24} />
+                        </div>
 
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">

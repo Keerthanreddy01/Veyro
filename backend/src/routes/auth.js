@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { body } = require('express-validator');
-const { register, login, refresh, logout, getMe } = require('../controllers/authController');
+const { register, login, refresh, logout, getMe, updateProfile, getStudents } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
 const { validate } = require('../middleware/validate');
@@ -50,5 +50,7 @@ router.post('/login', authLimiter, loginRules, validate, login);
 router.post('/refresh', refresh);
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);
+router.put('/profile', authenticate, updateProfile);
+router.get('/students', authenticate, getStudents);
 
 module.exports = router;

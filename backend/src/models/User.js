@@ -42,6 +42,28 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    grade: {
+      type: String,
+      trim: true,
+      default: 'Grade 10',
+    },
+    hobbies: {
+      type: [String],
+      default: [],
+    },
+    bio: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

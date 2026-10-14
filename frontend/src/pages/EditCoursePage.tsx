@@ -94,6 +94,7 @@ export default function EditCoursePage() {
   const [editCourseDesc, setEditCourseDesc] = useState('');
   const [editCourseCategory, setEditCourseCategory] = useState('');
   const [editCourseLevel, setEditCourseLevel] = useState('beginner');
+  const [editCourseTargetGrade, setEditCourseTargetGrade] = useState('All Grades');
   const [editCourseTags, setEditCourseTags] = useState('');
   const [editThumbnail, setEditThumbnail] = useState<File | null>(null);
   const [savingCourseDetails, setSavingCourseDetails] = useState(false);
@@ -110,6 +111,7 @@ export default function EditCoursePage() {
       setEditCourseDesc(data.course.description || '');
       setEditCourseCategory(data.course.category || 'General');
       setEditCourseLevel(data.course.level || 'beginner');
+      setEditCourseTargetGrade(data.course.targetGrade || 'All Grades');
       setEditCourseTags(Array.isArray(data.course.tags) ? data.course.tags.join(', ') : '');
     } catch {
       toast.error('Course not found');
@@ -438,6 +440,7 @@ export default function EditCoursePage() {
       fd.append('description', editCourseDesc.trim());
       fd.append('category', editCourseCategory);
       fd.append('level', editCourseLevel);
+      fd.append('targetGrade', editCourseTargetGrade || 'All Grades');
       fd.append('tags', JSON.stringify(editCourseTags.split(',').map((t) => t.trim()).filter(Boolean)));
       if (editThumbnail) fd.append('thumbnail', editThumbnail);
 
@@ -1447,6 +1450,26 @@ export default function EditCoursePage() {
                   <option value="advanced">Advanced</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-[#171717] mb-1">Target Grade / Class</label>
+              <select
+                value={editCourseTargetGrade}
+                onChange={(e) => setEditCourseTargetGrade(e.target.value)}
+                className="w-full bg-[#FAF9F6] text-xs rounded-xl border border-[#E7E2DA] p-2 outline-none"
+              >
+                <option value="All Grades">All Grades (Open Enrollment)</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="Grade 12">Grade 12</option>
+                <option value="Undergraduate">Undergraduate</option>
+                <option value="Professional">Professional / Lifelong</option>
+              </select>
             </div>
 
             <div>

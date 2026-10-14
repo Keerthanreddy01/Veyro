@@ -27,6 +27,7 @@ export default function CreateCoursePage() {
     description: '',
     category: 'General',
     level: 'beginner',
+    targetGrade: 'All Grades',
     price: '0',
     tags: '',
     learningObjectives: '',
@@ -65,6 +66,7 @@ export default function CreateCoursePage() {
       fd.append('description', form.description.trim());
       fd.append('category', form.category);
       fd.append('level', form.level);
+      fd.append('targetGrade', form.targetGrade || 'All Grades');
       fd.append('price', form.price || '0');
       fd.append(
         'tags',
@@ -147,7 +149,7 @@ export default function CreateCoursePage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#202020] mb-1.5">
                     Category
@@ -177,6 +179,28 @@ export default function CreateCoursePage() {
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
                     <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#202020] mb-1.5">
+                    Target Grade / Class
+                  </label>
+                  <select
+                    className="w-full bg-[#FAF9F6] text-[#202020] text-sm rounded-xl border border-[#E7E2DA] p-2.5 outline-none focus:border-[#171717]"
+                    value={form.targetGrade}
+                    onChange={setF('targetGrade')}
+                  >
+                    <option value="All Grades">All Grades (Open Enrollment)</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                    <option value="Undergraduate">Undergraduate</option>
+                    <option value="Professional">Professional / Lifelong</option>
                   </select>
                 </div>
 

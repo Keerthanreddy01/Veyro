@@ -6,6 +6,11 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  grade?: string;
+  hobbies?: string[];
+  bio?: string;
+  avatar?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface AuthResponse {
@@ -25,6 +30,7 @@ export interface AuthState {
 
 export interface AuthActions {
   setTokens: (accessToken: string, refreshToken: string, user: AuthUser) => void;
+  updateUser: (updatedUser: Partial<AuthUser>) => void;
   register: (name: string, email: string, password: string, role?: SelfAssignableRole) => Promise<AuthUser>;
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;

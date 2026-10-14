@@ -56,6 +56,7 @@ export interface Course {
   instructorId: InstructorRef | string;
   category: string;
   level?: CourseLevel;
+  targetGrade?: string;
   price?: number;
   learningObjectives?: string[];
   prerequisites?: string[];

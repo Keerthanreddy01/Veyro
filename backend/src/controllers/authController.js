@@ -43,7 +43,17 @@ const register = async (req, res, next) => {
       message: 'Account created successfully.',
       accessToken,
       refreshToken,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        grade: user.grade,
+        hobbies: user.hobbies,
+        avatar: user.avatar,
+        bio: user.bio,
+        onboardingCompleted: user.onboardingCompleted,
+      },
     });
   } catch (err) {
     next(err);
@@ -107,7 +117,17 @@ const login = async (req, res, next) => {
       message: 'Logged in successfully.',
       accessToken,
       refreshToken,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        grade: user.grade,
+        hobbies: user.hobbies,
+        avatar: user.avatar,
+        bio: user.bio,
+        onboardingCompleted: user.onboardingCompleted,
+      },
     });
   } catch (err) {
     next(err);
@@ -213,4 +233,58 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, getMe };
+/**
+ * PUT /api/auth/profile
+ * Authenticated user updates name, grade, hobbies, bio, avatar, onboardingCompleted
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const { name, grade, hobbies, bio, avatar, onboardingCompleted } = req.body;
+    if (name) user.name = name.trim();
+    if (grade) user.grade = grade.trim();
+    if (Array.isArray(hobbies)) user.hobbies = hobbies;
+    if (bio !== undefined) user.bio = bio.trim();
+    if (avatar !== undefined) user.avatar = avatar;
+    if (onboardingCompleted !== undefined) user.onboardingCompleted = Boolean(onboardingCompleted);
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully.',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        grade: user.grade,
+        hobbies: user.hobbies,
+        bio: user.bio,
+        avatar: user.avatar,
+        onboardingCompleted: user.onboardingCompleted,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/auth/students
+ * Returns active student directory for student profiles view
+ */
+const getStudents = async (req, res, next) => {
+  try {
+    const students = await User.find({ role: 'student', isActive: true })
+      .select('name email role grade hobbies bio avatar createdAt')
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json({ students });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, refresh, logout, getMe, updateProfile, getStudents };

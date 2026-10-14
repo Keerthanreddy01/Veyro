@@ -29,6 +29,14 @@ const useAuthStore = create<AuthStore>((set, get) => ({
     set({ accessToken, refreshToken, user, error: null });
   },
 
+  updateUser: (updatedUser) => {
+    const current = get().user;
+    if (!current) return;
+    const merged = { ...current, ...updatedUser };
+    localStorage.setItem('user', JSON.stringify(merged));
+    set({ user: merged });
+  },
+
   register: async (name: string, email: string, password: string, role?: SelfAssignableRole) => {
     set({ loading: true, error: null });
     try {

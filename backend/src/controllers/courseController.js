@@ -184,7 +184,7 @@ const getCourseById = async (req, res, next) => {
  */
 const createCourse = async (req, res, next) => {
   try {
-    const { title, description, category, tags, level, price, learningObjectives, prerequisites } = req.body;
+    const { title, description, category, tags, level, price, learningObjectives, prerequisites, targetGrade } = req.body;
     const thumbnailPath = req.file ? getRelativePath(req.file) : null;
 
     let parsedTags = [];
@@ -219,6 +219,7 @@ const createCourse = async (req, res, next) => {
       description,
       category,
       level: level ? level.toLowerCase() : 'beginner',
+      targetGrade: targetGrade || 'All Grades',
       price: price ? Math.max(0, Number(price) || 0) : 0,
       learningObjectives: parsedObjectives,
       prerequisites: parsedPrerequisites,
@@ -263,11 +264,12 @@ const updateCourse = async (req, res, next) => {
       return res.status(400).json({ error: 'Cannot directly edit a course while under review or published. Retract the submission or create a new draft revision.' });
     }
 
-    const { title, description, category, tags, level, price, learningObjectives, prerequisites } = req.body;
+    const { title, description, category, tags, level, price, learningObjectives, prerequisites, targetGrade } = req.body;
     if (title) course.title = title;
     if (description) course.description = description;
     if (category) course.category = category;
     if (level) course.level = level.toLowerCase();
+    if (targetGrade !== undefined) course.targetGrade = targetGrade || 'All Grades';
     if (price !== undefined) course.price = Math.max(0, Number(price) || 0);
 
     if (learningObjectives !== undefined) {

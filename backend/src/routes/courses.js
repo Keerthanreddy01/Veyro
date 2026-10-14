@@ -18,6 +18,7 @@ const createCourseRules = [
   body('description').optional().trim().escape(),
   body('category').optional().trim().escape(),
   body('level').optional().trim().toLowerCase().isIn(['beginner', 'intermediate', 'advanced', 'all levels']).withMessage('Level must be beginner, intermediate, advanced, or all levels'),
+  body('targetGrade').optional().trim(),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
 ];
 
@@ -26,6 +27,7 @@ const updateCourseRules = [
   body('description').optional().trim().escape(),
   body('category').optional().trim().escape(),
   body('level').optional().trim().toLowerCase().isIn(['beginner', 'intermediate', 'advanced', 'all levels']).withMessage('Level must be beginner, intermediate, advanced, or all levels'),
+  body('targetGrade').optional().trim(),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
 ];
 

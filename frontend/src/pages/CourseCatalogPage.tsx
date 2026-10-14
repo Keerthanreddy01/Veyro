@@ -13,6 +13,7 @@ import api from '../api/axios';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { getMediaUrl } from '../utils/media';
 import type { Course } from '../types/course';
 
 const CATEGORIES = [
@@ -41,20 +42,25 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => (
       <div className="w-full h-44 bg-[#F6F2EC] rounded-xl flex items-center justify-center overflow-hidden mb-4 relative border border-[#E7E2DA]">
         {course.thumbnail ? (
           <img
-            src={`/static/${course.thumbnail}`}
+            src={getMediaUrl(course.thumbnail)}
             alt={course.title}
             className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              const fallback = target.parentElement?.querySelector('.card-thumb-fallback');
+              if (fallback) fallback.classList.remove('hidden');
+            }}
           />
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 text-[#77736D]">
-            <div className="w-11 h-11 rounded-xl bg-white border border-[#E7E2DA] flex items-center justify-center text-[#171717]">
-              <BookOpen size={20} className="text-[#6F8FA8]" />
-            </div>
-            <span className="text-[11px] font-medium text-[#77736D] font-sans">
-              Veyro Curriculum
-            </span>
+        ) : null}
+        <div className={`flex flex-col items-center justify-center gap-2 text-[#77736D] ${course.thumbnail ? 'hidden card-thumb-fallback' : ''}`}>
+          <div className="w-11 h-11 rounded-xl bg-white border border-[#E7E2DA] flex items-center justify-center text-[#171717]">
+            <BookOpen size={20} className="text-[#6F8FA8]" />
           </div>
-        )}
+          <span className="text-[11px] font-medium text-[#77736D] font-sans">
+            Veyro Curriculum
+          </span>
+        </div>
 
         {/* Verified Badge */}
         <div className="absolute top-2.5 right-2.5">
@@ -65,9 +71,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => (
       </div>
 
       {/* Category & Level */}
-      <div className="flex items-center gap-2 mb-2.5">
+      <div className="flex items-center gap-2 mb-2.5 flex-wrap">
         <Badge variant="neutral">{course.category || 'General'}</Badge>
         {course.level && <Badge variant="draft">{course.level}</Badge>}
+        {course.targetGrade && (
+          <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-md bg-[#F4EFE6] text-[#78644A] border border-[#E7E2DA]">
+            {course.targetGrade}
+          </span>
+        )}
       </div>
 
       {/* Title & Description */}
