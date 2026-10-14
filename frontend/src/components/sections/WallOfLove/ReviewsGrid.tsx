@@ -74,11 +74,11 @@ const ReviewsGrid = ({ reviews, limit }: ReviewsGridProps) => {
         ))}
       </div>
 
-      {state < 50 && (
-        <div className="absolute inset-x-0 bottom-0 h-[500px] bg-gradient-to-b from-transparent to-[#F4F4F4] grid place-items-center">
+      {state < reviews.length && (
+        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-b from-transparent via-[#F4F4F4]/80 to-[#F4F4F4] flex items-end justify-center pb-2">
           <button
             onClick={handleClick}
-            className=" px-4 py-2 text-sm bg-[#F4F4F4] border border-gray rounded-xl font-inter"
+            className="px-5 py-2 text-sm font-medium bg-[#F4F4F4] hover:bg-white text-neutral-800 border border-gray rounded-xl font-inter transition-all shadow-xs hover:shadow cursor-pointer"
           >
             Show more
           </button>
