@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { Link, useNavigate } from "react-router-dom";
-import { Play } from "lucide-react";
-import HeroClient from "./HeroClient";
+import { useNavigate } from "react-router-dom";
+import AmpleHeroDashboard from "./AmpleHeroDashboard";
 
 export default function Hero() {
   const [email, setEmail] = useState("");
@@ -18,7 +17,7 @@ export default function Hero() {
   };
 
   return (
-    <section id="hero" className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden bg-[#FAFAFC]">
+    <section id="hero" className="relative pt-24 sm:pt-32 pb-20 sm:pb-28 overflow-hidden bg-[#FAFAFC]">
       {/* Ambient Left Aura Blur (Amplemarket Signature Gradient) */}
       <div
         aria-hidden="true"
@@ -66,7 +65,7 @@ export default function Hero() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="bg-transparent border-0 outline-none text-[#111111] placeholder:text-[#9CA3AF] text-sm sm:text-[15px] w-full"
+              className="bg-transparent border-0 outline-none text-[#111111] placeholder:text-[#9CA3AF] text-sm sm:text-[15px] w-full font-sans"
             />
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="w-6 h-6 rounded-md bg-[#E11D48] text-white flex items-center justify-center text-[10px] font-bold shadow-xs select-none">
@@ -74,7 +73,7 @@ export default function Hero() {
               </span>
               <button
                 type="submit"
-                className="bg-[#111111] hover:bg-black text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full transition-all cursor-pointer whitespace-nowrap shadow-xs hover:shadow"
+                className="bg-[#111111] hover:bg-black text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full transition-all cursor-pointer whitespace-nowrap shadow-xs hover:shadow font-sans"
               >
                 Get free trial
               </button>
@@ -93,55 +92,14 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* Dashboard Preview Showcase with Rocket Doodle */}
+        {/* Amplemarket-Style High-Fidelity Dashboard Showcase */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="relative mt-10 sm:mt-14 max-w-5xl mx-auto"
+          className="mt-12 sm:mt-16 max-w-5xl mx-auto"
         >
-          {/* Main Dashboard Container */}
-          <div className="relative rounded-2xl sm:rounded-3xl border border-black/10 bg-white shadow-[0_24px_70px_-15px_rgba(0,0,0,0.12)] overflow-hidden text-left">
-            {/* Top Browser / App Window Bar */}
-            <div className="h-10 bg-[#FAFAFC] border-b border-black/5 px-4 flex items-center justify-between select-none">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] border border-black/10" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] border border-black/10" />
-                <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] border border-black/10" />
-                <span className="ml-3 text-[11px] font-medium text-[#77736D] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Duo leads • Live Learning Stream
-                </span>
-              </div>
-              <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#9CA3AF] bg-white px-2.5 py-1 rounded-md border border-black/5">
-                <span>Search curriculum or ask AI... ⌘K</span>
-              </div>
-            </div>
-
-            {/* Dashboard Content */}
-            <div className="p-3 sm:p-5 relative">
-              <HeroClient />
-
-              {/* Floating Central Video Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                <div
-                  aria-label="Play Product Overview"
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-black/85 text-white flex items-center justify-center shadow-2xl pl-1 pointer-events-auto cursor-pointer hover:scale-105 hover:bg-black transition-transform"
-                >
-                  <Play size={28} className="fill-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Rocket Rider Hand-Drawn Doodle on the Right */}
-          <div className="absolute -right-6 sm:-right-14 md:-right-20 -bottom-10 sm:-bottom-14 md:-bottom-18 w-40 sm:w-56 md:w-68 pointer-events-none select-none z-30">
-            <img
-              src="/hero-rocket-doodle.jpg"
-              alt="Rocket Rider Doodle"
-              className="w-full h-auto drop-shadow-md mix-blend-multiply filter contrast-125"
-            />
-          </div>
+          <AmpleHeroDashboard />
         </motion.div>
       </div>
     </section>
