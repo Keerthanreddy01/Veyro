@@ -14,7 +14,7 @@ export default function RevealOnHover() {
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 text-left font-matter">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 select-none">
-        
+
         {/* ── CARD 1: Lilac (Tall, Col 1, Rows 1-2) ── Course Builder */}
         <div className="lg:col-span-1 lg:row-span-2 bg-[#CBBCE6] text-[#241538] rounded-[32px] p-7 sm:p-8 flex flex-col justify-between overflow-hidden relative group hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 min-h-[460px]">
           <div>

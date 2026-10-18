@@ -227,11 +227,11 @@
   .meet-aero-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .meet-aero-card-bloom {
     min-height: 300px;
   }
-  
+
   .meet-aero-bloom-visual {
     width: 48%;
   }
