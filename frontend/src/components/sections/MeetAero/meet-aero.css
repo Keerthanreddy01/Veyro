@@ -1,0 +1,276 @@
+/* ==========================================================================
+   Meet Aero AI Section Styles
+   ========================================================================== */
+
+.meet-aero-section {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 80px 24px 96px;
+  box-sizing: border-box;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #18181b;
+}
+
+/* Header Row */
+.meet-aero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  margin-bottom: 44px;
+}
+
+.meet-aero-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.meet-aero-title {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  color: #141416;
+  margin: 0;
+}
+
+.meet-aero-discover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 20px;
+  border-radius: 9999px;
+  background: #18181d;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: none;
+}
+
+.meet-aero-discover-btn:hover {
+  background: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.meet-aero-arrow-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #18181d;
+  transition: transform 0.2s ease;
+}
+
+.meet-aero-discover-btn:hover .meet-aero-arrow-circle {
+  transform: translateX(2px);
+}
+
+.meet-aero-header-right {
+  max-width: 490px;
+}
+
+.meet-aero-lead {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #52525b;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Cards Grid */
+.meet-aero-cards {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.meet-aero-card {
+  border-radius: 24px;
+  padding: 34px 30px;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.meet-aero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Card 1: Lavender Bloom Card */
+.meet-aero-card-bloom {
+  background: #cfc6ea;
+  position: relative;
+}
+
+.meet-aero-card-bloom h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1728;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+.meet-aero-bloom-visual {
+  position: absolute;
+  right: -5px;
+  top: 0;
+  bottom: 0;
+  width: 58%;
+  pointer-events: none;
+  select-none: none;
+}
+
+.meet-aero-bloom-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: multiply;
+  opacity: 0.96;
+}
+
+.meet-aero-card-bloom p {
+  font-size: 13.5px;
+  line-height: 1.52;
+  color: #3b364e;
+  max-width: 250px;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+/* Cards 2 & 3: Dark Obsidian Cards */
+.meet-aero-card-dark {
+  background: #252237;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.meet-aero-card-dark h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.meet-aero-card-dark p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0;
+}
+
+/* Proof / Partners Row */
+.meet-aero-proof-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  margin-top: 52px;
+  padding: 0 4px;
+}
+
+.meet-aero-proof-text {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #71717a;
+  max-width: 220px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.meet-aero-logos {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+
+.meet-aero-logo-item {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #52525b;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.meet-aero-logo-item:hover {
+  color: #18181b;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .meet-aero-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .meet-aero-card-bloom {
+    min-height: 300px;
+  }
+  
+  .meet-aero-bloom-visual {
+    width: 48%;
+  }
+
+  .meet-aero-header {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .meet-aero-header-right {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .meet-aero-section {
+    padding: 56px 16px 64px;
+  }
+
+  .meet-aero-title {
+    font-size: 36px;
+  }
+
+  .meet-aero-lead {
+    font-size: 16px;
+  }
+
+  .meet-aero-card {
+    padding: 26px 22px;
+    min-height: 280px;
+  }
+
+  .meet-aero-proof-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .meet-aero-logos {
+    gap: 22px;
+  }
+}
