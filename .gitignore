@@ -52,3 +52,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch, prototypes, and local source assets
+frontend/public/*.html
+frontend/veyroai image.png
+frontend/public/aero-blooming.jpg
