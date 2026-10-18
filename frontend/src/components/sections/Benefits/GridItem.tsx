@@ -1,56 +1,87 @@
 "use client";
-import { useState } from "react";
-import * as motion from "motion/react-client";
-import { AnimatePresence } from "motion/react";
-import { easeInOut } from "motion";
+import React from "react";
+import {
+  CreditCard,
+  Video,
+  ShieldCheck,
+  Lock,
+  Globe2,
+  Award,
+  Terminal,
+  Layers,
+  ArrowUpRight,
+} from "lucide-react";
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  CreditCard,
+  Video,
+  ShieldCheck,
+  Lock,
+  Globe2,
+  Award,
+  Terminal,
+  Layers,
+};
+
+interface GridItemProps {
+  title: string;
+  description: string;
+  tag?: string;
+  iconName?: string;
+  img?: string;
+}
+
 const GridItem = ({
   title,
   description,
+  tag,
+  iconName,
   img,
-}: {
-  title: string;
-  description: string;
-  img?: string;
-}) => {
-  const [mouseIn, setMouseIn] = useState(false);
+}: GridItemProps) => {
+  const IconComponent = iconName ? ICON_MAP[iconName] : null;
 
   return (
-    <div
-      onMouseEnter={() => setMouseIn(true)}
-      onMouseLeave={() => setMouseIn(false)}
-      className="card-shadow bg-white border border-gray rounded-2xl flex flex-col px-2 py-4 md:p-4 items-center relative overflow-hidden h-full"
-    >
-      <div
-        className={`h-14 my-2 aspect-square bg-neutral-100 rounded-md relative bg-no-repeat bg-center [backgroundSize:24px] ${img}`}
-      >
-        <span className="absolute w-1 h-1 rounded-full bg-[#C8D4DD] left-2 top-2" />
-        <span className="absolute w-1 h-1 rounded-full bg-[#C8D4DD] right-2 top-2" />
-        <span className="absolute w-1 h-1 rounded-full bg-[#C8D4DD] left-2 bottom-2" />
-        <span className="absolute w-1 h-1 rounded-full bg-[#C8D4DD] right-2 bottom-2 " />
-      </div>
-      <div className="flex-1 flex items-center text-center font-semibold leading-tight text-base">
-        {title}
-      </div>
-      <AnimatePresence>
-        {mouseIn && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 0.95 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.25, ease: easeInOut }}
-            className="absolute inset-0 bg-white p-2 flex flex-col items-center justify-center gap-2 cursor-pointer"
-          >
-            <span className="absolute left-2 top-2 bg-[#C8D4DD] rounded-full w-1.5 h-1.5" />
-            <span className="absolute left-2 bottom-2 bg-[#C8D4DD] rounded-full w-1.5 h-1.5" />
-            <span className="absolute right-2 top-2 bg-[#C8D4DD] rounded-full w-1.5 h-1.5" />
-            <span className="absolute right-2 bottom-2 bg-[#C8D4DD] rounded-full w-1.5 h-1.5" />
-            <span className="font-semibold text-base text-center">{title}</span>
-            <span className="text-center text-sm font-medium text-gray-700">
-              {description}
+    <div className="group relative w-full h-full min-h-[195px] bg-white hover:bg-neutral-50/80 rounded-2xl border border-[#E5E7EB] hover:border-neutral-900/40 p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-neutral-900/5 cursor-pointer overflow-hidden font-matter select-none">
+      {/* Top ambient highlight on hover */}
+      <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-neutral-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      {/* Header with Icon and Tag */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="size-11 rounded-xl bg-neutral-100 group-hover:bg-neutral-900 border border-neutral-200/80 group-hover:border-neutral-900 flex items-center justify-center transition-all duration-300 shadow-2xs group-hover:scale-105 shrink-0">
+            {IconComponent ? (
+              <IconComponent className="size-5 text-neutral-800 group-hover:text-white transition-colors duration-300" />
+            ) : (
+              <div
+                className={`size-6 bg-no-repeat bg-center [backgroundSize:22px] transition-all duration-300 group-hover:invert ${img}`}
+              />
+            )}
+          </div>
+          {tag && (
+            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200/70 group-hover:text-neutral-800 border border-neutral-200/60 transition-colors">
+              {tag}
             </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+
+        {/* Title */}
+        <h4 className="text-[15px] sm:text-[16px] font-semibold text-neutral-900 tracking-tight leading-snug group-hover:text-black transition-colors">
+          {title}
+        </h4>
+
+        {/* Description */}
+        <p className="text-[12px] sm:text-[13px] text-neutral-500 leading-relaxed font-normal mt-1.5 line-clamp-2 group-hover:text-neutral-700 transition-colors">
+          {description}
+        </p>
+      </div>
+
+      {/* Subtle bottom indicator */}
+      <div className="pt-2 mt-2 border-t border-neutral-100 flex items-center justify-between text-[11px] font-medium text-neutral-400 group-hover:text-neutral-800 transition-colors">
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 font-semibold text-neutral-900">
+          Learn more
+        </span>
+        <ArrowUpRight className="size-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
+      </div>
     </div>
   );
 };

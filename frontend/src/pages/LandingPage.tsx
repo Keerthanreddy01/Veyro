@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
 import NavBar from '@/components/layout/NavBar';
 import Hero from '@/components/sections/Hero';
-import TrustedBy from '@/components/sections/TrustedBy';
 import HowItWorks from '@/components/sections/HowItWorks';
 import Benefits from '@/components/sections/Benefits';
+import EpochHero from '@/components/sections/EpochHero';
 import Testimonials from '@/components/sections/Testimonials';
 import AppStore from '@/components/sections/AppStore';
-import Business from '@/components/sections/Business/Business';
-import WallOfLove from '@/components/sections/WallOfLove';
 import SchedulingFor from '@/components/sections/SchedulingFor';
 import GetStarted from '@/components/sections/GetStarted/GetStarted';
 import Footer from '@/components/sections/Footer';
@@ -22,13 +20,11 @@ export default function LandingPage() {
       <NavBar />
       <main className="w-full">
         <Hero />
-        <TrustedBy />
         <HowItWorks />
         <Benefits />
+        <EpochHero />
         <Testimonials />
         <AppStore />
-        <Business />
-        <WallOfLove />
         <SchedulingFor className="[&>:last-child]:md:gap-y-14" />
         <GetStarted />
         <Footer />
