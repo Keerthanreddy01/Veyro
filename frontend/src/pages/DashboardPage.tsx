@@ -57,6 +57,7 @@ import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { getMediaUrl } from '../utils/media';
+import { formatCourseTitle } from '../utils/courseFormatters';
 import type { Course, Enrollment, CourseStudent, CourseAnalyticsData, QuizSubmission } from '../types/course';
 import type { AuthUser } from '../types/auth';
 
@@ -212,7 +213,7 @@ function StudentDashboard({ user }: { user: AuthUser }) {
 
                 <div>
                   <h2 className="font-serif text-2xl font-normal text-[#171717] leading-tight mb-2">
-                    {featuredCourse.courseId.title}
+                    {formatCourseTitle(featuredCourse.courseId.title)}
                   </h2>
                   <p className="text-xs sm:text-sm text-[#77736D] line-clamp-2 leading-relaxed">
                     {featuredCourse.courseId.description}
@@ -328,7 +329,7 @@ function StudentDashboard({ user }: { user: AuthUser }) {
                           to={`/courses/${course._id}`}
                           className="font-sans font-semibold text-[#171717] hover:text-[#6F8FA8] transition-colors block text-base"
                         >
-                          {course.title}
+                          {formatCourseTitle(course.title)}
                         </Link>
                         <div className="flex items-center gap-4 text-xs text-[#77736D]">
                           <span>Progress: {en.progressPercentage || 0}%</span>
@@ -402,7 +403,7 @@ function StudentDashboard({ user }: { user: AuthUser }) {
                       className="p-3 rounded-xl bg-[#FAF8F4] border border-[#E7E2DA] flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="truncate">
-                        <p className="font-semibold text-[#171717] truncate">{e.courseId?.title}</p>
+                        <p className="font-semibold text-[#171717] truncate">{formatCourseTitle(e.courseId?.title)}</p>
                         <p className="text-[#77736D] font-mono text-[11px] mt-0.5">{e.certificateCode}</p>
                       </div>
                       <Badge variant="published">Verified</Badge>
