@@ -15,8 +15,7 @@ export default function AppStore() {
               Purpose-built learning infrastructure
             </SectionHeader.Title>
             <SectionHeader.Description>
-              Veyro comes pre-engineered with server-authoritative anti-cheat proctoring,
-              real-time video watch telemetry, vector PDF certificate generation, and RESTful curriculum APIs.
+              Veyro integrates directly with Google Classroom, Canvas, and everyday student workflows—engineered with server-authoritative anti-cheat proctoring, real-time telemetry, and curriculum APIs.
             </SectionHeader.Description>
             <SectionHeader.StyledLink
               variant="light"

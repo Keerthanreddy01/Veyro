@@ -4,22 +4,21 @@ import useToggleState from "@/hooks/useToggleState";
 import { AnimatePresence, motion } from "motion/react";
 import Image, { StaticImageData } from "next/image";
 import CrossSVG from "@/components/CrossSVG";
-const AppleCalenderLogo = "/AppStore/AppleCalenderLogo.png";
-const GoogleCalenderLogo = "/AppStore/GoogleCalenderLogo.png";
+const GoogleClassroomLogo = "/logos/google-classroom.svg";
+const CanvasLogo = "/logos/canvas.svg";
+const VSCodeLogo = "/logos/vscode.svg";
+const GitHubLogo = "/logos/github.svg";
+const DiscordLogo = "/logos/discord.svg";
+const NotionLogo = "/logos/notion.svg";
+const GoogleDriveLogo = "/logos/google-drive.svg";
 const GoogleMeetLogo = "/AppStore/GoogleMeetLogo.png";
-const MicrosoftOutlookLogo = "/AppStore/MicrosoftOutlookLogo.png";
-const StripeLogo = "/AppStore/StripeLogo.png";
-const PayPalLogo = "/AppStore/PayPalLogo.png";
-const PostHogLogo = "/AppStore/PostHogLogo.png";
-const MetaLogo = "/AppStore/MetaLogo.png";
-const MicrosoftTeamsLogo = "/AppStore/MicrosoftTeamsLogo.png";
-const SalesForceLogo = "/AppStore/SalesForceLogo.png";
-const ZapierLogo = "/AppStore/ZapierLogo.png";
+const MicrosoftTeamsLogo = "/logos/microsoft-teams.svg";
 const ZoomLogo = "/AppStore/ZoomLogo.png";
-const HubSpotLogo = "/AppStore/HubSpotLogo.png";
-const LinearLogo = "/AppStore/LinearLogo.png";
-const FrayCastLogo = "/AppStore/FrayCastLogo.png";
-const GoogleAnalyticsLogo = "/AppStore/GoogleAnalyticsLogo.png";
+const GoogleCalenderLogo = "/AppStore/GoogleCalenderLogo.png";
+const BlackboardLogo = "/logos/blackboard.svg";
+const MoodleLogo = "/logos/moodle.svg";
+const QuizletLogo = "/logos/quizlet.svg";
+const VeyroLogo = "/logo-veyro.png";
 
 interface imgPropsType {
   width: number;
@@ -28,43 +27,21 @@ interface imgPropsType {
   src: string;
 }
 const imgProps: imgPropsType[] = [
-  { width: 40, height: 40, alt: "Linear Logo", src: LinearLogo },
-  { width: 65, height: 65, alt: "Fray Cast Logo", src: FrayCastLogo },
-
-  {
-    width: 40,
-    height: 40,
-    alt: "Google Calendar Logo",
-    src: GoogleCalenderLogo,
-  },
-  { width: 45, height: 45, alt: "Google Meet Logo", src: GoogleMeetLogo },
-  { width: 40, height: 40, alt: "Outlook Logo", src: MicrosoftOutlookLogo },
-  { width: 60, height: 60, alt: "SalesForce Logo", src: SalesForceLogo },
-  { width: 35, height: 35, alt: "HubSpot Logo", src: HubSpotLogo },
-  { width: 35, height: 35, alt: "PayPal Logo", src: PayPalLogo },
-  { width: 35, height: 35, alt: "Stripe Logo", src: StripeLogo },
-  { width: 45, height: 45, alt: "Zapier Logo", src: ZapierLogo },
-  {
-    width: 40,
-    height: 40,
-    alt: "Apple Calendar Logo",
-    src: AppleCalenderLogo,
-  },
-  {
-    width: 50,
-    height: 50,
-    alt: "Google Analytics Logo",
-    src: GoogleAnalyticsLogo,
-  },
-  { width: 45, height: 45, alt: "Zoom Logo", src: ZoomLogo },
-  { width: 55, height: 55, alt: "PostHog Logo", src: PostHogLogo },
-  {
-    width: 55,
-    height: 55,
-    alt: "Microsoft Teams Logo",
-    src: MicrosoftTeamsLogo,
-  },
-  { width: 55, height: 55, alt: "Meta Logo", src: MetaLogo },
+  { width: 42, height: 42, alt: "Canvas LMS", src: CanvasLogo },
+  { width: 40, height: 40, alt: "VS Code", src: VSCodeLogo },
+  { width: 40, height: 40, alt: "GitHub", src: GitHubLogo },
+  { width: 40, height: 40, alt: "Discord", src: DiscordLogo },
+  { width: 38, height: 38, alt: "Notion", src: NotionLogo },
+  { width: 38, height: 38, alt: "Google Drive", src: GoogleDriveLogo },
+  { width: 42, height: 42, alt: "Google Meet", src: GoogleMeetLogo },
+  { width: 46, height: 46, alt: "Google Classroom", src: GoogleClassroomLogo },
+  { width: 40, height: 40, alt: "Microsoft Teams", src: MicrosoftTeamsLogo },
+  { width: 40, height: 40, alt: "Zoom", src: ZoomLogo },
+  { width: 38, height: 38, alt: "Google Calendar", src: GoogleCalenderLogo },
+  { width: 40, height: 40, alt: "Blackboard", src: BlackboardLogo },
+  { width: 38, height: 38, alt: "Moodle", src: MoodleLogo },
+  { width: 38, height: 38, alt: "Quizlet", src: QuizletLogo },
+  { width: 40, height: 40, alt: "Veyro AI", src: VeyroLogo },
 ];
 export default function AppStoreSlideShow() {
   const { ref, state } = useToggleState<HTMLDivElement>(

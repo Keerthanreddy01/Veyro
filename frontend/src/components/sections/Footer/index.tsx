@@ -57,7 +57,13 @@ export default function Footer() {
           </video>
 
           <div className="footer-logo">
-            <div className="footer-logo-mark">V</div>
+            <div className="footer-logo-mark">
+              <img
+                src="/logo-veyro.png"
+                alt="Veyro"
+                className="footer-logo-img"
+              />
+            </div>
             <span className="footer-logo-name">Veyro</span>
           </div>
 
@@ -132,8 +138,12 @@ export default function Footer() {
         <div className="footer-right">
           {/* Floating Lucky Badge */}
           <div className="footer-lucky-graphic">
-            <div className="lucky-cube">
-              <span className="lucky-cube-mark">V</span>
+            <div className="lucky-cube" title="Veyro">
+              <img
+                src="/logo-veyro.png"
+                alt="Veyro Logo"
+                className="lucky-cube-img"
+              />
             </div>
             <div className="lucky-text-row">
               <div className="lucky-arrow">

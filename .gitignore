@@ -56,4 +56,7 @@ Thumbs.db
 # Scratch, prototypes, and local source assets
 frontend/public/*.html
 frontend/veyroai image.png
+frontend/logo veyro.png
+frontend/instructions.md
 frontend/public/aero-blooming.jpg
+VEYRO_GIT_PUSH_CHECKLIST.md
