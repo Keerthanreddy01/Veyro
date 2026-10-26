@@ -2,7 +2,8 @@ const router = require('express').Router();
 const { authenticate, authorize } = require('../middleware/auth');
 const {
   getQuiz, updateQuiz, deleteQuiz, startQuiz, saveAnswer, submitQuiz,
-  reportViolation, getMyAttempts, getAttemptResult, getQuizSubmissions,
+  reportViolation, reportIntegrityEvent, reviewAttempt, getMyAttempts,
+  getAttemptResult, getQuizSubmissions,
 } = require('../controllers/quizController');
 
 router.get('/:id', authenticate, getQuiz);
@@ -15,5 +16,7 @@ router.get('/:id/results/:attemptId', authenticate, getAttemptResult);
 router.patch('/attempts/:id/answer', authenticate, authorize('student'), saveAnswer);
 router.post('/attempts/:id/submit', authenticate, authorize('student'), submitQuiz);
 router.post('/attempts/:id/violation', authenticate, authorize('student'), reportViolation);
+router.post('/attempts/:id/integrity-event', authenticate, authorize('student'), reportIntegrityEvent);
+router.patch('/attempts/:id/review', authenticate, authorize('instructor', 'admin'), reviewAttempt);
 
 module.exports = router;

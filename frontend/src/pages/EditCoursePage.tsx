@@ -33,6 +33,7 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
+import { validateVideoUrl } from '../utils/videoUrl';
 import type { Course, Module, Lesson, LessonType, Quiz, QuizQuestion } from '../types/course';
 
 const lessonTypes: Array<{ value: LessonType; label: string; icon: React.ComponentType<{ size?: number }> }> = [
@@ -52,6 +53,7 @@ export default function EditCoursePage() {
   const [submitting, setSubmitting] = useState(false);
   const [retracting, setRetracting] = useState(false);
   const [creatingRevision, setCreatingRevision] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   // Module creation/edit
   const [newModule, setNewModule] = useState('');
@@ -63,6 +65,8 @@ export default function EditCoursePage() {
   const [lessonForms, setLessonForms] = useState<Record<string, any>>({});
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [editingLessonFile, setEditingLessonFile] = useState<File | null>(null);
+  const [submittingModuleId, setSubmittingModuleId] = useState<string | null>(null);
+  const [isUpdatingLesson, setIsUpdatingLesson] = useState(false);
 
   // Active sub-tab inside module ('lessons' | 'quiz')
   const [moduleTab, setModuleTab] = useState<Record<string, 'lessons' | 'quiz'>>({});
@@ -75,6 +79,11 @@ export default function EditCoursePage() {
   const [quizTimeLimit, setQuizTimeLimit] = useState(300);
   const [quizPassingScore, setQuizPassingScore] = useState(70);
   const [quizMaxAttempts, setQuizMaxAttempts] = useState(3);
+  const [quizIsProctored, setQuizIsProctored] = useState(false);
+  const [quizRequireCamera, setQuizRequireCamera] = useState(false);
+  const [quizMaxTabViolations, setQuizMaxTabViolations] = useState(3);
+  const [quizRandomizeQuestions, setQuizRandomizeQuestions] = useState(true);
+  const [quizRandomizeOptions, setQuizRandomizeOptions] = useState(true);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([
     {
       questionText: '',
@@ -165,50 +174,124 @@ export default function EditCoursePage() {
 
   // ── Lesson Handlers ────────────────────────────────────────────────────────
   const addLesson = async (moduleId: string) => {
+    if (submittingModuleId) return; // Prevent duplicate concurrent submissions
     const form = lessonForms[moduleId] || {};
     if (!form.title?.trim()) {
       toast.error('Lesson title is required');
       return;
     }
     const type = form.type || 'video';
-    try {
-      const fd = new FormData();
-      fd.append('title', form.title.trim());
-      fd.append('type', type);
-      if (type === 'text') fd.append('textContent', form.textContent || '');
-      if (form.durationSeconds) fd.append('durationSeconds', form.durationSeconds);
-      if (form.isPreview !== undefined) fd.append('isPreview', String(form.isPreview));
-      if (form.file) fd.append('file', form.file);
 
-      const { data } = await api.post(`/modules/${moduleId}/lessons`, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    if (type === 'video') {
+      const vUrl = (form.videoUrl || form.contentUrl || '').trim();
+      if (!vUrl) {
+        toast.error('Please enter a video URL');
+        return;
+      }
+      const val = validateVideoUrl(vUrl);
+      if (!val.valid) {
+        toast.error(val.error || 'Invalid video URL. Supported: YouTube or direct HTTPS MP4 link.');
+        return;
+      }
+    }
+
+    if (type === 'pdf' && !form.file) {
+      toast.error('Please select a PDF document to upload');
+      return;
+    }
+    if (type === 'pdf' && form.file && form.file.size > 20 * 1024 * 1024) {
+      toast.error('PDF file exceeds 20MB limit');
+      return;
+    }
+
+    try {
+      setSubmittingModuleId(moduleId);
+
+      let payload: any;
+      let headers: any = {};
+
+      if (type === 'pdf' && form.file) {
+        const fd = new FormData();
+        fd.append('title', form.title.trim());
+        fd.append('type', type);
+        if (form.isPreview !== undefined) fd.append('isPreview', String(form.isPreview));
+        fd.append('file', form.file);
+        payload = fd;
+        headers = { 'Content-Type': 'multipart/form-data' };
+      } else {
+        const vUrl = (form.videoUrl || form.contentUrl || '').trim();
+        payload = {
+          title: form.title.trim(),
+          type,
+          videoUrl: type === 'video' ? vUrl : undefined,
+          contentUrl: type === 'video' ? vUrl : undefined,
+          textContent: type === 'text' ? form.textContent || '' : undefined,
+          durationSeconds: form.durationSeconds ? Number(form.durationSeconds) : 0,
+          isPreview: Boolean(form.isPreview),
+        };
+      }
+
+      const { data } = await api.post(`/modules/${moduleId}/lessons`, payload, { headers });
       setModules((m) =>
         m.map((mod) =>
           mod._id === moduleId ? { ...mod, lessons: [...(mod.lessons || []), data.lesson] } : mod
         )
       );
       setLessonForms((f) => ({ ...f, [moduleId]: {} }));
-      toast.success('Lesson attached to module');
+      toast.success('Lesson attached to module successfully');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to add lesson');
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        'Failed to add lesson';
+      toast.error(errorMsg);
+    } finally {
+      setSubmittingModuleId(null);
     }
   };
 
   const handleUpdateLesson = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingLesson) return;
-    try {
-      const fd = new FormData();
-      fd.append('title', editingLesson.title);
-      if (editingLesson.textContent !== undefined) fd.append('textContent', editingLesson.textContent || '');
-      if (editingLesson.durationSeconds !== undefined) fd.append('durationSeconds', String(editingLesson.durationSeconds));
-      if (editingLesson.isPreview !== undefined) fd.append('isPreview', String(editingLesson.isPreview));
-      if (editingLessonFile) fd.append('file', editingLessonFile);
+    if (!editingLesson || isUpdatingLesson) return;
 
-      const { data } = await api.put(`/lessons/${editingLesson._id}`, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    const vUrl = (editingLesson.videoUrl || editingLesson.contentUrl || '').trim();
+    if (editingLesson.type === 'video') {
+      if (!vUrl) {
+        toast.error('Video URL cannot be empty');
+        return;
+      }
+      const val = validateVideoUrl(vUrl);
+      if (!val.valid) {
+        toast.error(val.error || 'Invalid video URL. Supported: YouTube or direct HTTPS MP4 link.');
+        return;
+      }
+    }
+
+    try {
+      setIsUpdatingLesson(true);
+
+      let payload: any;
+      let headers: any = {};
+
+      if (editingLesson.type === 'pdf' && editingLessonFile) {
+        const fd = new FormData();
+        fd.append('title', editingLesson.title.trim());
+        if (editingLesson.isPreview !== undefined) fd.append('isPreview', String(editingLesson.isPreview));
+        fd.append('file', editingLessonFile);
+        payload = fd;
+        headers = { 'Content-Type': 'multipart/form-data' };
+      } else {
+        payload = {
+          title: editingLesson.title.trim(),
+          contentUrl: editingLesson.type === 'video' ? vUrl : editingLesson.contentUrl?.trim(),
+          videoUrl: editingLesson.type === 'video' ? vUrl : undefined,
+          textContent: editingLesson.textContent || '',
+          durationSeconds: editingLesson.durationSeconds ? Number(editingLesson.durationSeconds) : 0,
+          isPreview: Boolean(editingLesson.isPreview),
+        };
+      }
+
+      const { data } = await api.put(`/lessons/${editingLesson._id}`, payload, { headers });
       setModules((prev) =>
         prev.map((mod) => ({
           ...mod,
@@ -217,9 +300,15 @@ export default function EditCoursePage() {
       );
       setEditingLesson(null);
       setEditingLessonFile(null);
-      toast.success('Lesson updated');
+      toast.success('Lesson updated successfully');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to update lesson');
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        'Failed to update lesson';
+      toast.error(errorMsg);
+    } finally {
+      setIsUpdatingLesson(false);
     }
   };
 
@@ -248,6 +337,12 @@ export default function EditCoursePage() {
       setQuizTitle(quizToEdit.title || '');
       setQuizTimeLimit(quizToEdit.timeLimitSeconds || 300);
       setQuizPassingScore(quizToEdit.passingScore || 70);
+      setQuizMaxAttempts(quizToEdit.maxAttempts || 3);
+      setQuizIsProctored(!!quizToEdit.isProctored);
+      setQuizRequireCamera(!!quizToEdit.requireCamera);
+      setQuizMaxTabViolations(quizToEdit.maxTabViolations || 3);
+      setQuizRandomizeQuestions(quizToEdit.randomizeQuestions ?? true);
+      setQuizRandomizeOptions(quizToEdit.randomizeOptions ?? true);
       setQuizQuestions(
         quizToEdit.questions && quizToEdit.questions.length > 0
           ? quizToEdit.questions.map((q) => ({
@@ -272,6 +367,11 @@ export default function EditCoursePage() {
       setQuizTimeLimit(300);
       setQuizPassingScore(70);
       setQuizMaxAttempts(3);
+      setQuizIsProctored(false);
+      setQuizRequireCamera(false);
+      setQuizMaxTabViolations(3);
+      setQuizRandomizeQuestions(true);
+      setQuizRandomizeOptions(true);
       setQuizQuestions([
         {
           questionText: '',
@@ -304,14 +404,21 @@ export default function EditCoursePage() {
 
     setSavingQuiz(true);
     try {
+      const payload = {
+        title: quizTitle.trim(),
+        timeLimitSeconds: Number(quizTimeLimit),
+        passingScore: Number(quizPassingScore),
+        maxAttempts: Number(quizMaxAttempts),
+        isProctored: quizIsProctored || quizRequireCamera,
+        requireCamera: quizRequireCamera,
+        maxTabViolations: Number(quizMaxTabViolations),
+        randomizeQuestions: quizRandomizeQuestions,
+        randomizeOptions: quizRandomizeOptions,
+        questions: quizQuestions,
+      };
+
       if (editingQuiz) {
-        const { data } = await api.put(`/quizzes/${editingQuiz._id}`, {
-          title: quizTitle.trim(),
-          timeLimitSeconds: Number(quizTimeLimit),
-          passingScore: Number(quizPassingScore),
-          maxAttempts: Number(quizMaxAttempts),
-          questions: quizQuestions,
-        });
+        const { data } = await api.put(`/quizzes/${editingQuiz._id}`, payload);
         setModules((m) =>
           m.map((mod) =>
             mod._id === quizTargetModuleId
@@ -323,15 +430,9 @@ export default function EditCoursePage() {
               : mod
           )
         );
-        toast.success('Quiz updated successfully');
+        toast.success('Assessment configuration updated');
       } else {
-        const { data } = await api.post(`/modules/${quizTargetModuleId}/quizzes`, {
-          title: quizTitle.trim(),
-          timeLimitSeconds: Number(quizTimeLimit),
-          passingScore: Number(quizPassingScore),
-          maxAttempts: Number(quizMaxAttempts),
-          questions: quizQuestions,
-        });
+        const { data } = await api.post(`/modules/${quizTargetModuleId}/quizzes`, payload);
         setModules((m) =>
           m.map((mod) =>
             mod._id === quizTargetModuleId
@@ -426,6 +527,19 @@ export default function EditCoursePage() {
     }
   };
 
+  const handlePublishCourse = async () => {
+    setPublishing(true);
+    try {
+      const { data } = await api.post(`/courses/${id}/publish`);
+      setCourse(data.course);
+      toast.success('Curriculum successfully published live to the student catalog!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Publishing failed');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   // ── Course Settings Handler ────────────────────────────────────────────────
   const handleSaveCourseDetails = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -490,6 +604,8 @@ export default function EditCoursePage() {
                   ? 'published'
                   : course.status === 'under_review'
                   ? 'pending'
+                  : course.status === 'approved'
+                  ? 'verified'
                   : course.status === 'rejected'
                   ? 'rejected'
                   : 'draft'
@@ -499,6 +615,19 @@ export default function EditCoursePage() {
             </Badge>
 
             {/* Lifecycle Action Buttons */}
+            {course.status === 'approved' && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handlePublishCourse}
+                isLoading={publishing}
+                leftIcon={<Check size={13} />}
+                className="bg-[#556943] hover:bg-[#435334] text-white"
+              >
+                Publish to catalog
+              </Button>
+            )}
+
             {course.status === 'draft' && (
               <Button
                 variant="primary"
@@ -546,6 +675,31 @@ export default function EditCoursePage() {
             )}
           </div>
         </div>
+
+        {/* Approved Announcement Alert */}
+        {course.status === 'approved' && (
+          <div className="p-4 rounded-xl bg-[#556943]/10 border border-[#556943]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#556943]">
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck size={18} className="text-[#556943] flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-[#171717]">Accreditation Approved</p>
+                <p className="text-[#556943] mt-0.5">
+                  This curriculum has been verified and approved by administration. Click &quot;Publish to catalog&quot; to make it discoverable for enrolled and prospective students.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handlePublishCourse}
+              isLoading={publishing}
+              leftIcon={<Check size={13} />}
+              className="bg-[#556943] hover:bg-[#435334] text-white flex-shrink-0"
+            >
+              Publish Now
+            </Button>
+          </div>
+        )}
 
         {/* Rejection Feedback Alert (if rejected) */}
         {course.status === 'rejected' && course.rejectionReason && (
@@ -828,7 +982,13 @@ export default function EditCoursePage() {
                                 <div className="flex items-center gap-1">
                                   {isEditable && (
                                     <button
-                                      onClick={() => setEditingLesson(les)}
+                                      onClick={() =>
+                                        setEditingLesson({
+                                          ...les,
+                                          videoUrl: les.videoUrl || les.contentUrl || '',
+                                          contentUrl: les.contentUrl || les.videoUrl || '',
+                                        })
+                                      }
                                       className="p-1 text-[#77736D] hover:text-[#171717] rounded hover:bg-[#F6F2EC]"
                                       title="Edit lesson"
                                     >
@@ -883,29 +1043,35 @@ export default function EditCoursePage() {
                               </div>
 
                               {(!lForm.type || lForm.type === 'video') && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  <Input
-                                    placeholder="Duration in seconds (e.g. 360)"
-                                    type="number"
-                                    value={lForm.durationSeconds || ''}
-                                    onChange={(e) =>
-                                      setLessonForms((f) => ({
-                                        ...f,
-                                        [mod._id]: { ...lForm, durationSeconds: e.target.value },
-                                      }))
-                                    }
-                                  />
-                                  <input
-                                    type="file"
-                                    accept="video/*"
-                                    onChange={(e) =>
-                                      setLessonForms((f) => ({
-                                        ...f,
-                                        [mod._id]: { ...lForm, file: e.target.files?.[0] },
-                                      }))
-                                    }
-                                    className="text-xs text-[#77736D] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-[#F6F2EC] file:text-[#171717] cursor-pointer"
-                                  />
+                                <div className="space-y-2.5">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="sm:col-span-2">
+                                      <Input
+                                        placeholder="Video URL (e.g. https://www.youtube.com/watch?v=... or direct MP4)"
+                                        value={lForm.videoUrl || lForm.contentUrl || ''}
+                                        onChange={(e) =>
+                                          setLessonForms((f) => ({
+                                            ...f,
+                                            [mod._id]: { ...lForm, videoUrl: e.target.value, contentUrl: e.target.value },
+                                          }))
+                                        }
+                                      />
+                                    </div>
+                                    <Input
+                                      placeholder="Duration (sec, e.g. 360)"
+                                      type="number"
+                                      value={lForm.durationSeconds || ''}
+                                      onChange={(e) =>
+                                        setLessonForms((f) => ({
+                                          ...f,
+                                          [mod._id]: { ...lForm, durationSeconds: e.target.value },
+                                        }))
+                                      }
+                                    />
+                                  </div>
+                                  <p className="text-[11px] text-[#77736D]">
+                                    Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4/WebM URLs.
+                                  </p>
                                 </div>
                               )}
 
@@ -957,9 +1123,10 @@ export default function EditCoursePage() {
                                 <Button
                                   variant="secondary"
                                   size="sm"
+                                  disabled={submittingModuleId === mod._id}
                                   onClick={() => addLesson(mod._id)}
                                 >
-                                  Attach lesson
+                                  {submittingModuleId === mod._id ? 'Attaching...' : 'Attach lesson'}
                                 </Button>
                               </div>
                             </div>
@@ -1116,6 +1283,89 @@ export default function EditCoursePage() {
                   onChange={(e) => setQuizMaxAttempts(Number(e.target.value))}
                   required
                 />
+              </div>
+            </div>
+
+            {/* Examination Integrity & Proctoring Controls */}
+            <div className="p-4 rounded-xl bg-[#FAF8F4] border border-[#E7E2DA] space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-[#6F8FA8]" />
+                <span className="font-semibold text-xs text-[#171717]">Examination Integrity & Anti-Cheat Controls</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <label className="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-[#E7E2DA] cursor-pointer text-xs">
+                  <input
+                    type="checkbox"
+                    checked={quizIsProctored}
+                    onChange={(e) => {
+                      setQuizIsProctored(e.target.checked);
+                      if (!e.target.checked) setQuizRequireCamera(false);
+                    }}
+                    className="w-4 h-4 rounded text-[#171717] cursor-pointer"
+                  />
+                  <div>
+                    <p className="font-semibold text-[#171717]">Proctored Assessment</p>
+                    <p className="text-[#77736D] text-[11px]">Enforces tab monitoring and preflight verification</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-[#E7E2DA] cursor-pointer text-xs">
+                  <input
+                    type="checkbox"
+                    checked={quizRequireCamera}
+                    onChange={(e) => {
+                      setQuizRequireCamera(e.target.checked);
+                      if (e.target.checked) setQuizIsProctored(true);
+                    }}
+                    className="w-4 h-4 rounded text-[#171717] cursor-pointer"
+                  />
+                  <div>
+                    <p className="font-semibold text-[#171717]">Require Camera Monitoring</p>
+                    <p className="text-[#77736D] text-[11px]">Enforces live webcam preview & face tracking</p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#171717] mb-1">
+                    Allowed Tab Violations
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={quizMaxTabViolations}
+                    onChange={(e) => setQuizMaxTabViolations(Number(e.target.value))}
+                    className="py-1 text-xs"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={quizRandomizeQuestions}
+                      onChange={(e) => setQuizRandomizeQuestions(e.target.checked)}
+                      className="cursor-pointer"
+                    />
+                    <span>Randomize Questions</span>
+                  </label>
+                </div>
+
+                <div className="flex items-center pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={quizRandomizeOptions}
+                      onChange={(e) => setQuizRandomizeOptions(e.target.checked)}
+                      className="cursor-pointer"
+                    />
+                    <span>Randomize Options</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -1316,27 +1566,37 @@ export default function EditCoursePage() {
             </div>
 
             {editingLesson.type === 'video' && (
-              <div>
-                <label className="block font-semibold text-[#171717] mb-1">
-                  Duration (Seconds)
-                </label>
-                <Input
-                  type="number"
-                  value={editingLesson.durationSeconds || ''}
-                  onChange={(e) =>
-                    setEditingLesson({
-                      ...editingLesson,
-                      durationSeconds: Number(e.target.value),
-                    })
-                  }
-                />
-                <div className="pt-2">
-                  <label className="block font-semibold text-[#171717] mb-1">Replace Video File</label>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => setEditingLessonFile(e.target.files?.[0] || null)}
-                    className="text-xs text-[#77736D]"
+              <div className="space-y-3">
+                <div>
+                  <label className="block font-semibold text-[#171717] mb-1">Video URL</label>
+                  <Input
+                    placeholder="https://www.youtube.com/watch?v=... or direct MP4 URL"
+                    value={editingLesson.videoUrl || editingLesson.contentUrl || ''}
+                    onChange={(e) =>
+                      setEditingLesson({
+                        ...editingLesson,
+                        videoUrl: e.target.value,
+                        contentUrl: e.target.value,
+                      })
+                    }
+                  />
+                  <p className="text-[11px] text-[#77736D] mt-1">
+                    Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4 URLs.
+                  </p>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#171717] mb-1">
+                    Duration (Seconds)
+                  </label>
+                  <Input
+                    type="number"
+                    value={editingLesson.durationSeconds || ''}
+                    onChange={(e) =>
+                      setEditingLesson({
+                        ...editingLesson,
+                        durationSeconds: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -1380,11 +1640,11 @@ export default function EditCoursePage() {
             </label>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-[#E7E2DA]">
-              <Button variant="outline" size="sm" type="button" onClick={() => setEditingLesson(null)}>
+              <Button variant="outline" size="sm" type="button" disabled={isUpdatingLesson} onClick={() => setEditingLesson(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" size="sm" type="submit">
-                Save changes
+              <Button variant="primary" size="sm" type="submit" disabled={isUpdatingLesson}>
+                {isUpdatingLesson ? 'Saving...' : 'Save changes'}
               </Button>
             </div>
           </form>

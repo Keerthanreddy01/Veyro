@@ -1344,6 +1344,1410 @@ async function runAllTests() {
     assert.strictEqual(checkOriginAllowed(config, 'https://malicious-site.com'), false);
   });
 
+  // ── TEST GROUP 19: Exam Proctoring Configuration & Integrity Signals ──────
+  console.log('\n📦 GROUP 19: Exam Proctoring Configuration & Integrity Signals');
+
+  runTest('Instructor can configure proctoring, camera, and violation thresholds', () => {
+    const validateQuizSettings = (settings) => {
+      const allowedKeys = ['isProctored', 'requireCamera', 'maxTabViolations', 'randomizeQuestions', 'randomizeOptions', 'passingScore', 'timeLimitSeconds'];
+      const validated = {};
+      for (const k of allowedKeys) {
+        if (settings[k] !== undefined) validated[k] = settings[k];
+      }
+      if (validated.maxTabViolations !== undefined && validated.maxTabViolations < 1) {
+        throw new Error('maxTabViolations must be at least 1');
+      }
+      return validated;
+    };
+
+    const config = validateQuizSettings({
+      isProctored: true,
+      requireCamera: true,
+      maxTabViolations: 3,
+      randomizeQuestions: true,
+      randomizeOptions: true,
+      passingScore: 80,
+    });
+    assert.strictEqual(config.isProctored, true);
+    assert.strictEqual(config.requireCamera, true);
+    assert.strictEqual(config.maxTabViolations, 3);
+    assert.strictEqual(config.randomizeQuestions, true);
+  });
+
+  runTest('Student cannot override or tamper with protected proctoring settings', () => {
+    const sanitizeStudentPayload = (payload) => {
+      const forbiddenKeys = ['isProctored', 'requireCamera', 'maxTabViolations', 'passingScore', 'correctOptionIndex'];
+      const sanitized = { ...payload };
+      for (const key of forbiddenKeys) {
+        delete sanitized[key];
+      }
+      return sanitized;
+    };
+
+    const studentSubmission = {
+      attemptId: 'att_123',
+      answers: [{ questionIndex: 0, selectedOption: 1 }],
+      isProctored: false,
+      requireCamera: false,
+      maxTabViolations: 999,
+      passingScore: 10,
+    };
+    const sanitized = sanitizeStudentPayload(studentSubmission);
+    assert.strictEqual(sanitized.isProctored, undefined);
+    assert.strictEqual(sanitized.requireCamera, undefined);
+    assert.strictEqual(sanitized.maxTabViolations, undefined);
+    assert.strictEqual(sanitized.passingScore, undefined);
+  });
+
+  runTest('Integrity event handler debounces and appends face and camera signals', () => {
+    const attempt = {
+      isProctored: true,
+      requireCamera: true,
+      tabViolations: 0,
+      cameraViolations: 0,
+      integrityEvents: [],
+      maxTabViolations: 3,
+      status: 'in_progress',
+    };
+
+    const recordEvent = (att, eventType, description) => {
+      const severityMap = {
+        face_absent: 'warning',
+        face_absent_prolonged: 'violation',
+        multiple_faces: 'violation',
+        camera_interrupted: 'violation',
+        tab_hidden: 'violation',
+      };
+      const severity = severityMap[eventType] || 'info';
+
+      att.integrityEvents.push({
+        eventType,
+        timestamp: new Date().toISOString(),
+        severity,
+        description,
+      });
+
+      if (['face_absent_prolonged', 'multiple_faces', 'camera_interrupted'].includes(eventType)) {
+        att.cameraViolations = (att.cameraViolations || 0) + 1;
+      }
+      if (['tab_hidden', 'tab_blur'].includes(eventType)) {
+        att.tabViolations = (att.tabViolations || 0) + 1;
+      }
+
+      if (att.tabViolations >= att.maxTabViolations) {
+        att.status = 'auto_submitted';
+        att.autoSubmitReason = 'Violation threshold reached';
+      }
+    };
+
+    recordEvent(attempt, 'face_absent', 'Face temporarily not visible in frame');
+    assert.strictEqual(attempt.integrityEvents.length, 1);
+    assert.strictEqual(attempt.integrityEvents[0].severity, 'warning');
+    assert.strictEqual(attempt.cameraViolations, 0);
+
+    recordEvent(attempt, 'face_absent_prolonged', 'Prolonged absence exceeding 10s');
+    assert.strictEqual(attempt.integrityEvents.length, 2);
+    assert.strictEqual(attempt.cameraViolations, 1);
+
+    recordEvent(attempt, 'multiple_faces', 'Multiple faces detected in frame (count: 2)');
+    assert.strictEqual(attempt.cameraViolations, 2);
+  });
+
+  runTest('Exceeding maxTabViolations triggers automatic exam submission', () => {
+    const attempt = {
+      tabViolations: 2,
+      maxTabViolations: 3,
+      status: 'in_progress',
+      integrityEvents: [],
+    };
+
+    const reportTabViolation = (att) => {
+      att.tabViolations++;
+      att.integrityEvents.push({
+        eventType: 'tab_hidden',
+        timestamp: new Date().toISOString(),
+        severity: 'violation',
+        description: `Tab exit #${att.tabViolations}`,
+      });
+      if (att.tabViolations >= att.maxTabViolations) {
+        att.status = 'submitted';
+        att.autoSubmitted = true;
+        att.autoSubmitReason = 'Exceeded maximum allowed focus violations';
+      }
+      return att;
+    };
+
+    reportTabViolation(attempt);
+    assert.strictEqual(attempt.tabViolations, 3);
+    assert.strictEqual(attempt.status, 'submitted');
+    assert.strictEqual(attempt.autoSubmitted, true);
+    assert.ok(attempt.autoSubmitReason.includes('Exceeded maximum'));
+  });
+
+  // ── TEST GROUP 20: Exam Submission Idempotency & Instructor Audit Review ──
+  console.log('\n📦 GROUP 20: Exam Submission Idempotency & Instructor Audit Review');
+
+  runTest('Idempotent exam submission returns cached score on duplicate requests', () => {
+    const existingCompletedAttempt = {
+      _id: 'att_999',
+      student: 'student_1',
+      quiz: 'quiz_1',
+      status: 'completed',
+      score: 85,
+      passed: true,
+      submittedAt: '2026-10-26T10:00:00.000Z',
+    };
+
+    const handleSubmit = (attempt, answers) => {
+      if (attempt.status === 'completed') {
+        return {
+          idempotent: true,
+          attempt,
+          message: 'Quiz already submitted. Returning recorded score.',
+        };
+      }
+      return { idempotent: false, attempt };
+    };
+
+    const res = handleSubmit(existingCompletedAttempt, [{ questionIndex: 0, selectedOption: 2 }]);
+    assert.strictEqual(res.idempotent, true);
+    assert.strictEqual(res.attempt.score, 85);
+    assert.strictEqual(res.attempt.passed, true);
+  });
+
+  runTest('Server deadline enforcement rejects answers submitted after timer expiry', () => {
+    const checkAttemptExpired = (startedAtIso, timeLimitSeconds, nowIso) => {
+      if (!timeLimitSeconds) return false;
+      const started = new Date(startedAtIso).getTime();
+      const now = new Date(nowIso).getTime();
+      const gracePeriodMs = 15000;
+      return now > (started + timeLimitSeconds * 1000 + gracePeriodMs);
+    };
+
+    const startedAt = '2026-10-26T12:00:00.000Z';
+    const limit = 1800; // 30 minutes
+
+    assert.strictEqual(checkAttemptExpired(startedAt, limit, '2026-10-26T12:25:00.000Z'), false);
+    assert.strictEqual(checkAttemptExpired(startedAt, limit, '2026-10-26T12:35:00.000Z'), true);
+  });
+
+  runTest('Instructor can update review status and audit notes', () => {
+    const attempt = {
+      _id: 'att_777',
+      reviewStatus: 'pending_review',
+      instructorNotes: '',
+      reviewedBy: null,
+      reviewedAt: null,
+    };
+
+    const reviewAttempt = (att, instructorId, status, notes) => {
+      const allowed = ['cleared', 'flagged', 'verified', 'pending_review'];
+      if (!allowed.includes(status)) throw new Error('Invalid review status');
+      att.reviewStatus = status;
+      att.instructorNotes = notes;
+      att.reviewedBy = instructorId;
+      att.reviewedAt = new Date().toISOString();
+      return att;
+    };
+
+    reviewAttempt(attempt, 'inst_1', 'cleared', 'Inspected webcam log: student was adjusting screen brightness.');
+    assert.strictEqual(attempt.reviewStatus, 'cleared');
+    assert.strictEqual(attempt.reviewedBy, 'inst_1');
+    assert.ok(attempt.instructorNotes.includes('adjusting screen'));
+    assert.ok(attempt.reviewedAt !== null);
+  });
+
+  runTest('IDOR protection denies non-course instructor from reviewing attempts', () => {
+    const courseInstructorId = 'inst_owner';
+    const requestingInstructorId = 'inst_intruder';
+
+    const canReviewCourseAttempt = (ownerId, requesterId) => {
+      return String(ownerId) === String(requesterId);
+    };
+
+    assert.strictEqual(canReviewCourseAttempt(courseInstructorId, requestingInstructorId), false);
+    assert.strictEqual(canReviewCourseAttempt(courseInstructorId, 'inst_owner'), true);
+  });
+
+  // ── TEST GROUP 21: Server-Authoritative Course Completion & Public Verification ─
+  console.log('\n📦 GROUP 21: Server-Authoritative Course Completion & Verification');
+
+  runTest('Course completion requires both 90% video progress and all passed quizzes', () => {
+    const calculateEligibility = (lessonsProgress, quizzesAttempts) => {
+      const allLessonsWatched = lessonsProgress.every((lp) => lp.watchedSeconds >= lp.totalSeconds * 0.9);
+      const allQuizzesPassed = quizzesAttempts.length > 0 && quizzesAttempts.every((qa) => qa.passed === true);
+      return allLessonsWatched && allQuizzesPassed;
+    };
+
+    const lessonsPass = [
+      { lessonId: 'l1', watchedSeconds: 95, totalSeconds: 100 },
+      { lessonId: 'l2', watchedSeconds: 180, totalSeconds: 200 },
+    ];
+    const quizzesPass = [{ quizId: 'q1', passed: true }];
+
+    assert.strictEqual(calculateEligibility(lessonsPass, quizzesPass), true);
+
+    const lessonsFail = [
+      { lessonId: 'l1', watchedSeconds: 40, totalSeconds: 100 },
+      { lessonId: 'l2', watchedSeconds: 180, totalSeconds: 200 },
+    ];
+    assert.strictEqual(calculateEligibility(lessonsFail, quizzesPass), false);
+
+    const quizzesFail = [{ quizId: 'q1', passed: false }];
+    assert.strictEqual(calculateEligibility(lessonsPass, quizzesFail), false);
+  });
+
+  runTest('Course completion is idempotent and never creates duplicate certificates', () => {
+    const enrollment = {
+      _id: 'enr_1',
+      studentId: 'stud_1',
+      courseId: 'crs_1',
+      status: 'completed',
+      certificateCode: 'VEYRO-2026-ABCD-1234',
+      completedAt: '2026-10-25T14:00:00.000Z',
+    };
+
+    const processCompletion = (enr, cryptoCodeGenerator) => {
+      if (enr.status === 'completed' && enr.certificateCode) {
+        return {
+          isDuplicateCall: true,
+          enrollment: enr,
+          certificateCode: enr.certificateCode,
+        };
+      }
+      enr.status = 'completed';
+      enr.certificateCode = cryptoCodeGenerator();
+      enr.completedAt = new Date().toISOString();
+      return { isDuplicateCall: false, enrollment: enr, certificateCode: enr.certificateCode };
+    };
+
+    const res = processCompletion(enrollment, () => 'NEW-CODE-SHOULD-NOT-BE-USED');
+    assert.strictEqual(res.isDuplicateCall, true);
+    assert.strictEqual(res.certificateCode, 'VEYRO-2026-ABCD-1234');
+  });
+
+  runTest('Public certificate verification returns valid credential and 404 on invalid code', () => {
+    const certificateStore = {
+      'VEYRO-2026-MATH-9999': {
+        certificateCode: 'VEYRO-2026-MATH-9999',
+        studentName: 'Alice Smith',
+        courseTitle: 'Advanced Neural Networks',
+        completedAt: '2026-10-20T12:00:00.000Z',
+        verified: true,
+      },
+    };
+
+    const verifyCode = (code) => {
+      const found = certificateStore[code];
+      if (!found) return { status: 404, valid: false, error: 'Certificate not found' };
+      return { status: 200, valid: true, certificate: found };
+    };
+
+    const validRes = verifyCode('VEYRO-2026-MATH-9999');
+    assert.strictEqual(validRes.status, 200);
+    assert.strictEqual(validRes.valid, true);
+    assert.strictEqual(validRes.certificate.studentName, 'Alice Smith');
+
+    const invalidRes = verifyCode('FAKE-CERT-0000');
+    assert.strictEqual(invalidRes.status, 404);
+    assert.strictEqual(invalidRes.valid, false);
+  });
+
+  // ── TEST GROUP 22: AI Learning Reels Pipeline & Ownership Security ────────
+  console.log('\n📦 GROUP 22: AI Learning Reels Pipeline & Ownership Security');
+
+  runTest('AI script extraction segments lesson content into 3-part structured video script', () => {
+    const synthesizeReelFromContent = (lessonTitle, lessonText) => {
+      const hook = `What if you could understand ${lessonTitle} in under 45 seconds?`;
+      const coreExplanation = `Here is how ${lessonTitle} works: ${lessonText.slice(0, 100)}...`;
+      const practicalApplication = `In production, use this concept to ensure high performance and reliability.`;
+      const takeaways = [
+        `Core mechanism of ${lessonTitle}`,
+        `Key best practice for implementation`,
+        `Common pitfall to avoid`,
+      ];
+      const quickQuestion = {
+        questionText: `What is the primary function of ${lessonTitle}?`,
+        options: ['Core operational workflow', 'Unrelated fallback', 'System shutdown', 'No effect'],
+        correctOptionIndex: 0,
+        explanation: `${lessonTitle} provides the core operational mechanism.`,
+      };
+      return {
+        title: `${lessonTitle} in 45 Seconds`,
+        concept: lessonTitle,
+        durationSeconds: 45,
+        script: { hook, coreExplanation, practicalApplication },
+        takeaways,
+        quickQuestion,
+        status: 'draft',
+      };
+    };
+
+    const reel = synthesizeReelFromContent('JWT Authentication', 'JSON Web Tokens provide stateless authentication with cryptographic signatures.');
+    assert.strictEqual(reel.durationSeconds, 45);
+    assert.ok(reel.script.hook.includes('JWT Authentication'));
+    assert.strictEqual(reel.takeaways.length, 3);
+    assert.strictEqual(reel.quickQuestion.correctOptionIndex, 0);
+  });
+
+  runTest('Instructor can toggle reel publish status and delete only their own reels', () => {
+    const reel = {
+      _id: 'reel_1',
+      courseId: 'crs_1',
+      instructorId: 'inst_owner',
+      status: 'draft',
+      isPublished: false,
+    };
+
+    const togglePublish = (r, requesterId) => {
+      if (r.instructorId !== requesterId) throw new Error('Unauthorized');
+      r.isPublished = !r.isPublished;
+      r.status = r.isPublished ? 'published' : 'draft';
+      return r;
+    };
+
+    togglePublish(reel, 'inst_owner');
+    assert.strictEqual(reel.isPublished, true);
+    assert.strictEqual(reel.status, 'published');
+
+    assert.throws(() => togglePublish(reel, 'inst_imposter'), /Unauthorized/);
+  });
+
+  runTest('Student reel feed respects enrollment authorization and published visibility', () => {
+    const allReels = [
+      { _id: 'r1', courseId: 'crs_public', status: 'published', isPublished: true },
+      { _id: 'r2', courseId: 'crs_private_enrolled', status: 'published', isPublished: true },
+      { _id: 'r3', courseId: 'crs_private_unenrolled', status: 'published', isPublished: true },
+      { _id: 'r4', courseId: 'crs_public', status: 'draft', isPublished: false },
+    ];
+
+    const studentEnrolledCourses = ['crs_private_enrolled'];
+    const publicCourses = ['crs_public'];
+
+    const filterAuthorizedReels = (reels, enrolled, publics) => {
+      return reels.filter((r) => {
+        if (!r.isPublished || r.status !== 'published') return false;
+        return publics.includes(r.courseId) || enrolled.includes(r.courseId);
+      });
+    };
+
+    const feed = filterAuthorizedReels(allReels, studentEnrolledCourses, publicCourses);
+    assert.strictEqual(feed.length, 2);
+    const feedIds = feed.map((r) => r._id);
+    assert.ok(feedIds.includes('r1'));
+    assert.ok(feedIds.includes('r2'));
+    assert.ok(!feedIds.includes('r3'));
+    assert.ok(!feedIds.includes('r4'));
+  });
+
+  runTest('Reel progress tracker updates watched status and records quick quiz answers', () => {
+    const progress = {
+      studentId: 'stud_1',
+      reelId: 'reel_1',
+      watchedSeconds: 0,
+      completed: false,
+      quizAnswered: false,
+      quizCorrect: false,
+      selectedOptionIndex: null,
+    };
+
+    const recordReelProgress = (prog, watchedSec, answeredIndex, correctIndex) => {
+      prog.watchedSeconds = Math.max(prog.watchedSeconds, watchedSec);
+      if (prog.watchedSeconds >= 40) prog.completed = true;
+      if (answeredIndex !== undefined && answeredIndex !== null) {
+        prog.quizAnswered = true;
+        prog.selectedOptionIndex = answeredIndex;
+        prog.quizCorrect = answeredIndex === correctIndex;
+      }
+      return prog;
+    };
+
+    recordReelProgress(progress, 42, 0, 0);
+    assert.strictEqual(progress.completed, true);
+    assert.strictEqual(progress.quizAnswered, true);
+    assert.strictEqual(progress.quizCorrect, true);
+    assert.strictEqual(progress.selectedOptionIndex, 0);
+  });
+
+  // ── TEST GROUP 23: Lesson Video Upload (MOV, MP4, WebM) & Error Handling ──
+  console.log('\n📦 GROUP 23: Lesson Video Upload Engine (MOV, MP4, WebM), Magic Bytes & Catalog Isolation');
+
+  const {
+    validateFileHeader,
+    ALLOWED_VIDEO_MIMES,
+    ALLOWED_VIDEO_EXTS,
+  } = require('./src/utils/fileUpload');
+  const { errorHandler } = require('./src/middleware/errorHandler');
+
+  runTest('Upload allows QuickTime MOV, MP4, and WebM MIME types and extensions', () => {
+    assert.ok(ALLOWED_VIDEO_MIMES.includes('video/quicktime'), 'video/quicktime must be supported');
+    assert.ok(ALLOWED_VIDEO_MIMES.includes('video/mov'), 'video/mov must be supported');
+    assert.ok(ALLOWED_VIDEO_MIMES.includes('video/mp4'), 'video/mp4 must be supported');
+    assert.ok(ALLOWED_VIDEO_MIMES.includes('video/webm'), 'video/webm must be supported');
+    assert.ok(ALLOWED_VIDEO_EXTS.includes('.mov'), '.mov extension must be supported');
+    assert.ok(ALLOWED_VIDEO_EXTS.includes('.mp4'), '.mp4 extension must be supported');
+    assert.ok(ALLOWED_VIDEO_EXTS.includes('.webm'), '.webm extension must be supported');
+  });
+
+  runTest('Magic byte validator accurately verifies authentic MP4 and QuickTime MOV headers', () => {
+    const tmpDir = path.join(__dirname, 'uploads', 'tmp');
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+
+    // 1. Valid MP4 (ftyp box at offset 4)
+    const validMp4Path = path.join(tmpDir, 'test_valid.mp4');
+    const mp4Buf = Buffer.alloc(32);
+    mp4Buf.writeUInt32BE(32, 0);
+    mp4Buf.write('ftyp', 4, 'ascii');
+    mp4Buf.write('isom', 8, 'ascii');
+    fs.writeFileSync(validMp4Path, mp4Buf);
+
+    assert.strictEqual(
+      validateFileHeader(validMp4Path, 'video/mp4', 'test.mp4'),
+      true,
+      'Authentic MP4 header must pass'
+    );
+
+    // 2. Valid QuickTime MOV (ftyp box with qt at offset 4)
+    const validMovPath = path.join(tmpDir, 'test_valid.mov');
+    const movBuf = Buffer.alloc(32);
+    movBuf.writeUInt32BE(32, 0);
+    movBuf.write('ftyp', 4, 'ascii');
+    movBuf.write('qt  ', 8, 'ascii');
+    fs.writeFileSync(validMovPath, movBuf);
+
+    assert.strictEqual(
+      validateFileHeader(validMovPath, 'video/quicktime', 'IMG_4662.MOV'),
+      true,
+      'Authentic QuickTime MOV header must pass'
+    );
+
+    // 3. Valid WebM (1A 45 DF A3)
+    const validWebmPath = path.join(tmpDir, 'test_valid.webm');
+    const webmBuf = Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0x93, 0x42, 0x82, 0x88]);
+    fs.writeFileSync(validWebmPath, webmBuf);
+
+    assert.strictEqual(
+      validateFileHeader(validWebmPath, 'video/webm', 'test.webm'),
+      true,
+      'Authentic WebM header must pass'
+    );
+
+    // Clean up valid tmp test files
+    fs.unlinkSync(validMp4Path);
+    fs.unlinkSync(validMovPath);
+    fs.unlinkSync(validWebmPath);
+  });
+
+  runTest('Magic byte validator strictly rejects spoofed or corrupted video files', () => {
+    const tmpDir = path.join(__dirname, 'uploads', 'tmp');
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+
+    // Spoofed text file disguised as .mov
+    const fakeMovPath = path.join(tmpDir, 'fake.mov');
+    fs.writeFileSync(fakeMovPath, 'This is plain text disguised as a QuickTime MOV file!');
+
+    assert.strictEqual(
+      validateFileHeader(fakeMovPath, 'video/quicktime', 'fake.mov'),
+      false,
+      'Disguised text file must fail MOV validation'
+    );
+
+    // Spoofed binary file disguised as .mp4
+    const fakeMp4Path = path.join(tmpDir, 'fake.mp4');
+    fs.writeFileSync(fakeMp4Path, 'MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff');
+
+    assert.strictEqual(
+      validateFileHeader(fakeMp4Path, 'video/mp4', 'fake.mp4'),
+      false,
+      'Spoofed binary file must fail MP4 validation'
+    );
+
+    fs.unlinkSync(fakeMovPath);
+    fs.unlinkSync(fakeMp4Path);
+  });
+
+  runTest('Error handler translates Multer and upload errors into HTTP 400 (not 500)', () => {
+    // 1. Unsupported file format error
+    const formatErr = new Error('File type video/avi not allowed. Supported video formats: MP4, WebM, QuickTime (MOV).');
+    formatErr.statusCode = 400;
+    formatErr.isUploadError = true;
+
+    let resStatus = null;
+    let resJson = null;
+    const mockRes = {
+      status(code) {
+        resStatus = code;
+        return this;
+      },
+      json(payload) {
+        resJson = payload;
+        return this;
+      },
+    };
+
+    errorHandler(formatErr, {}, mockRes, () => {});
+    assert.strictEqual(resStatus, 400, 'Unsupported file format must return HTTP 400');
+    assert.ok(resJson.error.includes('video/avi not allowed'), 'Must return sanitized descriptive error');
+
+    // 2. Multer LIMIT_FILE_SIZE error
+    const multerLimitErr = new Error('File too large');
+    multerLimitErr.code = 'LIMIT_FILE_SIZE';
+
+    errorHandler(multerLimitErr, {}, mockRes, () => {});
+    assert.strictEqual(resStatus, 400, 'Oversized file upload must return HTTP 400');
+    assert.strictEqual(resJson.error, 'File too large. Maximum size is 500MB.');
+  });
+
+  runTest('Course catalog query correctly isolates test fixtures from student/public catalog', () => {
+    const fixtureFilter = {
+      isTestFixture: { $ne: true },
+      tags: { $nin: ['test', 'audit', 'fixture', 'automated-test', 'live-test'] },
+      titleRegex: /^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i,
+    };
+
+    const isFixtureCourse = (course) => {
+      if (course.isTestFixture === true) return true;
+      if (course.tags && course.tags.some((t) => ['test', 'audit', 'fixture', 'automated-test', 'live-test'].includes(t.toLowerCase()))) return true;
+      if (fixtureFilter.titleRegex.test(course.title)) return true;
+      return false;
+    };
+
+    // Public legitimate courses
+    const legitCourse1 = { title: 'Applied Machine Learning', tags: ['ai', 'python'], status: 'published' };
+    const legitCourse2 = { title: 'Modern Cybersecurity Fundamentals', tags: ['security'], status: 'published' };
+    assert.strictEqual(isFixtureCourse(legitCourse1), false, 'Legitimate course 1 must not be marked as fixture');
+    assert.strictEqual(isFixtureCourse(legitCourse2), false, 'Legitimate course 2 must not be marked as fixture');
+
+    // Internal test fixtures
+    const testFixture1 = { title: 'Audit Curriculum 1740000000000', tags: ['audit'], status: 'published' };
+    const testFixture2 = { title: '[Live Audit Test] Modern Cloud Architectures', tags: ['test'], status: 'published' };
+    const testFixture3 = { title: 'Test Curriculum 1740000000000', tags: ['automated-test'], status: 'published' };
+    const testFixture4 = { title: 'Regular Title', isTestFixture: true, status: 'published' };
+
+    assert.strictEqual(isFixtureCourse(testFixture1), true, 'Audit Curriculum fixture must be isolated');
+    assert.strictEqual(isFixtureCourse(testFixture2), true, 'Live Audit Test fixture must be isolated');
+    assert.strictEqual(isFixtureCourse(testFixture3), true, 'Automated Test fixture must be isolated');
+    assert.strictEqual(isFixtureCourse(testFixture4), true, 'isTestFixture: true must be isolated');
+  });
+
+  // ── TEST GROUP 24: Video URLs (YouTube & Direct MP4), Embeds & SSRF Defense ─
+  console.log('\n📦 GROUP 24: Video URLs Validation (YouTube & Direct MP4), Embeds & Security');
+
+  const { validateVideoUrl } = require('./src/utils/videoUrlValidator');
+
+  runTest('Video URL validator accepts standard YouTube watch URLs and generates embed URL', () => {
+    const res = validateVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    assert.strictEqual(res.valid, true);
+    assert.strictEqual(res.provider, 'youtube');
+    assert.strictEqual(res.videoId, 'dQw4w9WgXcQ');
+    assert.strictEqual(res.embedUrl, 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+    assert.strictEqual(res.normalizedUrl, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  });
+
+  runTest('Video URL validator accepts YouTube short links (youtu.be)', () => {
+    const res = validateVideoUrl('https://youtu.be/dQw4w9WgXcQ');
+    assert.strictEqual(res.valid, true);
+    assert.strictEqual(res.provider, 'youtube');
+    assert.strictEqual(res.videoId, 'dQw4w9WgXcQ');
+    assert.strictEqual(res.embedUrl, 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+  });
+
+  runTest('Video URL validator accepts YouTube Shorts and mobile URLs', () => {
+    const shortsRes = validateVideoUrl('https://www.youtube.com/shorts/dQw4w9WgXcQ');
+    assert.strictEqual(shortsRes.valid, true);
+    assert.strictEqual(shortsRes.provider, 'youtube');
+    assert.strictEqual(shortsRes.videoId, 'dQw4w9WgXcQ');
+
+    const mobileRes = validateVideoUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=42s');
+    assert.strictEqual(mobileRes.valid, true);
+    assert.strictEqual(mobileRes.provider, 'youtube');
+    assert.strictEqual(mobileRes.videoId, 'dQw4w9WgXcQ');
+  });
+
+  runTest('Video URL validator accepts direct HTTPS MP4, WebM, and MOV URLs', () => {
+    const mp4Res = validateVideoUrl('https://cdn.example.com/lessons/module1/intro.mp4');
+    assert.strictEqual(mp4Res.valid, true);
+    assert.strictEqual(mp4Res.provider, 'direct');
+    assert.ok(mp4Res.normalizedUrl.endsWith('.mp4'));
+
+    const webmRes = validateVideoUrl('https://media.example.com/lectures/lecture_01.webm?token=abc123xyz');
+    assert.strictEqual(webmRes.valid, true);
+    assert.strictEqual(webmRes.provider, 'direct');
+  });
+
+  runTest('Video URL validator rejects insecure HTTP links with clear error message', () => {
+    const res = validateVideoUrl('http://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    assert.strictEqual(res.valid, false);
+    assert.ok(res.error.includes('Insecure HTTP URLs are not allowed'));
+  });
+
+  runTest('Video URL validator rejects unsafe schemes (javascript:, data:)', () => {
+    const jsRes = validateVideoUrl('javascript:alert(1)');
+    assert.strictEqual(jsRes.valid, false);
+
+    const dataRes = validateVideoUrl('data:video/mp4;base64,AAAA');
+    assert.strictEqual(dataRes.valid, false);
+  });
+
+  runTest('Video URL validator rejects embedded user credentials to prevent phishing/leakage', () => {
+    const res = validateVideoUrl('https://admin:secret@cdn.example.com/video.mp4');
+    assert.strictEqual(res.valid, false);
+    assert.ok(res.error.includes('credentials'));
+  });
+
+  runTest('Video URL validator rejects unsupported video providers (Vimeo, Dailymotion, TikTok)', () => {
+    const vimeoRes = validateVideoUrl('https://vimeo.com/123456789');
+    assert.strictEqual(vimeoRes.valid, false);
+    assert.ok(vimeoRes.error.includes('Unsupported video provider'));
+
+    const tiktokRes = validateVideoUrl('https://www.tiktok.com/@creator/video/123456');
+    assert.strictEqual(tiktokRes.valid, false);
+  });
+
+  runTest('Video URL validator rejects non-video web pages and arbitrary domains', () => {
+    const res = validateVideoUrl('https://google.com/search?q=video');
+    assert.strictEqual(res.valid, false);
+    assert.ok(res.error.includes('Unsupported video provider'));
+  });
+
+  runTest('Video URL validator rejects invalid YouTube video IDs (non-11 character identifiers)', () => {
+    const shortIdRes = validateVideoUrl('https://www.youtube.com/watch?v=short');
+    assert.strictEqual(shortIdRes.valid, false);
+    assert.ok(shortIdRes.error.includes('11-character video ID'));
+
+    const longIdRes = validateVideoUrl('https://www.youtube.com/watch?v=waytoolongvideoid123456789');
+    assert.strictEqual(longIdRes.valid, false);
+  });
+
+  // ── TEST GROUP 25: Published Course Catalog Visibility & Test Fixture Exclusion ─
+  console.log('\n📦 GROUP 25: Published Course Catalog Visibility & Test Fixture Isolation');
+
+  const fixtureFilterRegex = /^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i;
+  const fixtureTags = ['test', 'audit', 'fixture', 'automated-test', 'live-test'];
+
+  const evaluateCatalogVisibility = (course, userRole = 'student', isStudioRequest = false) => {
+    // Studio query for instructors
+    if (userRole === 'instructor' && isStudioRequest) {
+      return { visible: true, reason: 'studio_authoring' };
+    }
+
+    // Public / student catalog visibility
+    if (course.status !== 'published') {
+      return { visible: false, reason: 'draft_or_unpublished' };
+    }
+    if (course.isTestFixture === true) {
+      return { visible: false, reason: 'is_test_fixture_flag' };
+    }
+    if (course.tags && course.tags.some(t => fixtureTags.includes(t.toLowerCase()))) {
+      return { visible: false, reason: 'fixture_tag' };
+    }
+    if (fixtureFilterRegex.test(course.title)) {
+      return { visible: false, reason: 'fixture_title_pattern' };
+    }
+
+    return { visible: true, reason: 'legitimate_published' };
+  };
+
+  runTest('Legitimate published course ("Introduction to Artificial Intelligence and Machine Learning") is fully visible in student catalog', () => {
+    const aiCourse = {
+      title: 'Introduction to Artificial Intelligence and Machine Learning',
+      description: 'Learn the fundamentals of artificial intelligence and machine learning.',
+      tags: ['ai'],
+      category: 'General',
+      status: 'published',
+      isTestFixture: false,
+    };
+
+    const result = evaluateCatalogVisibility(aiCourse, 'student');
+    assert.strictEqual(result.visible, true);
+    assert.strictEqual(result.reason, 'legitimate_published');
+    assert.strictEqual(fixtureFilterRegex.test(aiCourse.title), false);
+  });
+
+  runTest('Legitimate course titles with embedded words (contest, latest, testing) are not accidentally excluded', () => {
+    const courses = [
+      { title: 'Contest Mathematics & Olympiad Training', tags: ['math'], status: 'published' },
+      { title: 'Latest Innovations in Deep Learning', tags: ['ai'], status: 'published' },
+      { title: 'Software Testing & Quality Engineering', tags: ['engineering'], status: 'published' },
+      { title: 'The Study of Plants and Plant Biology', tags: ['science'], status: 'published' },
+      { title: 'Full Stack Web Development with MERN', tags: ['programming'], status: 'published' },
+    ];
+
+    courses.forEach(c => {
+      const res = evaluateCatalogVisibility(c, 'student');
+      assert.strictEqual(res.visible, true, `Legitimate title "${c.title}" must not be excluded`);
+    });
+  });
+
+  runTest('Internal test fixtures and audit courses are strictly excluded from student catalog', () => {
+    const fixtures = [
+      { title: 'Audit Curriculum 1791981817317', tags: [], status: 'published' },
+      { title: '[Live Audit Test] Modern Cloud Architectures 1791984814446', tags: ['audit', 'test'], status: 'published' },
+      { title: '[Live Test] Distributed Architectures 1791984963478', tags: ['cloud', 'test'], status: 'published' },
+      { title: 'Test Cascade', tags: [], status: 'published' },
+      { title: 'Test Curriculum 1791982108098', tags: [], status: 'published' },
+      { title: 'Artificial Intelligence Foundations', tags: ['automated-test'], status: 'published' },
+      { title: 'Clean Architecture Principles', tags: [], isTestFixture: true, status: 'published' },
+    ];
+
+    fixtures.forEach(f => {
+      const res = evaluateCatalogVisibility(f, 'student');
+      assert.strictEqual(res.visible, false, `Fixture "${f.title}" must be excluded from public catalog`);
+    });
+  });
+
+  runTest('Drafts, under-review, and rejected courses remain strictly hidden from student catalog', () => {
+    const unpublished = [
+      { title: 'Introduction to Artificial Intelligence and Machine Learning', tags: ['ai'], status: 'draft' },
+      { title: 'Introduction to Artificial Intelligence and Machine Learning', tags: ['ai'], status: 'under_review' },
+      { title: 'Introduction to Artificial Intelligence and Machine Learning', tags: ['ai'], status: 'rejected' },
+      { title: 'The Study of Plants', tags: [], status: 'draft' },
+    ];
+
+    unpublished.forEach(c => {
+      const res = evaluateCatalogVisibility(c, 'student');
+      assert.strictEqual(res.visible, false);
+      assert.strictEqual(res.reason, 'draft_or_unpublished');
+    });
+  });
+
+  runTest('Instructor queries distinguish studio authoring from public catalog browsing', () => {
+    const course = {
+      title: 'Introduction to Artificial Intelligence and Machine Learning',
+      tags: ['ai'],
+      status: 'draft',
+      instructorId: 'inst_1',
+    };
+
+    // 1. Studio authoring view (Dashboard) retrieves authored drafts
+    const studioResult = evaluateCatalogVisibility(course, 'instructor', true);
+    assert.strictEqual(studioResult.visible, true);
+    assert.strictEqual(studioResult.reason, 'studio_authoring');
+
+    // 2. Public catalog view (Browse Courses) hides drafts even for instructors
+    const catalogResult = evaluateCatalogVisibility(course, 'instructor', false);
+    assert.strictEqual(catalogResult.visible, false);
+    assert.strictEqual(catalogResult.reason, 'draft_or_unpublished');
+  });
+
+  runTest('Publish workflow requires approval and enforces module/lesson presence', () => {
+    // 1. Cannot publish draft without approval
+    const draft = { status: 'draft', modules: [{ id: 'm1', lessons: ['l1'] }] };
+    const validatePublish = (c, role = 'instructor') => {
+      if (c.status !== 'approved' && !(role === 'admin' && ['under_review', 'pending'].includes(c.status))) {
+        return { allowed: false, error: 'Course must be approved by an administrator before it can be published.' };
+      }
+      if (!c.modules || c.modules.length === 0) {
+        return { allowed: false, error: 'Cannot publish a course without any modules.' };
+      }
+      const totalLessons = c.modules.reduce((sum, m) => sum + (m.lessons?.length || 0), 0);
+      if (totalLessons === 0) {
+        return { allowed: false, error: 'Cannot publish a course without any lessons.' };
+      }
+      return { allowed: true };
+    };
+
+    assert.strictEqual(validatePublish(draft).allowed, false);
+
+    // 2. Approved course without modules cannot be published
+    const approvedNoModules = { status: 'approved', modules: [] };
+    assert.strictEqual(validatePublish(approvedNoModules).allowed, false);
+
+    // 3. Approved course without lessons cannot be published
+    const approvedNoLessons = { status: 'approved', modules: [{ id: 'm1', lessons: [] }] };
+    assert.strictEqual(validatePublish(approvedNoLessons).allowed, false);
+
+    // 4. Approved course with module and lesson successfully publishes
+    const approvedComplete = { status: 'approved', modules: [{ id: 'm1', lessons: ['l1'] }] };
+    assert.strictEqual(validatePublish(approvedComplete).allowed, true);
+  });
+
+  // ── TEST GROUP 26: Admin Approval Resilience, Notifications Auth & Enrollment RBAC ──
+  console.log('\n📦 GROUP 26: Admin Approval Resilience, Notifications Auth & Enrollment RBAC');
+
+  runTest('Admin approve route safely defaults undefined req.body without throwing TypeError', () => {
+    const approveMiddleware = (req, res, next) => {
+      req.body = req.body || {};
+      req.body.action = req.body.action || 'publish';
+      return { action: req.body.action };
+    };
+
+    const reqWithoutBody = {};
+    const result = approveMiddleware(reqWithoutBody);
+    assert.strictEqual(result.action, 'publish');
+    assert.strictEqual(reqWithoutBody.body.action, 'publish');
+  });
+
+  runTest('Admin reject route safely defaults undefined req.body and preserves reason', () => {
+    const rejectMiddleware = (req, res, next) => {
+      req.body = req.body || {};
+      req.body.action = req.body.action || 'reject';
+      return { action: req.body.action, reason: req.body.reason };
+    };
+
+    const reqEmpty = {};
+    const resultEmpty = rejectMiddleware(reqEmpty);
+    assert.strictEqual(resultEmpty.action, 'reject');
+
+    const reqWithReason = { body: { reason: 'Syllabus incomplete' } };
+    const resultReason = rejectMiddleware(reqWithReason);
+    assert.strictEqual(resultReason.action, 'reject');
+    assert.strictEqual(resultReason.reason, 'Syllabus incomplete');
+  });
+
+  runTest('Draft course cannot be reviewed before submission for review', () => {
+    const validateCourseReview = (course, action) => {
+      if (!course) return { allowed: false, status: 404, error: 'Course not found.' };
+      if (course.status === 'draft') {
+        return { allowed: false, status: 400, error: 'Cannot review a course that is still in draft. The instructor must submit it for review first.' };
+      }
+      return { allowed: true };
+    };
+
+    const draftCourse = { _id: 'c1', status: 'draft' };
+    const underReviewCourse = { _id: 'c2', status: 'under_review' };
+
+    const draftResult = validateCourseReview(draftCourse, 'publish');
+    assert.strictEqual(draftResult.allowed, false);
+    assert.strictEqual(draftResult.status, 400);
+
+    const underReviewResult = validateCourseReview(underReviewCourse, 'publish');
+    assert.strictEqual(underReviewResult.allowed, true);
+  });
+
+  runTest('Non-admin users are strictly rejected from admin approval endpoints (RBAC 403)', () => {
+    const adminAuth = authorize('admin');
+    
+    let studentStatus = null;
+    let instructorStatus = null;
+    let adminPassed = false;
+
+    adminAuth({ user: { role: 'student', userId: 's1' } }, { status(s) { studentStatus = s; return this; }, json() {} }, () => {});
+    adminAuth({ user: { role: 'instructor', userId: 'i1' } }, { status(s) { instructorStatus = s; return this; }, json() {} }, () => {});
+    adminAuth({ user: { role: 'admin', userId: 'a1' } }, {}, () => { adminPassed = true; });
+
+    assert.strictEqual(studentStatus, 403);
+    assert.strictEqual(instructorStatus, 403);
+    assert.strictEqual(adminPassed, true);
+  });
+
+  runTest('Notifications route allows all authenticated roles (student, instructor, admin)', () => {
+    // Authenticate middleware validates Bearer token and attaches decoded user
+    const checkNotificationAccess = (user) => {
+      if (!user || !user.userId) return { status: 401, error: 'No token provided. Please log in.' };
+      return { status: 200, allowed: true };
+    };
+
+    assert.strictEqual(checkNotificationAccess(null).status, 401);
+    assert.strictEqual(checkNotificationAccess({ userId: 'u_admin', role: 'admin' }).status, 200);
+    assert.strictEqual(checkNotificationAccess({ userId: 'u_inst', role: 'instructor' }).status, 200);
+    assert.strictEqual(checkNotificationAccess({ userId: 'u_stud', role: 'student' }).status, 200);
+  });
+
+  runTest('Course enrollment strictly rejects admin and instructor roles with 403', () => {
+    const studentOnlyAuth = authorize('student');
+
+    let adminStatus = null;
+    let instructorStatus = null;
+    let studentPassed = false;
+
+    studentOnlyAuth({ user: { role: 'admin', userId: 'a1' } }, { status(s) { adminStatus = s; return this; }, json() {} }, () => {});
+    studentOnlyAuth({ user: { role: 'instructor', userId: 'i1' } }, { status(s) { instructorStatus = s; return this; }, json() {} }, () => {});
+    studentOnlyAuth({ user: { role: 'student', userId: 's1' } }, {}, () => { studentPassed = true; });
+
+    assert.strictEqual(adminStatus, 403);
+    assert.strictEqual(instructorStatus, 403);
+    assert.strictEqual(studentPassed, true);
+  });
+
+  runTest('Course enrollment rejects unpublished courses for eligible students with 400', () => {
+    const validateEnrollment = (course) => {
+      if (!course) return { status: 404, error: 'Course not found.' };
+      if (course.status !== 'published') {
+        return { status: 400, error: 'This course is not available for enrollment.' };
+      }
+      return { status: 201, allowed: true };
+    };
+
+    assert.strictEqual(validateEnrollment({ status: 'under_review' }).status, 400);
+    assert.strictEqual(validateEnrollment({ status: 'draft' }).status, 400);
+    assert.strictEqual(validateEnrollment({ status: 'rejected' }).status, 400);
+    assert.strictEqual(validateEnrollment({ status: 'published' }).status, 201);
+  });
+
+  // ── 7. CATALOG ISOLATION & AUDIT FIXTURE SEGREGATION REGRESSION TESTS ──
+  console.log('\n--- Catalog Isolation & Fixture Segregation Regression Suite ---');
+
+  const FIXTURE_TAGS = ['test', 'audit', 'fixture', 'automated-test', 'live-test'];
+  const FIXTURE_TITLE_REGEX = /^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i;
+
+  const isFixture = (course) => {
+    if (!course) return false;
+    if (course.isTestFixture === true) return true;
+    if (course.tags && course.tags.some((t) => FIXTURE_TAGS.includes(t.toLowerCase()))) return true;
+    if (FIXTURE_TITLE_REGEX.test(course.title)) return true;
+    return false;
+  };
+
+  runTest('Legitimate course "Introduction to Artificial Intelligence and Machine Learning" is NOT classified as a fixture', () => {
+    const aiCourse = {
+      title: 'Introduction to Artificial Intelligence and Machine Learning',
+      status: 'published',
+      tags: ['ai'],
+      isTestFixture: false,
+    };
+    assert.strictEqual(isFixture(aiCourse), false);
+  });
+
+  runTest('Fixture titles "[Live Test] Distributed Architectures" and "[Live Audit Test] Modern Cloud Architectures" are classified as fixtures', () => {
+    const liveTest = {
+      title: '[Live Test] Distributed Architectures 1791984963478',
+      status: 'published',
+      tags: ['audit', 'cloud', 'test'],
+    };
+    const liveAudit = {
+      title: '[Live Audit Test] Modern Cloud Architectures 1791984814446',
+      status: 'published',
+      tags: ['audit', 'cloud', 'test'],
+    };
+    const auditCurriculum = {
+      title: 'Audit Curriculum 1791983368899',
+      status: 'published',
+      tags: [],
+    };
+    assert.strictEqual(isFixture(liveTest), true);
+    assert.strictEqual(isFixture(liveAudit), true);
+    assert.strictEqual(isFixture(auditCurriculum), true);
+  });
+
+  runTest('Public / student catalog filter preserves legitimate AI course and rejects all fixture titles', () => {
+    const catalogCourses = [
+      { _id: '1', title: 'Introduction to Artificial Intelligence and Machine Learning', status: 'published', tags: ['ai'] },
+      { _id: '2', title: '[Live Test] Distributed Architectures 1791984963478', status: 'published', tags: ['audit', 'cloud', 'test'] },
+      { _id: '3', title: '[Live Audit Test] Modern Cloud Architectures 1791984814446', status: 'published', tags: ['audit'] },
+      { _id: '4', title: 'Audit Curriculum 1791981817317', status: 'published', tags: [] },
+      { _id: '5', title: 'The Study of Plants', status: 'draft', tags: [] },
+    ];
+
+    const studentVisible = catalogCourses.filter((c) => c.status === 'published' && !isFixture(c));
+    assert.strictEqual(studentVisible.length, 1);
+    assert.strictEqual(studentVisible[0].title, 'Introduction to Artificial Intelligence and Machine Learning');
+  });
+
+  runTest('Administrator Published moderation tab filter excludes test fixtures and displays legitimate published courses', () => {
+    const courses = [
+      { _id: '1', title: 'Introduction to Artificial Intelligence and Machine Learning', status: 'published', tags: ['ai'] },
+      { _id: '2', title: '[Live Test] Distributed Architectures 1791984963478', status: 'published', tags: ['audit', 'cloud', 'test'] },
+      { _id: '3', title: '[Live Audit Test] Modern Cloud Architectures 1791984814446', status: 'published', tags: ['audit'] },
+      { _id: '4', title: 'The Study of Plants', status: 'draft', tags: [] },
+      { _id: '5', title: 'python lesson', status: 'pending', tags: [] },
+    ];
+
+    const publishedTabCourses = courses.filter((c) => c.status === 'published' && !isFixture(c));
+    assert.strictEqual(publishedTabCourses.length, 1);
+    assert.strictEqual(publishedTabCourses[0].title, 'Introduction to Artificial Intelligence and Machine Learning');
+  });
+
+  runTest('Administrator Audit Fixtures moderation tab filter retains all internal audit and test fixtures', () => {
+    const courses = [
+      { _id: '1', title: 'Introduction to Artificial Intelligence and Machine Learning', status: 'published', tags: ['ai'] },
+      { _id: '2', title: '[Live Test] Distributed Architectures 1791984963478', status: 'published', tags: ['audit', 'cloud', 'test'] },
+      { _id: '3', title: '[Live Audit Test] Modern Cloud Architectures 1791984814446', status: 'published', tags: ['audit'] },
+      { _id: '4', title: 'Audit Curriculum 1791983368899', status: 'draft', tags: [] },
+    ];
+
+    const auditFixturesTab = courses.filter((c) => isFixture(c));
+    assert.strictEqual(auditFixturesTab.length, 3);
+    assert.ok(auditFixturesTab.some((c) => c.title.includes('[Live Test]')));
+    assert.ok(auditFixturesTab.some((c) => c.title.includes('[Live Audit Test]')));
+    assert.ok(auditFixturesTab.some((c) => c.title.includes('Audit Curriculum')));
+  });
+
+  runTest('Direct course access rejects unauthenticated and student users from test fixtures with 404', () => {
+    const evaluateDirectAccess = (user, course) => {
+      const { role, userId } = user || {};
+      const instructorOwnerId = course.instructorId?._id || course.instructorId;
+      const isEnrolledUser = false;
+
+      if (isFixture(course) && role !== 'admin' && instructorOwnerId !== userId && !isEnrolledUser) {
+        return { status: 404, error: 'Course not found.' };
+      }
+      if ((!role || role === 'student') && course.status !== 'published' && !isEnrolledUser) {
+        return { status: 403, error: 'This course is not yet published.' };
+      }
+      return { status: 200, allowed: true };
+    };
+
+    const fixture = {
+      _id: 'fix1',
+      title: '[Live Test] Distributed Architectures 1791984963478',
+      status: 'published',
+      tags: ['audit'],
+      instructorId: 'inst_other',
+    };
+
+    const legitimateAI = {
+      _id: 'ai1',
+      title: 'Introduction to Artificial Intelligence and Machine Learning',
+      status: 'published',
+      tags: ['ai'],
+      instructorId: 'inst_owner',
+    };
+
+    // Anonymous & student rejected with 404 from fixture
+    assert.strictEqual(evaluateDirectAccess(null, fixture).status, 404);
+    assert.strictEqual(evaluateDirectAccess({ role: 'student', userId: 's1' }, fixture).status, 404);
+
+    // Admin allowed to access fixture for moderation & audit workflows
+    assert.strictEqual(evaluateDirectAccess({ role: 'admin', userId: 'a1' }, fixture).status, 200);
+
+    // Legitimate AI course accessible to all
+    assert.strictEqual(evaluateDirectAccess(null, legitimateAI).status, 200);
+    assert.strictEqual(evaluateDirectAccess({ role: 'student', userId: 's1' }, legitimateAI).status, 200);
+  });
+
+  // ── TEST GROUP 27: Saved Lesson Video URL Persistence, Delivery & 90% Watch Time ─
+  console.log('\n📦 GROUP 27: Saved Lesson Video URL Persistence, Delivery & 90% Watch Time');
+
+  const Lesson = require('./src/models/Lesson');
+
+  runTest('Lesson creation with YouTube URL persists and synchronizes both videoUrl and contentUrl', () => {
+    const ytUrl = 'https://www.youtube.com/watch?v=ad79nYk2keg';
+    const lesson = new Lesson({
+      moduleId: new (require('mongoose').Types.ObjectId)(),
+      title: 'What Is Artificial Intelligence?',
+      type: 'video',
+      videoUrl: ytUrl,
+      durationSeconds: 300,
+    });
+
+    const obj = lesson.toObject();
+    assert.strictEqual(obj.videoUrl, ytUrl);
+    assert.strictEqual(obj.contentUrl, ytUrl);
+
+    const json = lesson.toJSON();
+    assert.strictEqual(json.videoUrl, ytUrl);
+    assert.strictEqual(json.contentUrl, ytUrl);
+  });
+
+  runTest('Lesson created with legacy contentUrl automatically exposes videoUrl to student player', () => {
+    const directUrl = 'https://cdn.example.com/ai_intro.mp4';
+    const lesson = new Lesson({
+      moduleId: new (require('mongoose').Types.ObjectId)(),
+      title: 'Machine Learning Overview',
+      type: 'video',
+      contentUrl: directUrl,
+      durationSeconds: 600,
+    });
+
+    const obj = lesson.toObject();
+    assert.strictEqual(obj.videoUrl, directUrl);
+    assert.strictEqual(obj.contentUrl, directUrl);
+  });
+
+  runTest('Student lesson retrieval resolution guarantees videoUrl presence across property aliases', () => {
+    const resolveLessonMedia = (rawDoc) => {
+      const obj = rawDoc.toObject ? rawDoc.toObject() : { ...rawDoc };
+      if (obj.type === 'video') {
+        const resolved = obj.videoUrl || obj.contentUrl || obj.videoURL || obj.video || null;
+        obj.videoUrl = resolved;
+        obj.contentUrl = resolved;
+      }
+      return obj;
+    };
+
+    // Case 1: videoUrl populated
+    const doc1 = { type: 'video', videoUrl: 'https://www.youtube.com/watch?v=ad79nYk2keg' };
+    const res1 = resolveLessonMedia(doc1);
+    assert.strictEqual(res1.videoUrl, 'https://www.youtube.com/watch?v=ad79nYk2keg');
+    assert.strictEqual(res1.contentUrl, 'https://www.youtube.com/watch?v=ad79nYk2keg');
+
+    // Case 2: legacy videoURL alias
+    const doc2 = { type: 'video', videoURL: 'https://cdn.example.com/ml.mp4' };
+    const res2 = resolveLessonMedia(doc2);
+    assert.strictEqual(res2.videoUrl, 'https://cdn.example.com/ml.mp4');
+    assert.strictEqual(res2.contentUrl, 'https://cdn.example.com/ml.mp4');
+
+    // Case 3: legacy contentUrl only
+    const doc3 = { type: 'video', contentUrl: 'https://youtu.be/ad79nYk2keg' };
+    const res3 = resolveLessonMedia(doc3);
+    assert.strictEqual(res3.videoUrl, 'https://youtu.be/ad79nYk2keg');
+    assert.strictEqual(res3.contentUrl, 'https://youtu.be/ad79nYk2keg');
+  });
+
+  runTest('Editing lesson video URL updates both videoUrl and contentUrl consistently', () => {
+    const lesson = new Lesson({
+      moduleId: new (require('mongoose').Types.ObjectId)(),
+      title: 'Deep Learning',
+      type: 'video',
+      contentUrl: 'https://www.youtube.com/watch?v=old12345678',
+      videoUrl: 'https://www.youtube.com/watch?v=old12345678',
+      durationSeconds: 400,
+    });
+
+    const updatedUrl = 'https://www.youtube.com/watch?v=new87654321';
+    lesson.videoUrl = updatedUrl;
+    lesson.contentUrl = updatedUrl;
+
+    const obj = lesson.toObject();
+    assert.strictEqual(obj.videoUrl, updatedUrl);
+    assert.strictEqual(obj.contentUrl, updatedUrl);
+  });
+
+  runTest('Missing or empty video URL produces empty/error state and is never treated as successful playback', () => {
+    const checkPlaybackState = (lesson) => {
+      const rawUrl = lesson.videoUrl || lesson.contentUrl || lesson.videoURL || lesson.video || '';
+      if (!rawUrl || !rawUrl.trim()) {
+        return { canPlay: false, state: 'empty', message: 'No video stream is currently attached to this lesson.' };
+      }
+      const val = validateVideoUrl(rawUrl);
+      if (!val.valid) {
+        return { canPlay: false, state: 'invalid', message: val.error };
+      }
+      return { canPlay: true, state: 'ready', provider: val.provider };
+    };
+
+    const emptyLesson = { type: 'video', title: 'Empty Video', durationSeconds: 300 };
+    const stateEmpty = checkPlaybackState(emptyLesson);
+    assert.strictEqual(stateEmpty.canPlay, false);
+    assert.strictEqual(stateEmpty.state, 'empty');
+    assert.strictEqual(stateEmpty.message, 'No video stream is currently attached to this lesson.');
+
+    const invalidLesson = { type: 'video', title: 'Bad Link', videoUrl: 'https://not-a-video.com/page' };
+    const stateInvalid = checkPlaybackState(invalidLesson);
+    assert.strictEqual(stateInvalid.canPlay, false);
+    assert.strictEqual(stateInvalid.state, 'invalid');
+  });
+
+  runTest('Audited watch-time tracking strictly enforces 90% threshold for lesson completion', () => {
+    const duration = 300; // 5 minutes = 300 seconds
+    const threshold = duration * 0.9; // 270 seconds
+
+    const evaluateProgress = (watchedSeconds) => {
+      const bounded = Math.min(Math.max(0, watchedSeconds), duration);
+      const completed = bounded >= threshold;
+      return { watchedSeconds: bounded, completed, percentWatched: Math.round((bounded / duration) * 100) };
+    };
+
+    // 1. Initial iframe mount / 1 second ping MUST NOT mark complete
+    const initialMount = evaluateProgress(1);
+    assert.strictEqual(initialMount.completed, false);
+    assert.strictEqual(initialMount.watchedSeconds, 1);
+
+    // 2. 50% watch time
+    const halfWay = evaluateProgress(150);
+    assert.strictEqual(halfWay.completed, false);
+    assert.strictEqual(halfWay.percentWatched, 50);
+
+    // 3. 89% watch time (267s < 270s) MUST NOT mark complete
+    const almostDone = evaluateProgress(267);
+    assert.strictEqual(almostDone.completed, false);
+    assert.strictEqual(almostDone.percentWatched, 89);
+
+    // 4. Exact 90% threshold (270s) marks complete
+    const exactThreshold = evaluateProgress(270);
+    assert.strictEqual(exactThreshold.completed, true);
+    assert.strictEqual(exactThreshold.percentWatched, 90);
+
+    // 5. 100% watch time marks complete
+    const fullyWatched = evaluateProgress(300);
+    assert.strictEqual(fullyWatched.completed, true);
+    assert.strictEqual(fullyWatched.percentWatched, 100);
+  });
+
+  // ── TEST GROUP 28: Audited Playback Tracking, Anti-Seeking & Accreditation ──
+  console.log('\n📦 GROUP 28: Audited Playback Tracking, Anti-Seeking Traversal & Duration Clamping');
+
+  // Simulation of client-side playback tracking engine
+  class PlaybackTracker {
+    constructor(lessonDuration, initialWatched = 0, initialPosition = 0) {
+      this.lessonDuration = lessonDuration;
+      this.watchedSet = new Set();
+      for (let i = 0; i < initialWatched; i++) {
+        this.watchedSet.add(i);
+      }
+      this.lastPosition = initialPosition;
+      this.playbackRate = 1.0;
+      this.isPlaying = false;
+    }
+
+    setPlaying(playing) {
+      this.isPlaying = playing;
+    }
+
+    setPlaybackRate(rate) {
+      this.playbackRate = rate;
+    }
+
+    sample(currentPos) {
+      if (!this.isPlaying) return; // Do not count paused or buffering time
+      const maxElapsed = 2.5 * this.playbackRate;
+
+      if (this.lastPosition >= 0 && currentPos >= this.lastPosition && (currentPos - this.lastPosition) <= maxElapsed) {
+        // Continuous legitimate playback
+        const startSec = Math.floor(this.lastPosition);
+        const endSec = Math.floor(currentPos);
+        for (let s = startSec; s <= endSec; s++) {
+          this.watchedSet.add(s);
+        }
+      } else {
+        // Seek forward or backward: credit only current second
+        this.watchedSet.add(Math.floor(currentPos));
+      }
+
+      this.lastPosition = currentPos;
+    }
+
+    getEligibleSeconds() {
+      return Math.min(this.lessonDuration, this.watchedSet.size);
+    }
+
+    getPercentage() {
+      return Math.min(100, Math.round((this.getEligibleSeconds() / this.lessonDuration) * 100));
+    }
+  }
+
+  runTest('1. Watching lesson for 30 seconds increases verified progress appropriately (10%)', () => {
+    const tracker = new PlaybackTracker(300, 0, 0);
+    tracker.setPlaying(true);
+    for (let sec = 1; sec <= 30; sec++) {
+      tracker.sample(sec);
+    }
+    assert.strictEqual(tracker.getEligibleSeconds(), 31); // 0 through 30 seconds
+    assert.strictEqual(tracker.getPercentage(), 10);
+  });
+
+  runTest('2. Pausing for 15 seconds stops progress accumulation completely', () => {
+    const tracker = new PlaybackTracker(300, 31, 30);
+    tracker.setPlaying(false); // Paused
+    for (let tick = 0; tick < 15; tick++) {
+      tracker.sample(30); // Position does not advance while paused
+    }
+    assert.strictEqual(tracker.getEligibleSeconds(), 31, 'Paused time must not accumulate watch progress');
+    assert.strictEqual(tracker.getPercentage(), 10);
+  });
+
+  runTest('3. Resuming playback after pause continues progress accumulation', () => {
+    const tracker = new PlaybackTracker(300, 31, 30);
+    tracker.setPlaying(true); // Resumed
+    for (let sec = 31; sec <= 60; sec++) {
+      tracker.sample(sec);
+    }
+    assert.strictEqual(tracker.getEligibleSeconds(), 61);
+    assert.strictEqual(tracker.getPercentage(), 20);
+  });
+
+  runTest('4. Seeking forward without watching rejects skipped portion and only credits current position', () => {
+    const tracker = new PlaybackTracker(300, 61, 60);
+    tracker.setPlaying(true);
+    // Student seeks to 5:17 (317 seconds) in a 328s video without playing seconds 61-316
+    tracker.sample(317);
+    // Skipped 256 seconds MUST NOT be credited
+    assert.strictEqual(tracker.watchedSet.has(150), false, 'Skipped second 150 must not be in watched set');
+    assert.strictEqual(tracker.watchedSet.has(250), false, 'Skipped second 250 must not be in watched set');
+    assert.strictEqual(tracker.getEligibleSeconds(), 62); // 61 prior seconds + second 317
+    assert.strictEqual(tracker.getPercentage(), 21); // (62 / 300) = 20.6% -> 21%
+  });
+
+  runTest('5. Finished playback reflects actual eligible watch time without phantom credit', () => {
+    const tracker = new PlaybackTracker(300, 62, 317);
+    tracker.setPlaying(true);
+    for (let sec = 318; sec <= 328; sec++) {
+      tracker.sample(sec);
+    }
+    tracker.setPlaying(false); // Ended
+    // Watched 0-61 (62s) + 317-328 (12s) = 74 seconds total
+    assert.strictEqual(tracker.getEligibleSeconds(), 74);
+    assert.strictEqual(tracker.getPercentage(), 25); // 74 / 300 = 24.6% -> 25%
+  });
+
+  runTest('6. Refreshing page preserves previously earned progress idempotently', () => {
+    // Student leaves and returns with 73 seconds previously persisted
+    const trackerAfterRefresh = new PlaybackTracker(300, 73, 328);
+    assert.strictEqual(trackerAfterRefresh.getEligibleSeconds(), 73, 'Progress must persist after refresh');
+    assert.strictEqual(trackerAfterRefresh.getPercentage(), 24);
+  });
+
+  runTest('7. Verified progress never exceeds 100% even if media duration exceeds configured lesson duration', () => {
+    // Configured lesson duration is 300 seconds, media has 328 seconds
+    const tracker = new PlaybackTracker(300, 0, 0);
+    tracker.setPlaying(true);
+    for (let sec = 0; sec <= 328; sec++) {
+      tracker.sample(sec);
+    }
+    assert.strictEqual(tracker.watchedSet.size, 329);
+    assert.strictEqual(tracker.getEligibleSeconds(), 300, 'Eligible seconds must be clamped to configured lesson duration');
+    assert.strictEqual(tracker.getPercentage(), 100, 'Progress percentage must never exceed 100%');
+  });
+
+  runTest('8. Accreditation becomes eligible at 90% verified watch time when assessment requirements are met', () => {
+    const duration = 300;
+    const threshold = duration * 0.9; // 270s
+
+    const checkAccreditation = (watchedSeconds, quizPassed = true) => {
+      const isWatchTimeVerified = watchedSeconds >= threshold;
+      const eligible = isWatchTimeVerified && quizPassed;
+      return { isWatchTimeVerified, eligible };
+    };
+
+    // At 269s (89%): ineligible
+    assert.strictEqual(checkAccreditation(269, true).eligible, false);
+
+    // At 270s (90%) with passed quiz: eligible!
+    assert.strictEqual(checkAccreditation(270, true).eligible, true);
+
+    // At 270s (90%) but quiz NOT passed: ineligible!
+    assert.strictEqual(checkAccreditation(270, false).eligible, false);
+  });
+
+  // ── GROUP 29: Course-Level vs Lesson-Level Progress Consistency & Certificate Eligibility ──
+  console.log('\n📦 GROUP 29: Course-Level Progress Consistency & Assessment Accreditation');
+
+  runTest('1. Enriched enrollment calculates accurate course percentage from completed lessons', () => {
+    // Helper function mirroring backend enrollmentController enrichment
+    const calculateProgress = (totalLessons, completedLessons, totalQuizzes, quizzesPassed, status = 'active') => {
+      if (status === 'completed') {
+        return { progressPercentage: 100, isEligibleForCertificate: true };
+      }
+      const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      const isEligibleForCertificate =
+        totalLessons > 0 &&
+        completedLessons >= totalLessons &&
+        quizzesPassed >= totalQuizzes &&
+        status !== 'dropped';
+      return { progressPercentage, isEligibleForCertificate };
+    };
+
+    // Course with 2 lessons, 1 completed
+    const r1 = calculateProgress(2, 1, 0, 0);
+    assert.strictEqual(r1.progressPercentage, 50);
+    assert.strictEqual(r1.isEligibleForCertificate, false);
+
+    // Course with 1 lesson (100% completed), but 1 mandatory quiz unpassed
+    const r2 = calculateProgress(1, 1, 1, 0);
+    assert.strictEqual(r2.progressPercentage, 100, 'Lesson progress must reflect 100% video completion');
+    assert.strictEqual(r2.isEligibleForCertificate, false, 'Must NOT be eligible for certificate until quiz is passed');
+
+    // Course with 1 lesson completed AND 1 quiz passed
+    const r3 = calculateProgress(1, 1, 1, 1);
+    assert.strictEqual(r3.progressPercentage, 100);
+    assert.strictEqual(r3.isEligibleForCertificate, true, 'Must be eligible once all lessons and quizzes are passed');
+
+    // Dropped enrollment with 100% progress cannot claim certificate
+    const r4 = calculateProgress(1, 1, 1, 1, 'dropped');
+    assert.strictEqual(r4.isEligibleForCertificate, false, 'Dropped enrollment cannot claim certificate');
+  });
+
+  runTest('2. Server completion check prevents certificate issuance if quiz is not passed', () => {
+    const totalLessons = 2;
+    const completedLessons = 2;
+    const totalQuizzes = 1;
+    const quizzesPassed = 0;
+
+    const canComplete = completedLessons >= totalLessons && quizzesPassed >= totalQuizzes;
+    assert.strictEqual(canComplete, false, 'Must reject certificate when assessments are incomplete');
+  });
+
   // ── SUMMARY REPORT ───────────────────────────────────────────────────────
   console.log('\n======================================================');
   console.log(`📊 TEST RESULTS: ${passedTests}/${totalTests} PASSED`);

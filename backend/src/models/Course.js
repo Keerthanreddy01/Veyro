@@ -86,6 +86,12 @@ const courseSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    // Flags internal automated test fixtures to keep them isolated from public catalog
+    isTestFixture: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   { timestamps: true }
 );

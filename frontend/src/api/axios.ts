@@ -21,7 +21,13 @@ const api = axios.create({
 // Attach access token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    if (config.headers?.set) {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
   return config;
 });
 
@@ -47,7 +53,12 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve: resolve as (token: string) => void, reject: reject as (error: AxiosError) => void });
         }).then((token) => {
-          original.headers.Authorization = `Bearer ${token}`;
+          if (original.headers?.set) {
+            original.headers.set('Authorization', `Bearer ${token}`);
+          } else {
+            original.headers.Authorization = `Bearer ${token}`;
+          }
+          original._retry = true;
           return api(original);
         });
       }
@@ -63,8 +74,13 @@ api.interceptors.response.use(
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+        window.dispatchEvent(new CustomEvent('auth:token-refreshed', { detail: data }));
         processQueue(null, data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        if (original.headers?.set) {
+          original.headers.set('Authorization', `Bearer ${data.accessToken}`);
+        } else {
+          original.headers.Authorization = `Bearer ${data.accessToken}`;
+        }
         return api(original);
       } catch (err) {
         const refreshError = err instanceof AxiosError ? err : error;

@@ -22,14 +22,30 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ error: `Invalid ${err.path}: ${err.value}` });
   }
 
-  // Multer file size limit
+  // Multer errors (file size limit, unexpected field, etc.)
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({ error: 'File too large. Maximum size is 500MB.' });
   }
+  if (err.name === 'MulterError' || (err.constructor && err.constructor.name === 'MulterError')) {
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
+  }
 
-  // Generic error
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal server error.';
+  // Upload validation errors (unsupported format, corrupted header, etc.)
+  if (
+    err.statusCode === 400 ||
+    err.isUploadError ||
+    /not allowed|unsupported|file type/i.test(err.message)
+  ) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  // Generic error — sanitize 500 responses so stack traces/internals are never leaked
+  const statusCode =
+    typeof err.statusCode === 'number' && err.statusCode >= 400 && err.statusCode < 600
+      ? err.statusCode
+      : 500;
+  const message =
+    statusCode === 500 ? 'An unexpected internal server error occurred.' : err.message || 'Request failed.';
   res.status(statusCode).json({ error: message });
 };
 

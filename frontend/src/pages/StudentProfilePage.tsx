@@ -118,11 +118,19 @@ export default function StudentProfilePage() {
     try {
       const [enrollRes, coursesRes] = await Promise.all([
         api.get('/enrollments/my').catch(() => ({ data: { enrollments: [] } })),
-        api.get('/courses').catch(() => ({ data: { courses: [] } })),
+        api.get('/courses?catalog=true').catch(() => ({ data: { courses: [] } })),
       ]);
 
+      const rawCatalog = coursesRes.data.courses || [];
+      const safeCatalog = rawCatalog.filter((c: any) => {
+        if (c.isTestFixture) return false;
+        if (c.tags?.some((t: string) => ['test', 'audit', 'fixture', 'automated-test', 'live-test'].includes(t.toLowerCase()))) return false;
+        if (/^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i.test(c.title)) return false;
+        return true;
+      });
+
       setEnrollments(enrollRes.data.enrollments || []);
-      setCatalogCourses(coursesRes.data.courses || []);
+      setCatalogCourses(safeCatalog);
     } catch {
       // Graceful fallback
     } finally {

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import useAuthStore from '../store/authStore';
 
 interface NotificationItem {
   _id: string;
@@ -28,6 +29,7 @@ interface NotificationItem {
 }
 
 export default function NotificationBell() {
+  const { user } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -37,26 +39,39 @@ export default function NotificationBell() {
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!user || !token) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
       const res = await api.get('/notifications?limit=20');
-      setNotifications(res.data.notifications || []);
-      setUnreadCount(res.data.unreadCount || 0);
+      setNotifications(res.data?.notifications || []);
+      setUnreadCount(res.data?.unreadCount || 0);
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Failed to load notifications');
+      if (err?.response?.status !== 401) {
+        setError(err?.response?.data?.error || err?.message || 'Failed to load notifications');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
     fetchNotifications();
 
     // Poll periodically every 60 seconds
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   // Close when clicking outside
   useEffect(() => {

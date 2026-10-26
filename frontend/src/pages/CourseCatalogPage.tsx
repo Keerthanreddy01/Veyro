@@ -18,6 +18,7 @@ import type { Course } from '../types/course';
 
 const CATEGORIES = [
   'All',
+  'General',
   'Programming',
   'Design',
   'Business',
@@ -32,92 +33,109 @@ interface CourseCardProps {
   course: Course;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course }) => (
-  <Link
-    to={`/courses/${course._id}`}
-    className="bg-white rounded-2xl border border-[#E7E2DA] p-5 shadow-subtle hover:border-[#A99B8A] hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 group flex flex-col justify-between"
-  >
-    <div>
-      {/* Thumbnail or Icon Banner */}
-      <div className="w-full h-44 bg-[#F6F2EC] rounded-xl flex items-center justify-center overflow-hidden mb-4 relative border border-[#E7E2DA]">
-        {course.thumbnail ? (
-          <img
-            src={getMediaUrl(course.thumbnail)}
-            alt={course.title}
-            className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-            onError={(e) => {
-              const target = e.currentTarget;
-              target.style.display = 'none';
-              const fallback = target.parentElement?.querySelector('.card-thumb-fallback');
-              if (fallback) fallback.classList.remove('hidden');
-            }}
-          />
-        ) : null}
-        <div className={`flex flex-col items-center justify-center gap-2 text-[#77736D] ${course.thumbnail ? 'hidden card-thumb-fallback' : ''}`}>
-          <div className="w-11 h-11 rounded-xl bg-white border border-[#E7E2DA] flex items-center justify-center text-[#171717]">
-            <BookOpen size={20} className="text-[#6F8FA8]" />
+const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+  const [imgError, setImgError] = useState(false);
+  const showImage = Boolean(course.thumbnail && !imgError);
+
+  return (
+    <Link
+      to={`/courses/${course._id}`}
+      className="bg-white rounded-2xl border border-[#E7E2DA] p-5 shadow-subtle hover:border-[#A99B8A] hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 group flex flex-col justify-between"
+    >
+      <div>
+        {/* Thumbnail or Icon Banner */}
+        <div className="w-full h-44 bg-[#F6F2EC] rounded-xl flex items-center justify-center overflow-hidden mb-4 relative border border-[#E7E2DA]">
+          {showImage ? (
+            <img
+              src={getMediaUrl(course.thumbnail)}
+              alt={course.title}
+              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 text-[#77736D]">
+              <div className="w-11 h-11 rounded-xl bg-white border border-[#E7E2DA] flex items-center justify-center text-[#171717]">
+                <BookOpen size={20} className="text-[#6F8FA8]" />
+              </div>
+              <span className="text-[11px] font-medium text-[#77736D] font-sans">
+                Veyro Curriculum
+              </span>
+            </div>
+          )}
+
+          {/* Verified Badge */}
+          <div className="absolute top-2.5 right-2.5">
+            <Badge variant="verified" icon={<ShieldCheck size={12} />}>
+              Audited
+            </Badge>
           </div>
-          <span className="text-[11px] font-medium text-[#77736D] font-sans">
-            Veyro Curriculum
-          </span>
         </div>
 
-        {/* Verified Badge */}
-        <div className="absolute top-2.5 right-2.5">
-          <Badge variant="verified" icon={<ShieldCheck size={12} />}>
-            Audited
-          </Badge>
+        {/* Category & Level */}
+        <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+          <Badge variant="neutral">{course.category || 'General'}</Badge>
+          {course.level && <Badge variant="draft">{course.level}</Badge>}
+          {course.targetGrade && (
+            <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-md bg-[#F4EFE6] text-[#78644A] border border-[#E7E2DA]">
+              {course.targetGrade}
+            </span>
+          )}
         </div>
+
+        {/* Title & Description */}
+        <h3 className="font-sans font-semibold text-[#171717] text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-[#6F8FA8] transition-colors">
+          {course.title}
+        </h3>
+        <p className="text-[#77736D] text-xs line-clamp-2 leading-relaxed font-sans mb-4">
+          {course.description || 'Master core concepts through structured lessons and verified assessments.'}
+        </p>
       </div>
 
-      {/* Category & Level */}
-      <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-        <Badge variant="neutral">{course.category || 'General'}</Badge>
-        {course.level && <Badge variant="draft">{course.level}</Badge>}
-        {course.targetGrade && (
-          <span className="text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-md bg-[#F4EFE6] text-[#78644A] border border-[#E7E2DA]">
-            {course.targetGrade}
-          </span>
-        )}
+      {/* Footer Meta */}
+      <div className="pt-3 border-t border-[#E7E2DA]/60 flex items-center justify-between text-xs text-[#77736D] font-sans">
+        <span className="flex items-center gap-1">
+          <Clock size={12} />
+          <span>Self-paced</span>
+        </span>
+        <span className="text-[#171717] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+          <span>View course</span>
+          <ArrowRight size={12} />
+        </span>
       </div>
-
-      {/* Title & Description */}
-      <h3 className="font-sans font-semibold text-[#171717] text-base leading-snug line-clamp-2 mb-1.5 group-hover:text-[#6F8FA8] transition-colors">
-        {course.title}
-      </h3>
-      <p className="text-[#77736D] text-xs line-clamp-2 leading-relaxed font-sans mb-4">
-        {course.description || 'Master core concepts through structured lessons and verified assessments.'}
-      </p>
-    </div>
-
-    {/* Footer Meta */}
-    <div className="pt-3 border-t border-[#E7E2DA]/60 flex items-center justify-between text-xs text-[#77736D] font-sans">
-      <span className="flex items-center gap-1">
-        <Clock size={12} />
-        <span>Self-paced</span>
-      </span>
-      <span className="text-[#171717] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-        <span>View course</span>
-        <ArrowRight size={12} />
-      </span>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
 export default function CourseCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCatalog = () => {
+    setLoading(true);
+    setError(null);
+    api.get('/courses?catalog=true&limit=100')
+      .then(({ data }) => setCourses(data.courses || []))
+      .catch((err) => {
+        setError(err.response?.data?.error || 'Failed to load courses from catalog.');
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    api.get('/courses')
-      .then(({ data }) => setCourses(data.courses || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    fetchCatalog();
   }, []);
 
-  const published = courses.filter((c) => c.status === 'published' || !c.status);
+  const isFixture = (c: Course) => {
+    if ((c as any).isTestFixture) return true;
+    if (c.tags?.some((t: string) => ['test', 'audit', 'fixture', 'automated-test', 'live-test'].includes(t.toLowerCase()))) return true;
+    if (/^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i.test(c.title)) return true;
+    return false;
+  };
+
+  const published = courses.filter((c) => (c.status === 'published' || !c.status) && !isFixture(c));
 
   const filtered = published.filter((c) => {
     const matchesSearch =
@@ -181,6 +199,23 @@ export default function CourseCatalogPage() {
         {loading ? (
           <div className="py-20 flex justify-center">
             <Loader2 size={24} className="animate-spin text-[#A99B8A]" />
+          </div>
+        ) : error ? (
+          <div className="bg-white rounded-2xl border border-[#E7E2DA] p-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF1F2] border border-[#FFE4E6] flex items-center justify-center mx-auto text-[#BE123C]">
+              <BookOpen size={20} />
+            </div>
+            <h3 className="font-serif text-lg text-[#171717]">Unable to load catalog</h3>
+            <p className="text-xs text-[#77736D] max-w-sm mx-auto">
+              {error}
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchCatalog}
+            >
+              Retry
+            </Button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#E7E2DA] p-12 text-center space-y-3">

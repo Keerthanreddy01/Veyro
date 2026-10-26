@@ -85,13 +85,18 @@ export default function CourseDetailPage() {
       navigate('/login', { state: { from: { pathname: `/courses/${id}` } } });
       return;
     }
+    if (user.role !== 'student') {
+      toast('Administrators and instructors have direct preview access and do not enroll as students.', { icon: 'ℹ️' });
+      return;
+    }
     setEnrolling(true);
     try {
       await api.post(`/courses/${id}/enroll`);
       toast.success('Successfully enrolled in curriculum!');
       window.location.reload();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Enrollment failed');
+      const errMsg = err?.response?.data?.error || err?.message || 'Enrollment failed';
+      toast.error(errMsg);
     } finally {
       setEnrolling(false);
     }
@@ -110,7 +115,9 @@ export default function CourseDetailPage() {
 
   if (!course) return null;
 
+  const isAdminOrInstructor = user?.role === 'admin' || user?.role === 'instructor';
   const isEnrolled = !!enrollment;
+  const canAccessLesson = isEnrolled || isAdminOrInstructor;
   const totalLessons = modules.reduce((acc, m) => acc + (m.lessons?.length || 0), 0);
   const firstLesson = modules[0]?.lessons?.[0];
 
@@ -236,10 +243,10 @@ export default function CourseDetailPage() {
                                   <Icon size={14} className="text-[#6F8FA8]" />
                                   <span>{les.title}</span>
                                 </div>
-                                {isEnrolled ? (
+                                {canAccessLesson ? (
                                   <Link to={`/lessons/${les._id}`}>
                                     <Button variant="secondary" size="sm">
-                                      Start
+                                      {isAdminOrInstructor ? 'Preview' : 'Start'}
                                     </Button>
                                   </Link>
                                 ) : (
@@ -256,10 +263,10 @@ export default function CourseDetailPage() {
                                 <HelpCircle size={14} className="text-[#777B61]" />
                                 <span className="font-medium">{mod.quiz.title || 'Module Assessment'}</span>
                               </div>
-                              {isEnrolled ? (
+                              {canAccessLesson ? (
                                 <Link to={`/quiz/${mod.quiz._id}`}>
                                   <Button variant="outline" size="sm">
-                                    Take Quiz
+                                    {isAdminOrInstructor ? 'Preview Quiz' : 'Take Quiz'}
                                   </Button>
                                 </Link>
                               ) : (
@@ -281,17 +288,25 @@ export default function CourseDetailPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#77736D] uppercase font-sans">Enrollment</span>
-                  <Badge variant={isEnrolled ? 'published' : 'neutral'}>
-                    {isEnrolled ? 'Enrolled' : 'Open Access'}
+                  <span className="text-xs font-semibold text-[#77736D] uppercase font-sans">
+                    {isAdminOrInstructor ? 'Curriculum Access' : 'Enrollment'}
+                  </span>
+                  <Badge variant={isEnrolled ? 'published' : isAdminOrInstructor ? 'verified' : 'neutral'}>
+                    {isEnrolled ? 'Enrolled' : isAdminOrInstructor ? (user?.role === 'admin' ? 'Administrator' : 'Instructor') : 'Open Access'}
                   </Badge>
                 </div>
                 <CardTitle className="text-xl">
-                  {isEnrolled ? 'Resume Your Learning' : 'Start Curriculum'}
+                  {isEnrolled
+                    ? 'Resume Your Learning'
+                    : isAdminOrInstructor
+                    ? `${user?.role === 'admin' ? 'Administrative' : 'Instructor'} Preview`
+                    : 'Start Curriculum'}
                 </CardTitle>
                 <CardDescription>
                   {isEnrolled
                     ? `You are currently ${progress.percentage}% through this curriculum.`
+                    : isAdminOrInstructor
+                    ? `As an accredited ${user?.role}, you have full evaluation and preview access to all syllabus modules and lesson media.`
                     : 'Enroll to stream video lessons, complete assessments, and earn an accredited certificate.'}
                 </CardDescription>
               </CardHeader>
@@ -320,6 +335,18 @@ export default function CourseDetailPage() {
                       </Link>
                     )}
                   </>
+                ) : isAdminOrInstructor ? (
+                  firstLesson ? (
+                    <Link to={`/lessons/${firstLesson._id}`} className="block">
+                      <Button variant="primary" className="w-full" rightIcon={<ArrowRight size={14} />}>
+                        Preview curriculum lessons
+                      </Button>
+                    </Link>
+                  ) : (
+                    <p className="text-xs text-[#77736D] text-center py-2">
+                      No lessons have been added to this curriculum yet.
+                    </p>
+                  )
                 ) : (
                   <Button
                     variant="primary"

@@ -129,13 +129,98 @@ const dropCourse = async (req, res, next) => {
   }
 };
 
-/** GET /api/enrollments/my — student's enrolled courses */
+const Quiz = require('../models/Quiz');
+const QuizAttempt = require('../models/QuizAttempt');
+
+/** GET /api/enrollments/my — student's enrolled courses with progress enrichment */
 const getMyEnrollments = async (req, res, next) => {
   try {
     const enrollments = await Enrollment.find({ studentId: req.user.userId })
       .populate({ path: 'courseId', populate: { path: 'instructorId', select: 'name' } })
       .sort({ enrolledAt: -1 });
-    res.json({ enrollments });
+
+    if (!enrollments.length) {
+      return res.json({ enrollments: [] });
+    }
+
+    const courseIds = enrollments.map((e) => e.courseId?._id || e.courseId).filter(Boolean);
+    const modules = await Module.find({ courseId: { $in: courseIds } }, '_id courseId');
+    const moduleToCourse = {};
+    const allModuleIds = [];
+    for (const m of modules) {
+      if (m.courseId) {
+        moduleToCourse[m._id.toString()] = m.courseId.toString();
+        allModuleIds.push(m._id);
+      }
+    }
+
+    const lessons = await Lesson.find({ moduleId: { $in: allModuleIds } }, '_id moduleId');
+    const courseLessonMap = {};
+    const allLessonIds = [];
+    for (const l of lessons) {
+      const cId = moduleToCourse[l.moduleId.toString()];
+      if (cId) {
+        if (!courseLessonMap[cId]) courseLessonMap[cId] = [];
+        courseLessonMap[cId].push(l._id);
+        allLessonIds.push(l._id);
+      }
+    }
+
+    const quizzes = await Quiz.find({ moduleId: { $in: allModuleIds } }, '_id moduleId');
+    const courseQuizMap = {};
+    const allQuizIds = [];
+    for (const q of quizzes) {
+      const cId = moduleToCourse[q.moduleId.toString()];
+      if (cId) {
+        if (!courseQuizMap[cId]) courseQuizMap[cId] = [];
+        courseQuizMap[cId].push(q._id);
+        allQuizIds.push(q._id);
+      }
+    }
+
+    const completedProgress = await Progress.find({
+      studentId: req.user.userId,
+      lessonId: { $in: allLessonIds },
+      completed: true,
+    }, 'lessonId');
+    const completedLessonIdSet = new Set(completedProgress.map((p) => p.lessonId.toString()));
+
+    const passedAttempts = await QuizAttempt.find({
+      studentId: req.user.userId,
+      quizId: { $in: allQuizIds },
+      passed: true,
+    }, 'quizId');
+    const passedQuizIdSet = new Set(passedAttempts.map((a) => a.quizId.toString()));
+
+    const enrichedEnrollments = enrollments.map((en) => {
+      const enObj = en.toObject();
+      const cId = (en.courseId?._id || en.courseId)?.toString();
+      const cLessons = courseLessonMap[cId] || [];
+      const cQuizzes = courseQuizMap[cId] || [];
+      const totalLessons = cLessons.length;
+      const completedLessons = cLessons.filter((id) => completedLessonIdSet.has(id.toString())).length;
+      const totalQuizzes = cQuizzes.length;
+      const quizzesPassed = cQuizzes.filter((id) => passedQuizIdSet.has(id.toString())).length;
+
+      if (en.status === 'completed') {
+        enObj.progressPercentage = 100;
+        enObj.isEligibleForCertificate = true;
+      } else {
+        enObj.progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+        enObj.isEligibleForCertificate =
+          totalLessons > 0 &&
+          completedLessons >= totalLessons &&
+          quizzesPassed >= totalQuizzes &&
+          en.status !== 'dropped';
+      }
+      enObj.totalLessons = totalLessons;
+      enObj.completedLessons = completedLessons;
+      enObj.totalQuizzes = totalQuizzes;
+      enObj.quizzesPassed = quizzesPassed;
+      return enObj;
+    });
+
+    res.json({ enrollments: enrichedEnrollments });
   } catch (err) { next(err); }
 };
 
@@ -143,6 +228,7 @@ const getMyEnrollments = async (req, res, next) => {
 const getCourseProgress = async (req, res, next) => {
   try {
     const modules = await Module.find({ courseId: req.params.courseId });
+    const moduleIds = modules.map((m) => m._id);
     const lessonIds = [];
     for (const mod of modules) {
       const lessons = await Lesson.find({ moduleId: mod._id }, '_id');
@@ -155,15 +241,38 @@ const getCourseProgress = async (req, res, next) => {
       completed: true,
     });
 
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    res.json({ total, completed, percentage });
+    const quizzes = await Quiz.find({ moduleId: { $in: moduleIds } }, '_id title passingScore');
+    let quizzesPassed = 0;
+    for (const q of quizzes) {
+      const passedAtt = await QuizAttempt.findOne({ studentId: req.user.userId, quizId: q._id, passed: true });
+      if (passedAtt) quizzesPassed++;
+    }
+
+    const enrollment = await Enrollment.findOne({ studentId: req.user.userId, courseId: req.params.courseId });
+    const percentage = enrollment?.status === 'completed'
+      ? 100
+      : (total > 0 ? Math.round((completed / total) * 100) : 0);
+    const isEligibleForCertificate =
+      total > 0 && completed >= total && quizzesPassed >= quizzes.length && enrollment?.status !== 'dropped';
+
+    res.json({
+      total,
+      completed,
+      percentage,
+      totalQuizzes: quizzes.length,
+      quizzesPassed,
+      isEligibleForCertificate,
+      enrollmentStatus: enrollment?.status || 'none',
+      certificateCode: enrollment?.certificateCode || null,
+      completedAt: enrollment?.completedAt || null,
+    });
   } catch (err) { next(err); }
 };
 
 /**
  * POST /api/courses/:courseId/complete
  * Called when student finishes all lessons + quizzes.
- * Generates a certificate if not already issued.
+ * Generates a certificate if not already issued. Idempotent.
  */
 const completeCourse = async (req, res, next) => {
   try {
@@ -174,8 +283,10 @@ const completeCourse = async (req, res, next) => {
     if (!enrollment) return res.status(404).json({ error: 'Enrollment not found.' });
     if (enrollment.status === 'dropped')
       return res.status(400).json({ error: 'Cannot complete a dropped course. Please re-enroll first.' });
-    if (enrollment.status === 'completed')
-      return res.json({ message: 'Already completed.', enrollment });
+    if (enrollment.status === 'completed') {
+      const certPath = `/static/certificates/certificate-${enrollment.certificateCode}.pdf`;
+      return res.json({ message: 'Already completed.', enrollment, certificatePath: certPath });
+    }
 
     // Verify all lessons are actually completed (server-side check)
     const modules = await Module.find({ courseId: req.params.courseId });
@@ -277,15 +388,22 @@ const completeCourse = async (req, res, next) => {
 /** GET /api/verify/:code — public certificate verification */
 const verifyCertificate = async (req, res, next) => {
   try {
-    const enrollment = await Enrollment.findOne({ certificateCode: req.params.code })
+    const code = (req.params.code || '').trim();
+    const enrollment = await Enrollment.findOne({ certificateCode: code })
       .populate('studentId', 'name email')
-      .populate('courseId', 'title');
+      .populate({
+        path: 'courseId',
+        select: 'title category level description instructorId',
+        populate: { path: 'instructorId', select: 'name email' },
+      });
     if (!enrollment) return res.status(404).json({ error: 'Invalid verification code.' });
     res.json({
       valid: true,
+      verificationCode: code,
       student: enrollment.studentId,
       course: enrollment.courseId,
       completedAt: enrollment.completedAt,
+      certificateUrl: `/static/certificates/certificate-${code}.pdf`,
     });
   } catch (err) { next(err); }
 };

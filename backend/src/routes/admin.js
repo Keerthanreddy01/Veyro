@@ -38,12 +38,14 @@ router.patch('/courses/:id/status', reviewCourse);
 
 // Convenient POST /approve and /reject endpoints
 router.post('/courses/:id/approve', (req, res, next) => {
+  req.body = req.body || {};
   req.body.action = req.body.action || 'publish';
   return reviewCourse(req, res, next);
 });
 
 router.post('/courses/:id/reject', (req, res, next) => {
-  req.body.action = 'reject';
+  req.body = req.body || {};
+  req.body.action = req.body.action || 'reject';
   return reviewCourse(req, res, next);
 });
 

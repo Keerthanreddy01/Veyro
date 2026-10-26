@@ -15,6 +15,8 @@ import QuizPage from './pages/QuizPage';
 import CreateCoursePage from './pages/CreateCoursePage';
 import EditCoursePage from './pages/EditCoursePage';
 import StudentProfilePage from './pages/StudentProfilePage';
+import ReelsPage from './pages/ReelsPage';
+import CertificateVerifyPage from './pages/CertificateVerifyPage';
 import StudentOnboardingModal from './components/onboarding/StudentOnboardingModal';
 
 import type { ReactNode } from 'react';
@@ -66,6 +68,9 @@ export default function App() {
                     <Route path="/courses/:id" element={<CourseDetailPage />} />
                     <Route path="/lessons/:id" element={<ProtectedRoute><LessonViewerPage /></ProtectedRoute>} />
                     <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+                    <Route path="/reels" element={<ProtectedRoute><ReelsPage /></ProtectedRoute>} />
+                    <Route path="/verify/:code" element={<CertificateVerifyPage />} />
+                    <Route path="/verify" element={<CertificateVerifyPage />} />
 
                     {/* Instructor only */}
                     <Route path="/instructor/courses/new" element={

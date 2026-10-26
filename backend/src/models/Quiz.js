@@ -55,6 +55,37 @@ const quizSchema = new mongoose.Schema(
       type: Number,
       default: 3,
     },
+    // Examination Integrity & Proctoring Configuration
+    isProctored: {
+      type: Boolean,
+      default: false,
+    },
+    requireCamera: {
+      type: Boolean,
+      default: false,
+    },
+    maxTabViolations: {
+      type: Number,
+      default: 3,
+      min: 1,
+    },
+    randomizeQuestions: {
+      type: Boolean,
+      default: true,
+    },
+    randomizeOptions: {
+      type: Boolean,
+      default: true,
+    },
+    questionPoolSize: {
+      type: Number,
+      default: 0, // 0 = use all questions
+    },
+    reviewStatusPolicy: {
+      type: String,
+      enum: ['strict', 'lenient', 'standard'],
+      default: 'standard',
+    },
   },
   { timestamps: true }
 );

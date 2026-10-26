@@ -49,6 +49,23 @@ async function notifyRevisionPublished(course) {
   }
 }
 
+const FIXTURE_TAGS = ['test', 'audit', 'fixture', 'automated-test', 'live-test'];
+const FIXTURE_TITLE_REGEX = /^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i;
+
+const FIXTURE_EXCLUDE_QUERY = {
+  isTestFixture: { $ne: true },
+  tags: { $nin: FIXTURE_TAGS },
+  title: { $not: FIXTURE_TITLE_REGEX },
+};
+
+const FIXTURE_ONLY_QUERY = {
+  $or: [
+    { isTestFixture: true },
+    { tags: { $in: FIXTURE_TAGS } },
+    { title: { $regex: FIXTURE_TITLE_REGEX } },
+  ],
+};
+
 /**
  * GET /api/courses
  * Public: returns only 'published' courses (student catalog).
@@ -60,10 +77,27 @@ const getCourses = async (req, res, next) => {
     const { role, userId } = req.user || {};
     let query = {};
 
-    if (!role || role === 'student') {
-      // Students and unauthenticated visitors can ONLY view published courses
-      query.status = 'published';
-    } else if (role === 'instructor') {
+    const isCatalogRequest = req.query.catalog === 'true';
+    const isStudioRequest = (req.query.studio === 'true' || req.query.mine === 'true') && !isCatalogRequest;
+
+    if (role === 'admin' && !isCatalogRequest) {
+      if (req.query.fixtures === 'true' || req.query.status === 'audit_fixtures') {
+        // Administrative audit workflow: query internal test and audit fixtures
+        Object.assign(query, FIXTURE_ONLY_QUERY);
+      } else if (req.query.status) {
+        if (['pending', 'under_review'].includes(req.query.status)) {
+          query.status = { $in: ['pending', 'under_review'] };
+        } else {
+          query.status = req.query.status;
+        }
+        // Exclude test fixtures from the published moderation query unless explicitly requested with includeFixtures=true
+        if (req.query.status === 'published' && req.query.includeFixtures !== 'true') {
+          Object.assign(query, FIXTURE_EXCLUDE_QUERY);
+        }
+      } else if (req.query.excludeFixtures === 'true') {
+        Object.assign(query, FIXTURE_EXCLUDE_QUERY);
+      }
+    } else if (role === 'instructor' && isStudioRequest) {
       query.instructorId = userId;
       if (req.query.status) {
         if (['pending', 'under_review'].includes(req.query.status)) {
@@ -72,13 +106,16 @@ const getCourses = async (req, res, next) => {
           query.status = req.query.status;
         }
       }
-    } else if (role === 'admin') {
-      if (req.query.status) {
-        if (['pending', 'under_review'].includes(req.query.status)) {
-          query.status = { $in: ['pending', 'under_review'] };
-        } else {
-          query.status = req.query.status;
-        }
+      if (req.query.includeFixtures !== 'true') {
+        Object.assign(query, FIXTURE_EXCLUDE_QUERY);
+      }
+    } else {
+      // Students, unauthenticated visitors, and instructors browsing the public catalog / ordinary discovery:
+      // Return only published courses and strictly exclude internal test and audit fixtures.
+      query.status = 'published';
+      // Only an authenticated administrator can explicitly include fixtures with includeFixtures=true
+      if (!(role === 'admin' && req.query.includeFixtures === 'true')) {
+        Object.assign(query, FIXTURE_EXCLUDE_QUERY);
       }
     }
 
@@ -88,7 +125,7 @@ const getCourses = async (req, res, next) => {
     }
 
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
+    const limit = parseInt(req.query.limit) || (role === 'admin' ? 100 : 20);
     const skip = (page - 1) * limit;
 
     // Text search support
@@ -124,6 +161,8 @@ const getCourseById = async (req, res, next) => {
     if (!course) return res.status(404).json({ error: 'Course not found.' });
 
     const { role, userId } = req.user || {};
+    const instructorOwnerId = course.instructorId?._id?.toString() || course.instructorId?.toString();
+
     // Check if user is an actively or previously enrolled student in this course
     let isEnrolledUser = false;
     if (userId) {
@@ -131,12 +170,21 @@ const getCourseById = async (req, res, next) => {
       if (en) isEnrolledUser = true;
     }
 
+    // Check if course is an internal test/audit fixture
+    const isFixture = Boolean(course.isTestFixture) ||
+      (course.tags && course.tags.some((t) => FIXTURE_TAGS.includes(t.toLowerCase()))) ||
+      FIXTURE_TITLE_REGEX.test(course.title);
+
+    // Internal test/audit fixtures are excluded from public/student direct access unless user is admin, course instructor, or already enrolled
+    if (isFixture && role !== 'admin' && instructorOwnerId !== userId && !isEnrolledUser) {
+      return res.status(404).json({ error: 'Course not found.' });
+    }
+
     // Students and unauthenticated visitors can view published courses or courses they are already enrolled in
     if ((!role || role === 'student') && course.status !== 'published' && !isEnrolledUser) {
       return res.status(403).json({ error: 'This course is not yet published.' });
     }
     // Instructors can only view their own unpublished courses (unless published or admin)
-    const instructorOwnerId = course.instructorId?._id?.toString() || course.instructorId?.toString();
     if (role === 'instructor' && instructorOwnerId !== userId && course.status !== 'published') {
       return res.status(403).json({ error: 'Access denied.' });
     }
@@ -168,7 +216,17 @@ const getCourseById = async (req, res, next) => {
           questionCount: q.questions ? q.questions.length : 0,
         }));
 
-        return { ...mod.toObject(), lessons, quizzes: safeQuizzes };
+        const safeLessons = lessons.map((l) => {
+          const obj = l.toObject ? l.toObject() : { ...l };
+          if (obj.type === 'video') {
+            const resolved = obj.videoUrl || obj.contentUrl || null;
+            obj.videoUrl = resolved;
+            obj.contentUrl = resolved;
+          }
+          return obj;
+        });
+
+        return { ...mod.toObject(), lessons: safeLessons, quizzes: safeQuizzes };
       })
     );
 
@@ -423,8 +481,20 @@ const publishCourse = async (req, res, next) => {
     if (course.instructorId.toString() !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied.' });
     }
-    if (course.status !== 'approved') {
+    // Instructors can only publish approved courses; Admins can publish approved or under-review courses
+    if (course.status !== 'approved' && !(req.user.role === 'admin' && ['under_review', 'pending'].includes(course.status))) {
       return res.status(400).json({ error: 'Course must be approved by an administrator before it can be published.' });
+    }
+
+    // Require at least 1 module and 1 lesson before publication
+    const modules = await Module.find({ courseId: course._id });
+    if (modules.length === 0) {
+      return res.status(400).json({ error: 'Cannot publish a course without any modules. Please add at least one module.' });
+    }
+    const moduleIds = modules.map((m) => m._id);
+    const lessonCount = await Lesson.countDocuments({ moduleId: { $in: moduleIds } });
+    if (lessonCount === 0) {
+      return res.status(400).json({ error: 'Cannot publish a course without any lessons. Please add at least one lesson.' });
     }
 
     course.status = 'published';
@@ -472,16 +542,22 @@ const reviewCourse = async (req, res, next) => {
     const course = await Course.findById(req.params.id);
     if (!course) return res.status(404).json({ error: 'Course not found.' });
 
-    const targetAction = (req.body.status || req.body.action || '').toLowerCase();
+    const body = req.body || {};
+    const targetAction = (body.status || body.action || '').toLowerCase();
     if (!['approve', 'approved', 'reject', 'rejected', 'publish', 'published'].includes(targetAction)) {
       return res.status(400).json({ error: "Action must be 'approve', 'reject', or 'publish'." });
+    }
+
+    // Clean status transition check: Cannot review a draft course that was never submitted
+    if (course.status === 'draft') {
+      return res.status(400).json({ error: 'Cannot review a course that is still in draft. The instructor must submit it for review first.' });
     }
 
     let auditAction = null;
     let auditMetadata = { title: course.title, version: course.version };
 
     if (['reject', 'rejected'].includes(targetAction)) {
-      const reasonText = (req.body.reason || req.body.rejectionReason || '').trim();
+      const reasonText = (body.reason || body.rejectionReason || '').trim();
       if (!reasonText) {
         return res.status(400).json({ error: 'Rejection reason is required.' });
       }
@@ -496,6 +572,17 @@ const reviewCourse = async (req, res, next) => {
       course.reviewedAt = new Date();
       auditAction = AUDIT_ACTIONS.COURSE_APPROVED;
     } else if (['publish', 'published'].includes(targetAction)) {
+      // Require at least 1 module and 1 lesson before publication
+      const modules = await Module.find({ courseId: course._id });
+      if (modules.length === 0) {
+        return res.status(400).json({ error: 'Cannot publish a course without any modules. Please add at least one module.' });
+      }
+      const moduleIds = modules.map((m) => m._id);
+      const lessonCount = await Lesson.countDocuments({ moduleId: { $in: moduleIds } });
+      if (lessonCount === 0) {
+        return res.status(400).json({ error: 'Cannot publish a course without any lessons. Please add at least one lesson.' });
+      }
+
       course.status = 'published';
       course.rejectionReason = null;
       course.reviewedAt = new Date();

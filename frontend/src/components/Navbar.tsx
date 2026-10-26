@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   User,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import useAuthStore from '../store/authStore';
@@ -32,16 +33,21 @@ export default function Navbar() {
       ? [
           { to: '/dashboard', label: 'Instructor Studio', icon: Layers },
           { to: '/courses', label: 'Browse Courses', icon: Compass },
+          { to: '/reels', label: 'Learning Reels', icon: Sparkles },
           { to: '/instructor/courses/new', label: 'Create Course', icon: PlusCircle },
-          { to: '/profile', label: 'Student Profiles', icon: User },
+          { to: '/verify', label: 'Verify Credential', icon: ShieldCheck },
         ]
       : [
           { to: '/dashboard', label: 'Learning Roadmap', icon: GraduationCap },
           { to: '/courses', label: 'Browse Courses', icon: Compass },
+          { to: '/reels', label: 'Learning Reels', icon: Sparkles },
           { to: '/profile', label: 'Student Profile', icon: User },
+          { to: '/verify', label: 'Verify Credential', icon: ShieldCheck },
         ]
     : [
         { to: '/courses', label: 'Browse Courses', icon: Compass },
+        { to: '/reels', label: 'Learning Reels', icon: Sparkles },
+        { to: '/verify', label: 'Verify Credential', icon: ShieldCheck },
       ];
 
   return (

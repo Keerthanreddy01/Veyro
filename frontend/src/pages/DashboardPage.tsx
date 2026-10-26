@@ -47,6 +47,9 @@ import {
   FileCheck,
   ShieldAlert,
   FileQuestion,
+  Film,
+  Camera,
+  PlayCircle,
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import api from '../api/axios';
@@ -58,7 +61,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import { Modal } from '../components/ui/Modal';
 import { getMediaUrl } from '../utils/media';
 import { formatCourseTitle } from '../utils/courseFormatters';
-import type { Course, Enrollment, CourseStudent, CourseAnalyticsData, QuizSubmission } from '../types/course';
+import type { Course, Enrollment, CourseStudent, CourseAnalyticsData, QuizSubmission, Reel } from '../types/course';
 import type { AuthUser } from '../types/auth';
 
 // ── Refined Metric Card ──────────────────────────────────────────────────────
@@ -86,12 +89,14 @@ const MetricStatCard: React.FC<MetricStatCardProps> = ({ label, value, sublabel,
 
 // ── Student Dashboard ────────────────────────────────────────────────────────
 function StudentDashboard({ user }: { user: AuthUser }) {
+  const navigate = useNavigate();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed' | 'dropped'>('all');
   const [droppingCourseId, setDroppingCourseId] = useState<string | null>(null);
   const [reEnrollingCourseId, setReEnrollingCourseId] = useState<string | null>(null);
+  const [claimingCourseId, setClaimingCourseId] = useState<string | null>(null);
 
   const fetchEnrollments = () => {
     api.get('/enrollments/my')
@@ -103,6 +108,25 @@ function StudentDashboard({ user }: { user: AuthUser }) {
   useEffect(() => {
     fetchEnrollments();
   }, []);
+
+  const handleClaimCertificate = async (courseId: string) => {
+    setClaimingCourseId(courseId);
+    try {
+      const { data } = await api.post(`/courses/${courseId}/complete`);
+      toast.success('Congratulations! Official accredited certificate issued!');
+      fetchEnrollments();
+      if (data.enrollment?.certificateCode) {
+        navigate(`/verify/${data.enrollment.certificateCode}`);
+      }
+    } catch (err: any) {
+      toast.error(
+        err.response?.data?.error ||
+          'Could not claim certificate. Please ensure all video requirements and quizzes are completed.'
+      );
+    } finally {
+      setClaimingCourseId(null);
+    }
+  };
 
   const handleDropCourse = async (courseId: string, courseTitle: string) => {
     if (!window.confirm(`Are you sure you want to drop "${courseTitle}"? Your progress will be safely preserved.`)) {
@@ -333,11 +357,19 @@ function StudentDashboard({ user }: { user: AuthUser }) {
                         </Link>
                         <div className="flex items-center gap-4 text-xs text-[#77736D]">
                           <span>Progress: {en.progressPercentage || 0}%</span>
-                          {en.certificateCode && (
+                          {en.certificateCode ? (
                             <span className="text-[#556943] flex items-center gap-1 font-medium">
                               <Award size={12} /> Certificate ready
                             </span>
-                          )}
+                          ) : en.isEligibleForCertificate ? (
+                            <span className="text-[#556943] flex items-center gap-1 font-medium">
+                              <Award size={12} /> Eligible for Certificate
+                            </span>
+                          ) : (en.progressPercentage || 0) >= 100 && (en.quizzesPassed || 0) < (en.totalQuizzes || 0) ? (
+                            <span className="text-amber-600 flex items-center gap-1 font-medium">
+                              <HelpCircle size={12} /> Assessment Required
+                            </span>
+                          ) : null}
                         </div>
                       </div>
 
@@ -354,6 +386,34 @@ function StudentDashboard({ user }: { user: AuthUser }) {
                           </Button>
                         ) : (
                           <>
+                            {en.certificateCode ? (
+                              <Link to={`/verify/${en.certificateCode}`}>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  leftIcon={<ShieldCheck size={13} className="text-[#556943]" />}
+                                >
+                                  Verify
+                                </Button>
+                              </Link>
+                            ) : en.isEligibleForCertificate ? (
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handleClaimCertificate(course._id)}
+                                disabled={claimingCourseId === course._id}
+                                leftIcon={<Award size={13} />}
+                              >
+                                {claimingCourseId === course._id ? 'Issuing...' : 'Claim Certificate'}
+                              </Button>
+                            ) : (en.progressPercentage || 0) >= 100 && (en.quizzesPassed || 0) < (en.totalQuizzes || 0) ? (
+                              <Link to={`/courses/${course._id}`}>
+                                <Button variant="outline" size="sm" leftIcon={<HelpCircle size={13} />}>
+                                  Take Quiz
+                                </Button>
+                              </Link>
+                            ) : null}
+
                             <Link to={`/courses/${course._id}`}>
                               <Button variant="secondary" size="sm">
                                 View
@@ -414,6 +474,31 @@ function StudentDashboard({ user }: { user: AuthUser }) {
             </CardContent>
           </Card>
 
+          {/* AI Learning Reels Feed Feature */}
+          <div className="bg-gradient-to-br from-[#171717] to-[#2B2B2B] text-white rounded-2xl p-5 border border-[#3E3E3E] space-y-3.5 shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded text-white flex items-center gap-1">
+                <Sparkles size={11} className="text-[#A3B899]" /> LearnVerse Reels
+              </span>
+              <Film size={16} className="text-white/60" />
+            </div>
+            <div>
+              <h4 className="font-serif text-base font-medium text-white">Micro-Learning Feed</h4>
+              <p className="text-xs text-white/70 leading-relaxed mt-1">
+                Revise core concepts from your curriculum in bite-sized vertical video reels with interactive knowledge checks.
+              </p>
+            </div>
+            <Link to="/reels" className="block pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full bg-white text-[#171717] hover:bg-[#FAF8F4] border-white font-semibold flex items-center justify-center gap-1.5"
+              >
+                <PlayCircle size={14} /> Open Reels Feed
+              </Button>
+            </Link>
+          </div>
+
           {/* Academic Milestone Panel */}
           <Card>
             <CardHeader>
@@ -450,10 +535,10 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'curricula' | 'roster' | 'analytics' | 'assessments' | 'notifications'>('curricula');
+  const [activeTab, setActiveTab] = useState<'curricula' | 'roster' | 'analytics' | 'assessments' | 'notifications' | 'reels'>('curricula');
 
   // Filters for Curricula tab
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'under_review' | 'draft' | 'rejected'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'approved' | 'under_review' | 'draft' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Roster Tab state
@@ -475,6 +560,19 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
   const [quizSubmissions, setQuizSubmissions] = useState<QuizSubmission[]>([]);
   const [quizSubmissionsLoading, setQuizSubmissionsLoading] = useState(false);
 
+  // Learning Reels Tab state
+  const [selectedCourseForReels, setSelectedCourseForReels] = useState<string>('');
+  const [courseReels, setCourseReels] = useState<Reel[]>([]);
+  const [reelsLoading, setReelsLoading] = useState(false);
+  const [generatingReels, setGeneratingReels] = useState(false);
+  const [previewReel, setPreviewReel] = useState<Reel | null>(null);
+
+  // Exam Integrity Review Modal state
+  const [reviewingSubmission, setReviewingSubmission] = useState<QuizSubmission | null>(null);
+  const [reviewStatusInput, setReviewStatusInput] = useState<'pending_review' | 'cleared' | 'flagged' | 'verified'>('pending_review');
+  const [instructorNotesInput, setInstructorNotesInput] = useState<string>('');
+  const [isSavingReview, setIsSavingReview] = useState(false);
+
   // Notifications Tab state
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -489,7 +587,7 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
 
   const fetchCourses = () => {
     setLoading(true);
-    api.get('/courses')
+    api.get('/courses?studio=true')
       .then(({ data }) => {
         const all: Course[] = data.courses || [];
         const myCourses = all.filter((c) => {
@@ -502,6 +600,7 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
           if (!selectedCourseForRoster) setSelectedCourseForRoster(myCourses[0]._id);
           if (!selectedCourseForAnalytics) setSelectedCourseForAnalytics(myCourses[0]._id);
           if (!selectedCourseForAssessments) setSelectedCourseForAssessments(myCourses[0]._id);
+          if (!selectedCourseForReels) setSelectedCourseForReels(myCourses[0]._id);
         }
       })
       .catch(() => toast.error('Failed to load courses.'))
@@ -595,6 +694,94 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
     }
   }, [selectedCourseForAssessments, activeTab]);
 
+  // Fetch Reels when selected course changes or tab activates
+  useEffect(() => {
+    if (activeTab === 'reels' && selectedCourseForReels) {
+      loadCourseReels(selectedCourseForReels);
+    }
+  }, [selectedCourseForReels, activeTab]);
+
+  const loadCourseReels = (courseId: string) => {
+    setReelsLoading(true);
+    api.get(`/reels/courses/${courseId}`)
+      .then(({ data }) => {
+        setCourseReels(data.reels || []);
+      })
+      .catch((err: any) => {
+        toast.error(err.response?.data?.error || 'Failed to load reels');
+        setCourseReels([]);
+      })
+      .finally(() => setReelsLoading(false));
+  };
+
+  const handleGenerateReels = async (courseId: string) => {
+    setGeneratingReels(true);
+    try {
+      const { data } = await api.post(`/reels/courses/${courseId}/generate`);
+      toast.success(data.message || 'AI Reels generated from curriculum!');
+      loadCourseReels(courseId);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to generate reels');
+    } finally {
+      setGeneratingReels(false);
+    }
+  };
+
+  const handleTogglePublishReel = async (reelId: string, currentPublished: boolean) => {
+    try {
+      const { data } = await api.patch(`/reels/${reelId}`, { isPublished: !currentPublished });
+      toast.success(data.reel?.isPublished ? 'Reel published to feed' : 'Reel unpublished to draft');
+      setCourseReels((prev) => prev.map((r) => (r._id === reelId ? data.reel : r)));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to update reel');
+    }
+  };
+
+  const handleDeleteReel = async (reelId: string) => {
+    if (!window.confirm('Delete this learning reel?')) return;
+    try {
+      await api.delete(`/reels/${reelId}`);
+      toast.success('Reel deleted');
+      setCourseReels((prev) => prev.filter((r) => r._id !== reelId));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to delete reel');
+    }
+  };
+
+  const openReviewModal = (sub: QuizSubmission) => {
+    setReviewingSubmission(sub);
+    setReviewStatusInput(sub.reviewStatus || 'pending_review');
+    setInstructorNotesInput(sub.instructorNotes || '');
+  };
+
+  const handleSaveReview = async () => {
+    if (!reviewingSubmission) return;
+    setIsSavingReview(true);
+    try {
+      const { data } = await api.patch(`/quizzes/attempts/${reviewingSubmission._id}/review`, {
+        reviewStatus: reviewStatusInput,
+        instructorNotes: instructorNotesInput,
+      });
+      toast.success('Integrity review updated successfully');
+      setQuizSubmissions((prev) =>
+        prev.map((sub) =>
+          sub._id === reviewingSubmission._id
+            ? {
+                ...sub,
+                reviewStatus: data.attempt?.reviewStatus || reviewStatusInput,
+                instructorNotes: data.attempt?.instructorNotes || instructorNotesInput,
+              }
+            : sub
+        )
+      );
+      setReviewingSubmission(null);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to save review');
+    } finally {
+      setIsSavingReview(false);
+    }
+  };
+
   const loadQuizSubmissions = (quizId: string) => {
     setQuizSubmissionsLoading(true);
     api.get(`/quizzes/${quizId}/submissions`)
@@ -628,6 +815,19 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
       fetchCourses();
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Failed to submit course for review');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handlePublishCourse = async (courseId: string) => {
+    setIsActionLoading(true);
+    try {
+      await api.post(`/courses/${courseId}/publish`);
+      toast.success('Course successfully published to catalog!');
+      fetchCourses();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Publishing failed');
     } finally {
       setIsActionLoading(false);
     }
@@ -709,6 +909,7 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
 
   // Metrics calculation
   const published = courses.filter((c) => c.status === 'published').length;
+  const approved = courses.filter((c) => c.status === 'approved').length;
   const pending = courses.filter((c) => c.status === 'under_review').length;
   const drafts = courses.filter((c) => c.status === 'draft').length;
   const rejected = courses.filter((c) => c.status === 'rejected').length;
@@ -853,6 +1054,18 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
             </span>
           )}
         </button>
+
+        <button
+          onClick={() => setActiveTab('reels')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+            activeTab === 'reels'
+              ? 'border-[#171717] text-[#171717]'
+              : 'border-transparent text-[#77736D] hover:text-[#171717]'
+          }`}
+        >
+          <Film size={15} />
+          <span>Learning Reels Studio</span>
+        </button>
       </div>
 
       {/* ── TAB 1: AUTHORED CURRICULA & LIFECYCLE ────────────────────────── */}
@@ -881,6 +1094,7 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
                     [
                       { key: 'all', label: 'All Curricula', count: courses.length },
                       { key: 'published', label: 'Published', count: published },
+                      { key: 'approved', label: 'Approved', count: approved },
                       { key: 'under_review', label: 'Under Review', count: pending },
                       { key: 'draft', label: 'Drafts', count: drafts },
                       { key: 'rejected', label: 'Needs Revisions', count: rejected },
@@ -1040,6 +1254,18 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
                             Curriculum Editor
                           </Button>
                         </Link>
+
+                        {c.status === 'approved' && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            leftIcon={<Check size={13} />}
+                            onClick={() => handlePublishCourse(c._id)}
+                            className="bg-[#556943] hover:bg-[#435334] text-white"
+                          >
+                            Publish
+                          </Button>
+                        )}
 
                         {c.status === 'draft' && (
                           <Button
@@ -1569,10 +1795,11 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
                           <tr className="border-b border-[#E7E2DA] text-[#77736D] font-semibold">
                             <th className="pb-3 font-medium">Student</th>
                             <th className="pb-3 font-medium">Score</th>
-                            <th className="pb-3 font-medium">Result</th>
-                            <th className="pb-3 font-medium">Tab Violations</th>
-                            <th className="pb-3 font-medium">Submission Mode</th>
-                            <th className="pb-3 font-medium text-right">Attempt Date</th>
+                            <th className="pb-3 font-medium">Proctoring Mode</th>
+                            <th className="pb-3 font-medium">Integrity Signals</th>
+                            <th className="pb-3 font-medium">Review Status</th>
+                            <th className="pb-3 font-medium">Mode</th>
+                            <th className="pb-3 font-medium text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#E7E2DA]/60">
@@ -1583,42 +1810,95 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
                                 <p className="text-[11px] text-[#77736D]">{sub.student?.email || ''}</p>
                               </td>
 
-                              <td className="py-3.5 font-bold text-sm text-[#171717]">
-                                {sub.score}%
+                              <td className="py-3.5 pr-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-sm text-[#171717]">{sub.score}%</span>
+                                  <Badge variant={sub.passed ? 'published' : 'rejected'}>
+                                    {sub.passed ? 'Passed' : 'Failed'}
+                                  </Badge>
+                                </div>
                               </td>
 
-                              <td className="py-3.5">
-                                <Badge variant={sub.passed ? 'published' : 'rejected'}>
-                                  {sub.passed ? 'Passed' : 'Failed'}
+                              <td className="py-3.5 pr-4">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {sub.isProctored ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FAF8F4] border border-[#E7E2DA] text-[#171717]">
+                                      <Shield size={10} className="text-[#6F8FA8]" /> Proctored
+                                    </span>
+                                  ) : (
+                                    <span className="text-[11px] text-[#77736D]">Standard</span>
+                                  )}
+                                  {sub.requireCamera && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#F6F2EC] text-[#171717]">
+                                      <Camera size={10} /> Cam
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3.5 pr-4">
+                                <div className="space-y-1">
+                                  {sub.tabViolations > 0 ? (
+                                    <span className="inline-flex items-center gap-1 text-[#BE123C] font-semibold">
+                                      <ShieldAlert size={12} />
+                                      <span>{sub.tabViolations} tab exit{sub.tabViolations > 1 ? 's' : ''}</span>
+                                    </span>
+                                  ) : null}
+                                  {(sub.cameraViolations || 0) > 0 ? (
+                                    <span className="inline-flex items-center gap-1 text-[#BE123C] font-semibold ml-2">
+                                      <Camera size={12} />
+                                      <span>{sub.cameraViolations} cam issue{(sub.cameraViolations || 0) > 1 ? 's' : ''}</span>
+                                    </span>
+                                  ) : null}
+                                  {sub.tabViolations === 0 && (!sub.cameraViolations || sub.cameraViolations === 0) && (
+                                    <span className="text-[#15803D] font-semibold flex items-center gap-1">
+                                      <ShieldCheck size={12} /> Clean session
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3.5 pr-4">
+                                <Badge
+                                  variant={
+                                    sub.reviewStatus === 'cleared'
+                                      ? 'published'
+                                      : sub.reviewStatus === 'flagged'
+                                      ? 'rejected'
+                                      : sub.reviewStatus === 'verified'
+                                      ? 'neutral'
+                                      : 'pending'
+                                  }
+                                >
+                                  {sub.reviewStatus === 'cleared'
+                                    ? 'Cleared'
+                                    : sub.reviewStatus === 'flagged'
+                                    ? 'Flagged'
+                                    : sub.reviewStatus === 'verified'
+                                    ? 'Verified'
+                                    : 'Pending Review'}
                                 </Badge>
                               </td>
 
-                              <td className="py-3.5">
-                                {sub.tabViolations > 0 ? (
-                                  <span className="inline-flex items-center gap-1 text-[#BE123C] font-semibold">
-                                    <ShieldAlert size={13} />
-                                    <span>{sub.tabViolations} violation{sub.tabViolations > 1 ? 's' : ''}</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-[#15803D] font-semibold flex items-center gap-1">
-                                    <ShieldCheck size={13} />
-                                    <span>Clean</span>
-                                  </span>
-                                )}
-                              </td>
-
-                              <td className="py-3.5 text-[#77736D]">
+                              <td className="py-3.5 pr-4 text-[#77736D]">
                                 {sub.autoSubmitted ? (
-                                  <span className="text-amber-700 font-medium">
-                                    Auto-submitted ({sub.autoSubmitReason || 'Policy'})
+                                  <span className="text-amber-700 font-medium text-[11px]">
+                                    Auto: {sub.autoSubmitReason || 'Policy'}
                                   </span>
                                 ) : (
-                                  <span>Standard submission</span>
+                                  <span className="text-[11px]">Normal</span>
                                 )}
                               </td>
 
-                              <td className="py-3.5 text-right text-[#77736D]">
-                                {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString() : 'N/A'}
+                              <td className="py-3.5 text-right">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => openReviewModal(sub)}
+                                  leftIcon={<Eye size={12} />}
+                                >
+                                  Audit & Review
+                                </Button>
                               </td>
                             </tr>
                           ))}
@@ -1770,6 +2050,178 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
         </div>
       )}
 
+      {/* ── TAB 6: LEARNING REELS STUDIO ─────────────────────────────────── */}
+      {activeTab === 'reels' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">AI Learning Reels Studio</CardTitle>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#F6F2EC] px-2 py-0.5 rounded text-[#171717] border border-[#E7E2DA]">
+                      LearnVerse Engine
+                    </span>
+                  </div>
+                  <CardDescription>
+                    Generate vertical micro-learning reels from course lessons. AI segments core concepts, generates scripts and captions, highlights takeaways, and adds quick knowledge checks.
+                  </CardDescription>
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="w-full sm:w-64">
+                    <select
+                      value={selectedCourseForReels}
+                      onChange={(e) => setSelectedCourseForReels(e.target.value)}
+                      className="w-full bg-[#FAF8F4] border border-[#E7E2DA] rounded-lg px-3 py-2 text-xs text-[#171717] outline-none focus:border-[#171717]"
+                    >
+                      {courses.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleGenerateReels(selectedCourseForReels)}
+                    isLoading={generatingReels}
+                    disabled={!selectedCourseForReels}
+                    leftIcon={<Sparkles size={14} />}
+                  >
+                    Generate AI Reels from Lessons
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {/* Summary Stats Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+                <MetricStatCard label="Total Reels" value={courseReels.length} icon={Film} />
+                <MetricStatCard
+                  label="Published"
+                  value={courseReels.filter((r) => r.isPublished).length}
+                  icon={CheckCircle}
+                />
+                <MetricStatCard
+                  label="Student Views"
+                  value={courseReels.reduce((acc, r) => acc + (r.viewsCount || 0), 0)}
+                  icon={Eye}
+                />
+                <MetricStatCard
+                  label="Completions"
+                  value={courseReels.reduce((acc, r) => acc + (r.completionsCount || 0), 0)}
+                  icon={Award}
+                />
+              </div>
+
+              {reelsLoading ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-3">
+                  <Loader2 size={28} className="animate-spin text-[#A99B8A]" />
+                  <p className="text-xs text-[#77736D]">Loading learning reels...</p>
+                </div>
+              ) : courseReels.length === 0 ? (
+                <div className="text-center py-16 space-y-4 max-w-md mx-auto">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F6F2EC] border border-[#E7E2DA] flex items-center justify-center mx-auto text-[#A99B8A]">
+                    <Film size={22} />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg text-[#171717]">No learning reels generated yet</h3>
+                    <p className="text-xs text-[#77736D] mt-1 leading-relaxed">
+                      Transform curriculum lessons into bite-sized vertical video clips with automatic speech narration, timed captions, and retention quizzes.
+                    </p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleGenerateReels(selectedCourseForReels)}
+                    isLoading={generatingReels}
+                    disabled={!selectedCourseForReels}
+                    leftIcon={<Sparkles size={14} />}
+                  >
+                    Generate AI Reels Now
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {courseReels.map((reel) => (
+                    <div
+                      key={reel._id}
+                      className="bg-[#FAF8F4] border border-[#E7E2DA] rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-[#171717]/30 transition-all shadow-2xs"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge variant={reel.isPublished ? 'published' : 'draft'}>
+                            {reel.isPublished ? 'Published Live' : 'Draft'}
+                          </Badge>
+                          <span className="text-[11px] font-mono text-[#77736D] bg-[#F6F2EC] px-2 py-0.5 rounded border border-[#E7E2DA]">
+                            {reel.durationSeconds || 45}s duration
+                          </span>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#77736D]">
+                            Concept: {reel.concept}
+                          </p>
+                          <h4 className="font-serif text-base text-[#171717] font-medium leading-snug line-clamp-2 mt-0.5">
+                            {reel.title}
+                          </h4>
+                        </div>
+
+                        <p className="text-xs text-[#77736D] line-clamp-3 leading-relaxed">
+                          {reel.script?.hook || reel.script?.coreExplanation || 'AI-generated micro-learning script.'}
+                        </p>
+
+                        <div className="flex items-center gap-4 text-[11px] text-[#77736D] pt-1">
+                          <span className="flex items-center gap-1">
+                            <Eye size={12} className="text-[#6F8FA8]" /> {reel.viewsCount || 0} views
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Award size={12} className="text-[#556943]" /> {reel.completionsCount || 0} completions
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#E7E2DA]/80">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setPreviewReel(reel)}
+                          leftIcon={<Eye size={12} />}
+                        >
+                          Preview
+                        </Button>
+
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant={reel.isPublished ? 'outline' : 'primary'}
+                            size="sm"
+                            onClick={() => handleTogglePublishReel(reel._id, !!reel.isPublished)}
+                          >
+                            {reel.isPublished ? 'Unpublish' : 'Publish'}
+                          </Button>
+
+                          <button
+                            onClick={() => handleDeleteReel(reel._id)}
+                            className="p-1.5 rounded-lg text-[#77736D] hover:text-[#BE123C] hover:bg-[#F6F2EC] transition-colors cursor-pointer"
+                            title="Delete reel"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* ── MODALS ──────────────────────────────────────────────────────── */}
 
       {/* Submit for Review Confirmation Modal */}
@@ -1856,6 +2308,283 @@ function InstructorDashboard({ user }: { user: AuthUser }) {
           </div>
         </Modal>
       )}
+
+      {/* Exam Integrity Telemetry & Attempt Audit Modal */}
+      {reviewingSubmission && (
+        <Modal
+          isOpen={true}
+          onClose={() => setReviewingSubmission(null)}
+          title="Exam Integrity & Proctoring Telemetry Audit"
+          maxWidth="lg"
+        >
+          <div className="space-y-6 text-xs font-sans max-h-[75vh] overflow-y-auto pr-1">
+            {/* Student & Session Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-[#FAF8F4] border border-[#E7E2DA] rounded-xl">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-[#77736D]">Student</p>
+                <p className="font-semibold text-[#171717] text-sm mt-0.5">
+                  {reviewingSubmission.student?.name || 'Student'}
+                </p>
+                <p className="text-[#77736D] text-[11px]">{reviewingSubmission.student?.email}</p>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase font-bold text-[#77736D]">Assessment Performance</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-bold text-[#171717] text-sm">{reviewingSubmission.score}%</span>
+                  <Badge variant={reviewingSubmission.passed ? 'published' : 'rejected'}>
+                    {reviewingSubmission.passed ? 'Passed' : 'Failed'}
+                  </Badge>
+                </div>
+                <p className="text-[#77736D] text-[11px] mt-0.5">
+                  {reviewingSubmission.autoSubmitted
+                    ? `Auto-submitted (${reviewingSubmission.autoSubmitReason || 'Threshold'})`
+                    : 'Submitted normally'}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[10px] uppercase font-bold text-[#77736D]">Session Timing</p>
+                <p className="text-[#171717] mt-0.5">
+                  Started: {reviewingSubmission.startedAt ? new Date(reviewingSubmission.startedAt).toLocaleTimeString() : 'N/A'}
+                </p>
+                <p className="text-[#77736D] text-[11px]">
+                  Submitted: {reviewingSubmission.submittedAt ? new Date(reviewingSubmission.submittedAt).toLocaleTimeString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Telemetry Metric Cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-white border border-[#E7E2DA] text-center">
+                <p className="text-[11px] text-[#77736D]">Tab / Focus Exits</p>
+                <p className={`font-bold text-lg mt-0.5 ${reviewingSubmission.tabViolations > 0 ? 'text-[#BE123C]' : 'text-[#15803D]'}`}>
+                  {reviewingSubmission.tabViolations || 0}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white border border-[#E7E2DA] text-center">
+                <p className="text-[11px] text-[#77736D]">Camera Violations</p>
+                <p className={`font-bold text-lg mt-0.5 ${(reviewingSubmission.cameraViolations || 0) > 0 ? 'text-[#BE123C]' : 'text-[#15803D]'}`}>
+                  {reviewingSubmission.cameraViolations || 0}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white border border-[#E7E2DA] text-center">
+                <p className="text-[11px] text-[#77736D]">Total Telemetry Events</p>
+                <p className="font-bold text-lg text-[#171717] mt-0.5">
+                  {reviewingSubmission.integrityEvents?.length || 0}
+                </p>
+              </div>
+            </div>
+
+            {/* Audit Event Timeline */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <p className="font-serif text-sm font-semibold text-[#171717] flex items-center gap-1.5">
+                  <ShieldAlert size={14} className="text-[#A99B8A]" /> Timestamped Integrity Event Timeline
+                </p>
+                <span className="text-[10px] text-[#77736D]">Server-audited chronological log</span>
+              </div>
+
+              {!reviewingSubmission.integrityEvents || reviewingSubmission.integrityEvents.length === 0 ? (
+                <div className="p-4 rounded-xl bg-[#FAF8F4] border border-[#E7E2DA] text-center text-[#77736D]">
+                  <ShieldCheck size={20} className="mx-auto text-[#15803D] mb-1.5" />
+                  <p className="font-semibold text-[#171717]">Clean Assessment Session</p>
+                  <p className="text-[11px] mt-0.5">
+                    No focus-loss or camera anomalies were recorded during this proctored attempt.
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#E7E2DA] border border-[#E7E2DA] rounded-xl bg-white overflow-hidden max-h-52 overflow-y-auto">
+                  {reviewingSubmission.integrityEvents.map((evt, idx) => (
+                    <div key={idx} className="p-3 flex items-start justify-between gap-3 text-xs hover:bg-[#FAF8F4]/50">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              evt.severity === 'violation'
+                                ? 'bg-red-100 text-red-800'
+                                : evt.severity === 'warning'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-zinc-100 text-zinc-700'
+                            }`}
+                          >
+                            {evt.eventType.replace(/_/g, ' ')}
+                          </span>
+                          <span className="text-[11px] text-[#77736D] font-mono">
+                            {new Date(evt.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <p className="text-[#171717] text-[11px] mt-1">{evt.description}</p>
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
+                          evt.severity === 'violation'
+                            ? 'text-red-700 bg-red-50'
+                            : evt.severity === 'warning'
+                            ? 'text-amber-700 bg-amber-50'
+                            : 'text-zinc-600 bg-zinc-50'
+                        }`}
+                      >
+                        {evt.severity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Instructor Review & Verdict */}
+            <div className="p-4 bg-[#FAF8F4] border border-[#E7E2DA] rounded-xl space-y-4">
+              <p className="font-serif text-sm font-semibold text-[#171717]">Instructor Review & Verdict</p>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[#77736D] block">
+                  Official Integrity Review Status
+                </label>
+                <select
+                  value={reviewStatusInput}
+                  onChange={(e) => setReviewStatusInput(e.target.value as any)}
+                  className="w-full bg-white border border-[#E7E2DA] rounded-lg px-3 py-2 text-xs text-[#171717] outline-none focus:border-[#171717]"
+                >
+                  <option value="pending_review">Pending Review (Under investigation)</option>
+                  <option value="cleared">Cleared (Benign anomalies / Approved)</option>
+                  <option value="flagged">Flagged (Confirmed Misconduct / Disqualified)</option>
+                  <option value="verified">Verified (Manually proctored & certified)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[#77736D] block">
+                  Instructor Audit Notes & Justification
+                </label>
+                <textarea
+                  value={instructorNotesInput}
+                  onChange={(e) => setInstructorNotesInput(e.target.value)}
+                  placeholder="Record justification for review decision (e.g. verified brief tab switch was accidental window refocus)..."
+                  rows={3}
+                  className="w-full bg-white border border-[#E7E2DA] rounded-lg p-2.5 text-xs text-[#171717] outline-none focus:border-[#171717] resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E7E2DA]">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setReviewingSubmission(null)}
+                disabled={isSavingReview}
+              >
+                Close
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isSavingReview}
+                onClick={handleSaveReview}
+                leftIcon={<ShieldCheck size={14} />}
+              >
+                Save Decision & Notes
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Reel Preview Modal */}
+      {previewReel && (
+        <Modal
+          isOpen={true}
+          onClose={() => setPreviewReel(null)}
+          title={`Preview Reel: ${previewReel.title}`}
+          maxWidth="md"
+        >
+          <div className="space-y-5 text-xs font-sans max-h-[75vh] overflow-y-auto pr-1">
+            <div className="p-3.5 bg-[#FAF8F4] border border-[#E7E2DA] rounded-xl space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#77736D]">
+                  Concept: {previewReel.concept}
+                </span>
+                <span className="font-mono text-[11px] text-[#77736D]">{previewReel.durationSeconds || 45}s</span>
+              </div>
+              <h3 className="font-serif text-base text-[#171717] font-semibold">{previewReel.title}</h3>
+            </div>
+
+            {/* Script Breakdown */}
+            <div className="space-y-3">
+              <p className="font-serif text-sm font-semibold text-[#171717]">AI Script Structure</p>
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg bg-white border border-[#E7E2DA]">
+                  <p className="text-[10px] uppercase font-bold text-[#77736D]">Hook (0s - 5s)</p>
+                  <p className="text-[#171717] mt-0.5">{previewReel.script?.hook}</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-white border border-[#E7E2DA]">
+                  <p className="text-[10px] uppercase font-bold text-[#77736D]">Core Concept (5s - 30s)</p>
+                  <p className="text-[#171717] mt-0.5">{previewReel.script?.coreExplanation}</p>
+                </div>
+                <div className="p-2.5 rounded-lg bg-white border border-[#E7E2DA]">
+                  <p className="text-[10px] uppercase font-bold text-[#77736D]">Real-World Application (30s - 45s)</p>
+                  <p className="text-[#171717] mt-0.5">{previewReel.script?.practicalApplication}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Takeaways */}
+            {previewReel.takeaways && previewReel.takeaways.length > 0 && (
+              <div className="space-y-2">
+                <p className="font-serif text-sm font-semibold text-[#171717]">Key Takeaways</p>
+                <ul className="space-y-1.5 bg-[#FAF8F4] border border-[#E7E2DA] rounded-xl p-3">
+                  {previewReel.takeaways.map((t, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-[#171717]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#556943] mt-1.5 flex-shrink-0" />
+                      <span>{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Interactive Quick Knowledge Check */}
+            {previewReel.quickQuestion && (
+              <div className="space-y-2.5 p-3.5 bg-white border border-[#E7E2DA] rounded-xl">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#77736D]">
+                  Interactive Knowledge Check
+                </p>
+                <p className="font-semibold text-[#171717] text-sm">{previewReel.quickQuestion.question}</p>
+                <div className="space-y-1.5 pt-1">
+                  {previewReel.quickQuestion.options?.map((opt, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-2.5 rounded-lg border text-xs flex items-center justify-between ${
+                        idx === previewReel.quickQuestion?.correctIndex
+                          ? 'bg-[#556943]/10 border-[#556943] text-[#556943] font-semibold'
+                          : 'bg-[#FAF8F4] border-[#E7E2DA] text-[#77736D]'
+                      }`}
+                    >
+                      <span>{opt}</span>
+                      {idx === previewReel.quickQuestion?.correctIndex && (
+                        <Check size={14} className="text-[#556943]" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {previewReel.quickQuestion.explanation && (
+                  <p className="text-[11px] text-[#77736D] italic pt-1">
+                    Explanation: {previewReel.quickQuestion.explanation}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end pt-3 border-t border-[#E7E2DA]">
+              <Button variant="outline" size="sm" onClick={() => setPreviewReel(null)}>
+                Close Preview
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -1921,7 +2650,9 @@ function AdminDashboard({ user }: { user: AuthUser }) {
   // 1. Course Moderation State
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
-  const [courseFilter, setCourseFilter] = useState<'under_review' | 'all' | 'published' | 'rejected'>('under_review');
+  const [courseFilter, setCourseFilter] = useState<
+    'under_review' | 'all' | 'published' | 'rejected' | 'audit_fixtures'
+  >('under_review');
   const [courseSearch, setCourseSearch] = useState('');
   const [reviewCourse, setReviewCourse] = useState<Course | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -1974,7 +2705,7 @@ function AdminDashboard({ user }: { user: AuthUser }) {
   // Fetch Courses
   const fetchCourses = () => {
     setCoursesLoading(true);
-    api.get('/courses')
+    api.get('/courses?limit=100')
       .then(({ data }) => setCourses(data.courses || []))
       .catch(() => {})
       .finally(() => setCoursesLoading(false));
@@ -2044,13 +2775,14 @@ function AdminDashboard({ user }: { user: AuthUser }) {
   const handleApproveCourse = async (courseId: string) => {
     setIsActionLoading(true);
     try {
-      await api.post(`/admin/courses/${courseId}/approve`);
+      await api.post(`/admin/courses/${courseId}/approve`, { action: 'publish' });
       toast.success('Course approved and published to catalog.');
       setReviewCourse(null);
       fetchCourses();
       fetchMetrics();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Course approval failed');
+      const errMsg = err?.response?.data?.error || err?.message || 'Course approval failed';
+      toast.error(errMsg);
     } finally {
       setIsActionLoading(false);
     }
@@ -2064,14 +2796,15 @@ function AdminDashboard({ user }: { user: AuthUser }) {
     }
     setIsActionLoading(true);
     try {
-      await api.post(`/admin/courses/${courseId}/reject`, { reason: rejectReason.trim() });
+      await api.post(`/admin/courses/${courseId}/reject`, { reason: rejectReason.trim(), action: 'reject' });
       toast.success('Course rejected and instructor notified.');
       setReviewCourse(null);
       setRejectReason('');
       fetchCourses();
       fetchMetrics();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Rejection failed');
+      const errMsg = err?.response?.data?.error || err?.message || 'Rejection failed';
+      toast.error(errMsg);
     } finally {
       setIsActionLoading(false);
     }
@@ -2198,9 +2931,29 @@ function AdminDashboard({ user }: { user: AuthUser }) {
     }
   };
 
+  const isFixtureCourse = (c: Course) => {
+    if ((c as any).isTestFixture) return true;
+    if (c.tags?.some((t: string) => ['test', 'audit', 'fixture', 'automated-test', 'live-test'].includes(t.toLowerCase()))) return true;
+    if (/^(?:\[(?:live\s+)?(?:audit\s+)?test\]|audit\s+curriculum|test\s+(?:cascade|curriculum)|(?:audit|test)\b.*\b\d{6,})/i.test(c.title)) return true;
+    return false;
+  };
+
   // Filtered Courses
   const filteredCourses = courses.filter((c) => {
-    const matchStatus = courseFilter === 'all' ? true : c.status === courseFilter;
+    const isFix = isFixtureCourse(c);
+    let matchStatus = false;
+    if (courseFilter === 'audit_fixtures') {
+      matchStatus = isFix;
+    } else if (isFix) {
+      matchStatus = false;
+    } else if (courseFilter === 'all') {
+      matchStatus = true;
+    } else if (courseFilter === 'under_review') {
+      matchStatus = c.status === 'under_review' || c.status === 'pending';
+    } else {
+      matchStatus = c.status === courseFilter;
+    }
+
     const matchSearch =
       c.title.toLowerCase().includes(courseSearch.toLowerCase()) ||
       c.category.toLowerCase().includes(courseSearch.toLowerCase());
@@ -2232,7 +2985,9 @@ function AdminDashboard({ user }: { user: AuthUser }) {
     return t.status === testimonialFilter;
   });
 
-  const pendingCoursesCount = courses.filter((c) => c.status === 'under_review').length;
+  const pendingCoursesCount = courses.filter(
+    (c) => (c.status === 'under_review' || c.status === 'pending') && !isFixtureCourse(c)
+  ).length;
   const pendingTestimonialsCount = testimonials.filter((t) => t.status === 'pending').length;
 
   return (
@@ -2401,7 +3156,7 @@ function AdminDashboard({ user }: { user: AuthUser }) {
               {/* Sub-filters & Search */}
               <div className="flex flex-wrap items-center gap-2.5">
                 <div className="flex items-center gap-1 bg-[#F6F2EC] p-1 rounded-xl">
-                  {(['under_review', 'all', 'published', 'rejected'] as const).map((tab) => (
+                  {(['under_review', 'all', 'published', 'rejected', 'audit_fixtures'] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setCourseFilter(tab)}
@@ -2411,7 +3166,7 @@ function AdminDashboard({ user }: { user: AuthUser }) {
                           : 'text-[#77736D] hover:text-[#171717]'
                       }`}
                     >
-                      {tab.replace('_', ' ')}
+                      {tab === 'audit_fixtures' ? 'Audit Fixtures' : tab.replace('_', ' ')}
                     </button>
                   ))}
                 </div>
@@ -2442,6 +3197,8 @@ function AdminDashboard({ user }: { user: AuthUser }) {
                 <p className="text-xs text-[#77736D] max-w-sm mx-auto">
                   {courseFilter === 'under_review'
                     ? 'No instructor submissions are currently awaiting review.'
+                    : courseFilter === 'audit_fixtures'
+                    ? 'No internal test or audit fixtures found.'
                     : 'No courses match your selected filter criteria.'}
                 </p>
               </div>
@@ -2481,6 +3238,11 @@ function AdminDashboard({ user }: { user: AuthUser }) {
                           {c.version && (
                             <span className="text-[11px] font-mono bg-[#F6F2EC] px-1.5 py-0.2 rounded border border-[#E7E2DA]">
                               v{c.version}
+                            </span>
+                          )}
+                          {isFixtureCourse(c) && (
+                            <span className="text-[10px] font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded">
+                              Audit Fixture
                             </span>
                           )}
                         </div>

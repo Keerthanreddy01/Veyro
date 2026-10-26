@@ -78,4 +78,15 @@ const useAuthStore = create<AuthStore>((set, get) => ({
   clearError: () => set({ error: null }),
 }));
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth:token-refreshed', ((e: CustomEvent<{ accessToken: string; refreshToken: string }>) => {
+    if (e.detail?.accessToken && e.detail?.refreshToken) {
+      useAuthStore.setState({
+        accessToken: e.detail.accessToken,
+        refreshToken: e.detail.refreshToken,
+      });
+    }
+  }) as EventListener);
+}
+
 export default useAuthStore;

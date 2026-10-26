@@ -24,9 +24,14 @@ const lessonSchema = new mongoose.Schema(
       enum: ['video', 'pdf', 'text'],
       required: true,
     },
-    // For video/pdf: relative path inside /uploads.
+    // For video/pdf: relative path inside /uploads or direct/YouTube video URL.
     // For text: store content directly in this field.
     contentUrl: {
+      type: String,
+      default: null,
+    },
+    // Explicit video URL field for seamless compatibility across clients
+    videoUrl: {
       type: String,
       default: null,
     },
@@ -52,5 +57,43 @@ const lessonSchema = new mongoose.Schema(
 );
 
 lessonSchema.index({ moduleId: 1, order: 1 });
+
+// Ensure videoUrl and contentUrl remain synchronized
+lessonSchema.pre('save', function (next) {
+  if (this.type === 'video') {
+    const url = this.videoUrl || this.contentUrl;
+    if (url) {
+      this.videoUrl = url;
+      this.contentUrl = url;
+    }
+  }
+  if (typeof next === 'function') {
+    return next();
+  }
+});
+
+lessonSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    if (ret.type === 'video') {
+      const url = ret.videoUrl || ret.contentUrl;
+      ret.videoUrl = url || null;
+      ret.contentUrl = url || null;
+    }
+    return ret;
+  },
+});
+
+lessonSchema.set('toObject', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    if (ret.type === 'video') {
+      const url = ret.videoUrl || ret.contentUrl;
+      ret.videoUrl = url || null;
+      ret.contentUrl = url || null;
+    }
+    return ret;
+  },
+});
 
 module.exports = mongoose.model('Lesson', lessonSchema);

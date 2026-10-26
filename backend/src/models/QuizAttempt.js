@@ -89,6 +89,71 @@ const quizAttemptSchema = new mongoose.Schema(
       enum: ['timeout', 'violations', null],
       default: null,
     },
+    // Proctoring & Integrity Signals Tracking
+    isProctored: {
+      type: Boolean,
+      default: false,
+    },
+    requireCamera: {
+      type: Boolean,
+      default: false,
+    },
+    cameraViolations: {
+      type: Number,
+      default: 0,
+    },
+    integrityEvents: [
+      {
+        eventType: {
+          type: String,
+          required: true,
+          enum: [
+            'tab_hidden',
+            'tab_blur',
+            'face_absent',
+            'prolonged_absence',
+            'multiple_faces',
+            'camera_interrupted',
+            'camera_restored',
+            'network_disconnect',
+            'network_reconnect',
+            'session_resumed',
+          ],
+        },
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+        severity: {
+          type: String,
+          enum: ['info', 'warning', 'critical'],
+          default: 'warning',
+        },
+        description: {
+          type: String,
+          default: '',
+        },
+      },
+    ],
+    // Instructor Review State
+    reviewStatus: {
+      type: String,
+      enum: ['cleared', 'flagged', 'pending_review', 'verified'],
+      default: 'cleared',
+    },
+    instructorNotes: {
+      type: String,
+      default: '',
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
