@@ -165,9 +165,10 @@ const getCourseById = async (req, res, next) => {
 
     // Check if user is an actively or previously enrolled student in this course
     let isEnrolledUser = false;
+    let studentEnrollmentDoc = null;
     if (userId) {
-      const en = await Enrollment.findOne({ studentId: userId, courseId: course._id });
-      if (en) isEnrolledUser = true;
+      studentEnrollmentDoc = await Enrollment.findOne({ studentId: userId, courseId: course._id }).lean();
+      if (studentEnrollmentDoc) isEnrolledUser = true;
     }
 
     // Check if course is an internal test/audit fixture
@@ -197,40 +198,130 @@ const getCourseById = async (req, res, next) => {
       .select('_id title version')
       .lean();
 
-    // Attach modules + lessons + quizzes
-    const modules = await Module.find({ courseId: course._id }).sort('order');
-    const modulesWithLessons = await Promise.all(
-      modules.map(async (mod) => {
-        const [lessons, quizzes] = await Promise.all([
-          Lesson.find({ moduleId: mod._id }).sort('order').select('-textContent'),
-          Quiz.find({ moduleId: mod._id }).sort('createdAt'),
-        ]);
+    // High Performance Batching: Fetch all modules, lessons, and quizzes in 3 parallel queries
+    const modules = await Module.find({ courseId: course._id }).sort('order').lean();
+    const moduleIds = modules.map((m) => m._id);
 
-        const safeQuizzes = quizzes.map((q) => ({
-          _id: q._id,
-          moduleId: q.moduleId,
-          title: q.title,
-          timeLimitSeconds: q.timeLimitSeconds,
-          passingScore: q.passingScore,
-          maxAttempts: q.maxAttempts,
-          questionCount: q.questions ? q.questions.length : 0,
-        }));
+    const [allLessons, allQuizzes] = await Promise.all([
+      moduleIds.length > 0
+        ? Lesson.find({ moduleId: { $in: moduleIds } })
+            .sort('order')
+            .select('-textContent')
+            .lean()
+        : [],
+      moduleIds.length > 0
+        ? Quiz.find({ moduleId: { $in: moduleIds } })
+            .select('_id moduleId title timeLimitSeconds passingScore maxAttempts questions')
+            .sort('createdAt')
+            .lean()
+        : [],
+    ]);
 
-        const safeLessons = lessons.map((l) => {
-          const obj = l.toObject ? l.toObject() : { ...l };
-          if (obj.type === 'video') {
-            const resolved = obj.videoUrl || obj.contentUrl || null;
-            obj.videoUrl = resolved;
-            obj.contentUrl = resolved;
-          }
-          return obj;
-        });
+    // Group lessons and quizzes by moduleId in memory
+    const lessonsByModule = {};
+    const allLessonIds = [];
+    for (const l of allLessons) {
+      const mid = l.moduleId.toString();
+      if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
+      if (l.type === 'video') {
+        const resolved = l.videoUrl || l.contentUrl || null;
+        l.videoUrl = resolved;
+        l.contentUrl = resolved;
+      }
+      lessonsByModule[mid].push(l);
+      allLessonIds.push(l._id);
+    }
 
-        return { ...mod.toObject(), lessons: safeLessons, quizzes: safeQuizzes };
-      })
-    );
+    const quizzesByModule = {};
+    const allQuizIds = [];
+    for (const q of allQuizzes) {
+      const mid = q.moduleId.toString();
+      if (!quizzesByModule[mid]) quizzesByModule[mid] = [];
+      quizzesByModule[mid].push({
+        _id: q._id,
+        moduleId: q.moduleId,
+        title: q.title,
+        timeLimitSeconds: q.timeLimitSeconds,
+        passingScore: q.passingScore,
+        maxAttempts: q.maxAttempts,
+        questionCount: q.questions ? q.questions.length : 0,
+      });
+      allQuizIds.push(q._id);
+    }
 
-    res.json({ course, modules: modulesWithLessons, latestRevision: latestRevision || null });
+    const modulesWithLessons = modules.map((mod) => {
+      const mid = mod._id.toString();
+      return {
+        ...mod,
+        lessons: lessonsByModule[mid] || [],
+        quizzes: quizzesByModule[mid] || [],
+      };
+    });
+
+    // If student is enrolled, attach progress and enrollment directly to eliminate sequential client round-trips
+    let studentEnrollment = null;
+    let studentProgress = null;
+
+    if (userId && role === 'student' && studentEnrollmentDoc) {
+      studentEnrollment = { ...studentEnrollmentDoc };
+      const Progress = require('../models/Progress');
+      const QuizAttempt = require('../models/QuizAttempt');
+
+      const [completedCount, passedQuizCount] = await Promise.all([
+        allLessonIds.length > 0
+          ? Progress.countDocuments({
+              studentId: userId,
+              lessonId: { $in: allLessonIds },
+              completed: true,
+            })
+          : 0,
+        allQuizIds.length > 0
+          ? QuizAttempt.countDocuments({
+              studentId: userId,
+              quizId: { $in: allQuizIds },
+              passed: true,
+            })
+          : 0,
+      ]);
+
+      const totalLessons = allLessonIds.length;
+      const totalQuizzes = allQuizIds.length;
+      const percentage =
+        studentEnrollmentDoc.status === 'completed'
+          ? 100
+          : totalLessons > 0
+          ? Math.round((completedCount / totalLessons) * 100)
+          : 0;
+
+      const isEligibleForCertificate =
+        totalLessons > 0 &&
+        completedCount >= totalLessons &&
+        passedQuizCount >= totalQuizzes &&
+        studentEnrollmentDoc.status !== 'dropped';
+
+      studentProgress = {
+        percentage,
+        completed: completedCount,
+        total: totalLessons,
+        totalQuizzes,
+        quizzesPassed: passedQuizCount,
+        isEligibleForCertificate,
+        enrollmentStatus: studentEnrollmentDoc.status || 'none',
+        certificateCode: studentEnrollmentDoc.certificateCode || null,
+        completedAt: studentEnrollmentDoc.completedAt || null,
+      };
+
+      studentEnrollment.progressPercentage = percentage;
+      studentEnrollment.isEligibleForCertificate = isEligibleForCertificate;
+    }
+
+    res.json({
+      course,
+      modules: modulesWithLessons,
+      latestRevision: latestRevision || null,
+      enrollment: studentEnrollment,
+      progress: studentProgress,
+    });
   } catch (err) {
     next(err);
   }

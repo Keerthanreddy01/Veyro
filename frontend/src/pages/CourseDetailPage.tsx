@@ -47,9 +47,12 @@ export default function CourseDetailPage() {
   const [latestRevision, setLatestRevision] = useState<Course | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const load = async () => {
       try {
         const { data } = await api.get(`/courses/${id}`);
+        if (!isMounted) return;
+
         setCourse(data.course);
         setModules(data.modules || []);
         setLatestRevision(data.latestRevision || null);
@@ -57,27 +60,47 @@ export default function CourseDetailPage() {
           setOpenModules({ [data.modules[0]._id]: true });
         }
 
-        if (user?.role === 'student') {
+        // Fast path: Backend batch optimization directly attaches enrollment and progress
+        if (data.enrollment !== undefined) {
+          setEnrollment(data.enrollment || null);
+          if (data.progress) {
+            setProgress(data.progress);
+          }
+        } else if (user?.role === 'student') {
+          // Parallel fallback with Promise.allSettled
           try {
-            const { data: enData } = await api.get('/enrollments/my');
-            const found = (enData.enrollments || []).find(
-              (e: any) => e.courseId?._id === id || e.courseId === id
-            );
-            setEnrollment(found || null);
-            if (found) {
-              const { data: prog } = await api.get(`/courses/${id}/progress`);
-              setProgress(prog);
+            const [enRes, progRes] = await Promise.allSettled([
+              api.get('/enrollments/my'),
+              api.get(`/courses/${id}/progress`),
+            ]);
+            if (isMounted) {
+              if (enRes.status === 'fulfilled') {
+                const found = (enRes.value.data.enrollments || []).find(
+                  (e: any) => e.courseId?._id === id || e.courseId === id
+                );
+                setEnrollment(found || null);
+              }
+              if (progRes.status === 'fulfilled') {
+                setProgress(progRes.value.data);
+              }
             }
           } catch {}
         }
       } catch (err) {
-        toast.error('Course not found');
-        navigate('/courses');
+        if (isMounted) {
+          toast.error('Course not found');
+          navigate('/courses');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     load();
+    return () => {
+      isMounted = false;
+    };
   }, [id, navigate, user?.role]);
 
   const handleEnroll = async () => {

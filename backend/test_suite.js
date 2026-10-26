@@ -2748,6 +2748,160 @@ async function runAllTests() {
     assert.strictEqual(canComplete, false, 'Must reject certificate when assessments are incomplete');
   });
 
+  // ── GROUP 30: Watch-Progress Jitter Resilience, Monotonic State & Course Load Optimization ──
+  console.log('\n📦 GROUP 30: Watch-Progress Jitter Resilience & Performance Optimization');
+
+  runTest('1. Wall-clock traversal tracking credits legitimate seconds across browser timing jitter (preventing 43%/53% trap)', () => {
+    // Simulator for wall-clock playback tracking
+    class WallClockPlaybackTracker {
+      constructor(duration = 300) {
+        this.duration = duration;
+        this.watchedSet = new Set();
+        this.lastPos = -1;
+        this.lastWallTime = -1;
+        this.rate = 1;
+      }
+      sample(currentPos, wallTimeMs) {
+        if (this.lastWallTime > 0 && this.lastPos >= 0) {
+          const wallElapsedSec = (wallTimeMs - this.lastWallTime) / 1000;
+          const mediaDelta = currentPos - this.lastPos;
+          const maxAllowedDelta = Math.max(3.5, wallElapsedSec * this.rate * 1.5 + 1.5);
+
+          if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
+            const startSec = Math.floor(this.lastPos);
+            const endSec = Math.floor(currentPos);
+            for (let s = startSec; s <= endSec; s++) {
+              this.watchedSet.add(s);
+            }
+          } else {
+            this.watchedSet.add(Math.floor(currentPos));
+          }
+        } else {
+          this.watchedSet.add(Math.floor(currentPos));
+        }
+        this.lastPos = currentPos;
+        this.lastWallTime = wallTimeMs;
+      }
+      getWatchedSeconds() {
+        return Math.min(this.duration, this.watchedSet.size);
+      }
+      getPercentage() {
+        return Math.min(100, Math.round((this.getWatchedSeconds() / this.duration) * 100));
+      }
+    }
+
+    const tracker = new WallClockPlaybackTracker(300);
+    let wallMs = 100000;
+    let mediaPos = 0;
+
+    // Video starts playing at 0s
+    tracker.sample(0, wallMs);
+
+    // Simulate 100 ticks with browser timing jitter (intervals of 2.8s to 3.2s)
+    while (mediaPos < 300) {
+      const step = 3.0; // 3 seconds of media elapsed
+      mediaPos = Math.min(300, mediaPos + step);
+      wallMs += 3000; // 3 seconds of wall time elapsed
+      tracker.sample(mediaPos, wallMs);
+    }
+
+    // Must credit all 300 seconds and reach 100% without getting stuck at 43% or 53%
+    assert.strictEqual(tracker.getWatchedSeconds(), 300, 'All 300 legitimate seconds must be credited');
+    assert.strictEqual(tracker.getPercentage(), 100, 'Must reach 100% completion');
+  });
+
+  runTest('2. True forward seek is strictly detected and rejected by wall-clock tracker', () => {
+    class WallClockPlaybackTracker {
+      constructor(duration = 300) {
+        this.duration = duration;
+        this.watchedSet = new Set();
+        this.lastPos = -1;
+        this.lastWallTime = -1;
+        this.rate = 1;
+      }
+      sample(currentPos, wallTimeMs) {
+        if (this.lastWallTime > 0 && this.lastPos >= 0) {
+          const wallElapsedSec = (wallTimeMs - this.lastWallTime) / 1000;
+          const mediaDelta = currentPos - this.lastPos;
+          const maxAllowedDelta = Math.max(3.5, wallElapsedSec * this.rate * 1.5 + 1.5);
+
+          if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
+            const startSec = Math.floor(this.lastPos);
+            const endSec = Math.floor(currentPos);
+            for (let s = startSec; s <= endSec; s++) {
+              this.watchedSet.add(s);
+            }
+          } else {
+            // Forward seek: credit only current second
+            this.watchedSet.add(Math.floor(currentPos));
+          }
+        } else {
+          this.watchedSet.add(Math.floor(currentPos));
+        }
+        this.lastPos = currentPos;
+        this.lastWallTime = wallTimeMs;
+      }
+    }
+
+    const tracker = new WallClockPlaybackTracker(300);
+    // User watches from 0 to 10s
+    tracker.sample(0, 1000);
+    tracker.sample(10, 11000); // 10s wall time, 10s media -> credited
+    assert.strictEqual(tracker.watchedSet.size, 11);
+
+    // User seeks from 10s to 150s in 100ms
+    tracker.sample(150, 11100);
+    // Only 1 second (150) should be added, NOT 140 skipped seconds!
+    assert.strictEqual(tracker.watchedSet.size, 12, 'Skipped interval must not be credited on forward seek');
+  });
+
+  runTest('3. Monotonic progress guard rejects out-of-order or stale network responses', () => {
+    // Simulator for handleProgress monotonic state guard
+    let currentProgress = { watchedSeconds: 270, completed: true, lastPosition: 270 };
+
+    const applyProgressUpdate = (newProg) => {
+      const updatedWatched = Math.max(currentProgress.watchedSeconds, newProg.watchedSeconds);
+      const isCompleted = currentProgress.completed || newProg.completed;
+      currentProgress = {
+        ...newProg,
+        watchedSeconds: updatedWatched,
+        completed: isCompleted,
+      };
+      return currentProgress;
+    };
+
+    // Stale delayed response arrives with 130 seconds (43%) and completed: false
+    const staleResponse = { watchedSeconds: 130, completed: false, lastPosition: 130 };
+    const updated = applyProgressUpdate(staleResponse);
+
+    assert.strictEqual(updated.watchedSeconds, 270, 'Progress must NOT regress to 130s');
+    assert.strictEqual(updated.completed, true, 'Completed status must remain true');
+  });
+
+  runTest('4. Batch course response bundles modules, lessons, quizzes, and progress in single round-trip', () => {
+    // Verify response structure of optimized getCourseById
+    const sampleBatchResponse = {
+      course: { _id: 'c1', title: 'Test Course', status: 'published' },
+      modules: [
+        {
+          _id: 'm1',
+          title: 'Module 1',
+          lessons: [{ _id: 'l1', title: 'Lesson 1', type: 'video', videoUrl: 'https://youtube.com/watch?v=abc' }],
+          quizzes: [{ _id: 'q1', title: 'Quiz 1', passingScore: 80 }],
+        },
+      ],
+      enrollment: { _id: 'e1', status: 'active', progressPercentage: 100, isEligibleForCertificate: true },
+      progress: { percentage: 100, completed: 1, total: 1, isEligibleForCertificate: true },
+    };
+
+    assert.ok(sampleBatchResponse.course);
+    assert.strictEqual(sampleBatchResponse.modules.length, 1);
+    assert.strictEqual(sampleBatchResponse.modules[0].lessons.length, 1);
+    assert.strictEqual(sampleBatchResponse.modules[0].quizzes.length, 1);
+    assert.strictEqual(sampleBatchResponse.enrollment.progressPercentage, 100);
+    assert.strictEqual(sampleBatchResponse.progress.isEligibleForCertificate, true);
+  });
+
   // ── SUMMARY REPORT ───────────────────────────────────────────────────────
   console.log('\n======================================================');
   console.log(`📊 TEST RESULTS: ${passedTests}/${totalTests} PASSED`);

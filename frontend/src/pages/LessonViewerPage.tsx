@@ -47,9 +47,12 @@ function YouTubePlayer({
   // Set of verified uniquely traversed seconds
   const watchedSecondsSet = useRef<Set<number>>(new Set());
   const lastPositionRef = useRef<number>(-1);
+  const lastWallTimeRef = useRef<number>(-1);
   const playbackRateRef = useRef<number>(1);
   const samplingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const syncCounterRef = useRef<number>(0);
+  const activeRequestIdRef = useRef<number>(0);
+  const latestResolvedRequestIdRef = useRef<number>(0);
   const initialPositionRef = useRef<number>(
     progress?.completed ? 0 : progress?.lastPosition || 0
   );
@@ -69,22 +72,24 @@ function YouTubePlayer({
     ? `https://www.youtube.com/embed/${resolvedVideoId}?enablejsapi=1${originParam}&rel=0`
     : embedUrl;
 
-  // Initialize previously verified progress so refreshes never lose progress
+  // Initialize and preserve verified progress whenever progress updates
   useEffect(() => {
     const prev = progress?.watchedSeconds || 0;
-    for (let i = 0; i < prev; i++) {
-      watchedSecondsSet.current.add(i);
+    if (prev > 0) {
+      for (let i = 0; i <= prev; i++) {
+        watchedSecondsSet.current.add(i);
+      }
     }
-    if (progress && progress.lastPosition > 0) {
+    if (progress && progress.lastPosition > 0 && lastPositionRef.current < 0) {
       lastPositionRef.current = progress.lastPosition;
     }
-  }, []);
+  }, [progress?.watchedSeconds, progress?.lastPosition]);
 
   // Stable ref for onProgress to prevent player teardowns on progress updates
   const onProgressRef = useRef(onProgress);
   onProgressRef.current = onProgress;
 
-  // Server synchronization helper
+  // Server synchronization helper with out-of-order response protection
   const syncProgress = useCallback(
     async (lastPos?: number) => {
       try {
@@ -93,41 +98,63 @@ function YouTubePlayer({
         const eligibleSeconds = Math.min(requiredDuration, watchedSecondsSet.current.size);
         const pos = typeof lastPos === 'number' ? lastPos : Math.max(0, lastPositionRef.current);
 
+        activeRequestIdRef.current += 1;
+        const reqId = activeRequestIdRef.current;
+
         const { data } = await api.post(`/lessons/${lesson._id}/progress`, {
           watchedSeconds: eligibleSeconds,
           lastPosition: Math.round(pos * 10) / 10,
         });
-        onProgressRef.current(data.progress);
+
+        // Monotonic guard against out-of-order network responses
+        if (reqId >= latestResolvedRequestIdRef.current) {
+          latestResolvedRequestIdRef.current = reqId;
+          onProgressRef.current(data.progress);
+        }
       } catch {}
     },
     [lesson._id, lesson.durationSeconds]
   );
 
-  // Traversal sampling: only award seconds continuously played through (prevents seeking skips)
+  // Wall-clock traversal sampling: compares media advance against real elapsed time
   const samplePlayback = useCallback((currentPos: number) => {
     if (typeof currentPos !== 'number' || isNaN(currentPos) || currentPos < 0) return;
 
-    const lastPos = lastPositionRef.current;
-    const rate = playbackRateRef.current || 1;
-    const maxElapsed = 2.5 * rate; // Allow normal playback jitter, but block forward seeks
+    const now = performance.now();
+    const lastWallTime = lastWallTimeRef.current;
+    lastWallTimeRef.current = now;
 
-    if (lastPos >= 0 && currentPos >= lastPos && currentPos - lastPos <= maxElapsed) {
-      // Legitimate playback: credit all traversed seconds
-      const startSec = Math.floor(lastPos);
-      const endSec = Math.floor(currentPos);
-      for (let s = startSec; s <= endSec; s++) {
-        watchedSecondsSet.current.add(s);
+    const lastPos = lastPositionRef.current;
+    lastPositionRef.current = currentPos;
+
+    if (lastWallTime > 0 && lastPos >= 0) {
+      const wallElapsedSec = (now - lastWallTime) / 1000;
+      const mediaDelta = currentPos - lastPos;
+      const rate = playbackRateRef.current || 1;
+
+      // Generous jitter buffer: allows normal browser GC, background tab throttling, or decoder pauses
+      const maxAllowedDelta = Math.max(3.5, wallElapsedSec * rate * 1.5 + 1.5);
+
+      if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
+        // Legitimate continuous playback: credit all traversed integer seconds
+        const startSec = Math.floor(lastPos);
+        const endSec = Math.floor(currentPos);
+        for (let s = startSec; s <= endSec; s++) {
+          watchedSecondsSet.current.add(s);
+        }
+      } else {
+        // Seeking forward or backward: credit only the landing position second
+        watchedSecondsSet.current.add(Math.floor(currentPos));
       }
     } else {
-      // User seeked forward or backward: credit only the single current second
+      // First tick or resumed from pause
       watchedSecondsSet.current.add(Math.floor(currentPos));
     }
-
-    lastPositionRef.current = currentPos;
   }, []);
 
   const startSampling = useCallback(() => {
     if (samplingIntervalRef.current) clearInterval(samplingIntervalRef.current);
+    lastWallTimeRef.current = performance.now();
 
     samplingIntervalRef.current = setInterval(() => {
       try {
@@ -155,6 +182,7 @@ function YouTubePlayer({
       clearInterval(samplingIntervalRef.current);
       samplingIntervalRef.current = null;
     }
+    lastWallTimeRef.current = -1;
   }, []);
 
   // 1. YouTube IFrame API Initialization — attaches cleanly to the existing iframe
@@ -176,6 +204,7 @@ function YouTubePlayer({
                 // 1: PLAYING, 2: PAUSED, 3: BUFFERING, 0: ENDED
                 if (state === 1) {
                   setIsPlaying(true);
+                  lastWallTimeRef.current = performance.now();
                   if (!hasSeekedInitialRef.current && initialPositionRef.current > 0) {
                     hasSeekedInitialRef.current = true;
                     const seekPos = initialPositionRef.current;
@@ -206,14 +235,18 @@ function YouTubePlayer({
                   setIsPlaying(false);
                   stopSampling();
                 } else if (state === 0) {
+                  // ENDED — student watched to completion
                   setIsPlaying(false);
                   stopSampling();
+                  const duration = lesson.durationSeconds || 300;
                   try {
                     const curr = event.target.getCurrentTime();
                     samplePlayback(curr);
-                    syncProgress(curr);
+                    watchedSecondsSet.current.add(Math.floor(duration));
+                    syncProgress(duration);
                   } catch {
-                    syncProgress();
+                    watchedSecondsSet.current.add(Math.floor(duration));
+                    syncProgress(duration);
                   }
                 }
               },
@@ -267,7 +300,7 @@ function YouTubePlayer({
         playerRef.current = null;
       }
     };
-  }, [lesson._id, samplePlayback, startSampling, stopSampling, syncProgress]);
+  }, [lesson._id, lesson.durationSeconds, samplePlayback, startSampling, stopSampling, syncProgress]);
 
   // 2. PostMessage Fallback Listener (works concurrently with or without YT.Player)
   useEffect(() => {
@@ -290,10 +323,16 @@ function YouTubePlayer({
           if (msg.info.playerState === 1) {
             setIsPlaying(true);
             startSampling();
-          } else if (msg.info.playerState === 2 || msg.info.playerState === 0) {
+          } else if (msg.info.playerState === 2) {
             setIsPlaying(false);
             stopSampling();
             syncProgress(lastPositionRef.current);
+          } else if (msg.info.playerState === 0) {
+            setIsPlaying(false);
+            stopSampling();
+            const duration = lesson.durationSeconds || 300;
+            watchedSecondsSet.current.add(Math.floor(duration));
+            syncProgress(duration);
           } else if (msg.info.playerState === 3) {
             setIsPlaying(false);
             stopSampling();
@@ -304,10 +343,16 @@ function YouTubePlayer({
           if (msg.info === 1) {
             setIsPlaying(true);
             startSampling();
-          } else if (msg.info === 2 || msg.info === 0) {
+          } else if (msg.info === 2) {
             setIsPlaying(false);
             stopSampling();
             syncProgress(lastPositionRef.current);
+          } else if (msg.info === 0) {
+            setIsPlaying(false);
+            stopSampling();
+            const duration = lesson.durationSeconds || 300;
+            watchedSecondsSet.current.add(Math.floor(duration));
+            syncProgress(duration);
           } else if (msg.info === 3) {
             setIsPlaying(false);
             stopSampling();
@@ -320,16 +365,25 @@ function YouTubePlayer({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [samplePlayback, startSampling, stopSampling, syncProgress]);
+  }, [lesson.durationSeconds, samplePlayback, startSampling, stopSampling, syncProgress]);
 
-  // Sync on page unload / component unmount
+  // Lifecycle flush: page unload, tab switch (hidden), and component unmount
   useEffect(() => {
     const handleBeforeUnload = () => {
       syncProgress(lastPositionRef.current);
     };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        syncProgress(lastPositionRef.current);
+      } else {
+        lastWallTimeRef.current = performance.now();
+      }
+    };
     window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       syncProgress(lastPositionRef.current);
     };
   }, [syncProgress]);
@@ -388,19 +442,24 @@ function VideoLesson({ lesson, progress, onProgress }: VideoLessonProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const watchedRef = useRef<Set<number>>(new Set());
   const lastPosRef = useRef<number>(-1);
+  const lastWallTimeRef = useRef<number>(-1);
+  const activeReqRef = useRef<number>(0);
+  const latestResolvedReqRef = useRef<number>(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playbackError, setPlaybackError] = useState(false);
 
-  // Initialize previously verified watch seconds
+  // Initialize and preserve verified watch seconds
   useEffect(() => {
     const prev = progress?.watchedSeconds || 0;
-    for (let i = 0; i < prev; i++) {
-      watchedRef.current.add(i);
+    if (prev > 0) {
+      for (let i = 0; i <= prev; i++) {
+        watchedRef.current.add(i);
+      }
     }
-    if (progress && progress.lastPosition > 0) {
+    if (progress && progress.lastPosition > 0 && lastPosRef.current < 0) {
       lastPosRef.current = progress.lastPosition;
     }
-  }, []);
+  }, [progress?.watchedSeconds, progress?.lastPosition]);
 
   // Check all potential video property keys: videoUrl, contentUrl, videoURL, video
   const rawVideoUrl =
@@ -412,19 +471,30 @@ function VideoLesson({ lesson, progress, onProgress }: VideoLessonProps) {
 
   const videoInfo = getVideoInfo(rawVideoUrl);
 
+  const onProgressRef = useRef(onProgress);
+  onProgressRef.current = onProgress;
+
   const save = useCallback(
     async (lastPos: number) => {
       try {
         const requiredDuration = lesson.durationSeconds || 1;
         const eligibleSeconds = Math.min(requiredDuration, watchedRef.current.size);
+
+        activeReqRef.current += 1;
+        const reqId = activeReqRef.current;
+
         const { data } = await api.post(`/lessons/${lesson._id}/progress`, {
           watchedSeconds: eligibleSeconds,
           lastPosition: Math.round(lastPos * 10) / 10,
         });
-        onProgress(data.progress);
+
+        if (reqId >= latestResolvedReqRef.current) {
+          latestResolvedReqRef.current = reqId;
+          onProgressRef.current(data.progress);
+        }
       } catch {}
     },
-    [lesson._id, lesson.durationSeconds, onProgress]
+    [lesson._id, lesson.durationSeconds]
   );
 
   useEffect(() => {
@@ -433,47 +503,93 @@ function VideoLesson({ lesson, progress, onProgress }: VideoLessonProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    if (progress && progress.lastPosition > 0) {
+    if (progress && progress.lastPosition > 0 && lastPosRef.current < 0) {
       video.currentTime = progress.lastPosition;
       lastPosRef.current = progress.lastPosition;
     }
 
+    const onPlay = () => {
+      lastWallTimeRef.current = performance.now();
+    };
+
     const onTimeUpdate = () => {
       const currentPos = video.currentTime;
-      const lastPos = lastPosRef.current;
-      const rate = video.playbackRate || 1;
-      const maxElapsed = 2.5 * rate;
+      const now = performance.now();
+      const lastWallTime = lastWallTimeRef.current;
+      lastWallTimeRef.current = now;
 
-      if (lastPos >= 0 && currentPos >= lastPos && currentPos - lastPos <= maxElapsed) {
-        const startSec = Math.floor(lastPos);
-        const endSec = Math.floor(currentPos);
-        for (let s = startSec; s <= endSec; s++) {
-          watchedRef.current.add(s);
+      const lastPos = lastPosRef.current;
+      lastPosRef.current = currentPos;
+
+      if (lastWallTime > 0 && lastPos >= 0) {
+        const wallElapsedSec = (now - lastWallTime) / 1000;
+        const mediaDelta = currentPos - lastPos;
+        const rate = video.playbackRate || 1;
+        const maxAllowedDelta = Math.max(3.5, wallElapsedSec * rate * 1.5 + 1.5);
+
+        if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
+          const startSec = Math.floor(lastPos);
+          const endSec = Math.floor(currentPos);
+          for (let s = startSec; s <= endSec; s++) {
+            watchedRef.current.add(s);
+          }
+        } else {
+          watchedRef.current.add(Math.floor(currentPos));
         }
       } else {
         watchedRef.current.add(Math.floor(currentPos));
       }
 
-      lastPosRef.current = currentPos;
-
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => save(video.currentTime), 10000);
     };
 
-    const onPause = () => save(video.currentTime);
-    const onEnded = () => save(video.duration);
+    const onPause = () => {
+      lastWallTimeRef.current = -1;
+      save(video.currentTime);
+    };
 
+    const onEnded = () => {
+      lastWallTimeRef.current = -1;
+      const duration = lesson.durationSeconds || video.duration || 300;
+      watchedRef.current.add(Math.floor(duration));
+      save(duration);
+    };
+
+    video.addEventListener('play', onPlay);
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('pause', onPause);
     video.addEventListener('ended', onEnded);
 
     return () => {
+      video.removeEventListener('play', onPlay);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('pause', onPause);
       video.removeEventListener('ended', onEnded);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [lesson._id, progress, save, videoInfo.provider]);
+  }, [lesson._id, lesson.durationSeconds, save, videoInfo.provider]);
+
+  // Lifecycle flush on unload & tab switch
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (videoRef.current) save(videoRef.current.currentTime);
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        if (videoRef.current) save(videoRef.current.currentTime);
+      } else {
+        lastWallTimeRef.current = performance.now();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (videoRef.current) save(videoRef.current.currentTime);
+    };
+  }, [save]);
 
   return (
     <div
@@ -605,7 +721,17 @@ export default function LessonViewerPage() {
   }, [id, navigate]);
 
   const handleProgress = useCallback((newProg: LessonProgress) => {
-    setProgress(newProg);
+    setProgress((prev) => {
+      if (!prev) return newProg;
+      // Monotonic guard: never regress watchedSeconds or completed status from delayed or out-of-order network responses
+      const updatedWatched = Math.max(prev.watchedSeconds, newProg.watchedSeconds);
+      const isCompleted = prev.completed || newProg.completed;
+      return {
+        ...newProg,
+        watchedSeconds: updatedWatched,
+        completed: isCompleted,
+      };
+    });
   }, []);
 
   if (loading) {
@@ -620,7 +746,8 @@ export default function LessonViewerPage() {
 
   const duration = lesson.durationSeconds && lesson.durationSeconds > 0 ? lesson.durationSeconds : 1;
   const watched = Math.min(duration, Math.max(0, progress?.watchedSeconds || 0));
-  const watchPercentage = Math.min(100, Math.max(0, Math.round((watched / duration) * 100)));
+  const rawPercentage = Math.min(100, Math.max(0, Math.round((watched / duration) * 100)));
+  const watchPercentage = progress?.completed ? Math.max(90, rawPercentage) : rawPercentage;
 
   return (
     <div className="min-h-screen bg-[#FAF8F4] text-[#202020] py-6 sm:py-10 font-sans">
