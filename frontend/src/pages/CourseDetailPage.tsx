@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
+import { CourseCompletionModal } from '../components/common/CourseCompletionModal';
 import type { Course, Module, Enrollment, CourseProgress, LessonType } from '../types/course';
 
 const lessonTypeIcon: Record<LessonType, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -45,6 +46,7 @@ export default function CourseDetailPage() {
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [latestRevision, setLatestRevision] = useState<Course | null>(null);
+  const [completionModalOpen, setCompletionModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -65,6 +67,9 @@ export default function CourseDetailPage() {
           setEnrollment(data.enrollment || null);
           if (data.progress) {
             setProgress(data.progress);
+            if ((data.progress.isEligibleForCertificate || data.progress.percentage === 100) && !localStorage.getItem(`veyro_completion_dismissed_${id}`)) {
+              setCompletionModalOpen(true);
+            }
           }
         } else if (user?.role === 'student') {
           // Parallel fallback with Promise.allSettled
@@ -82,6 +87,9 @@ export default function CourseDetailPage() {
               }
               if (progRes.status === 'fulfilled') {
                 setProgress(progRes.value.data);
+                if ((progRes.value.data.isEligibleForCertificate || progRes.value.data.percentage === 100) && !localStorage.getItem(`veyro_completion_dismissed_${id}`)) {
+                  setCompletionModalOpen(true);
+                }
               }
             }
           } catch {}
@@ -352,11 +360,28 @@ export default function CourseDetailPage() {
 
                     {firstLesson && (
                       <Link to={`/lessons/${firstLesson._id}`} className="block">
-                        <Button variant="primary" className="w-full" rightIcon={<ArrowRight size={14} />}>
+                        <Button variant="secondary" className="w-full" rightIcon={<ArrowRight size={14} />}>
                           Continue learning
                         </Button>
                       </Link>
                     )}
+
+                    {enrollment.certificateCode ? (
+                      <Link to={`/verify/${enrollment.certificateCode}`} className="block">
+                        <Button variant="primary" className="w-full" leftIcon={<Award size={15} />}>
+                          View Certificate
+                        </Button>
+                      </Link>
+                    ) : (progress.isEligibleForCertificate || progress.percentage === 100) ? (
+                      <Button
+                        variant="primary"
+                        className="w-full"
+                        onClick={() => setCompletionModalOpen(true)}
+                        leftIcon={<Award size={15} />}
+                      >
+                        Generate Certificate
+                      </Button>
+                    ) : null}
                   </>
                 ) : isAdminOrInstructor ? (
                   firstLesson ? (
@@ -395,7 +420,7 @@ export default function CourseDetailPage() {
                 <ul className="space-y-2.5 text-xs text-[#77736D]">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#171717] mt-1.5 flex-shrink-0" />
-                    <span>90% video watch verification required.</span>
+                    <span>Complete all curriculum lesson units.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#171717] mt-1.5 flex-shrink-0" />
@@ -411,6 +436,21 @@ export default function CourseDetailPage() {
           </div>
 
         </div>
+
+        {/* Course Completion & Certificate Modal */}
+        {id && course && (
+          <CourseCompletionModal
+            isOpen={completionModalOpen}
+            onClose={() => setCompletionModalOpen(false)}
+            courseId={id}
+            courseTitle={course.title}
+            studentName={user?.name || 'Scholar'}
+            existingCertificateCode={enrollment?.certificateCode}
+            onCertificateIssued={(code) => {
+              setEnrollment((prev) => prev ? { ...prev, certificateCode: code } : null);
+            }}
+          />
+        )}
       </div>
     </div>
   );

@@ -25,6 +25,8 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
+import { CourseCompletionModal } from '../components/common/CourseCompletionModal';
+import useAuthStore from '../store/authStore';
 import { ProctoringMonitor, IntegrityEventPayload } from '../utils/proctoringMonitor';
 import type { Quiz } from '../types/course';
 
@@ -73,6 +75,9 @@ export default function QuizPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [pastAttempts, setPastAttempts] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const { user } = useAuthStore();
+  const [completionModalOpen, setCompletionModalOpen] = useState(false);
+  const [courseProgress, setCourseProgress] = useState<any>(null);
 
   // Preflight & Camera state
   const [cameraStatus, setCameraStatus] = useState<'prompt' | 'granted' | 'denied' | 'checking'>('checking');
@@ -112,6 +117,22 @@ export default function QuizPage() {
       setResult(data);
       setPhase('result');
       stopCameraStreams();
+
+      if (data.passed) {
+        const cId = quiz?.courseId;
+        if (cId) {
+          try {
+            const progRes = await api.get(`/courses/${cId}/progress`);
+            setCourseProgress(progRes.data);
+            if (
+              (progRes.data.isEligibleForCertificate || progRes.data.percentage === 100) &&
+              !localStorage.getItem(`veyro_completion_dismissed_${cId}`)
+            ) {
+              setCompletionModalOpen(true);
+            }
+          } catch {}
+        }
+      }
     } catch {
       toast.error('Could not load quiz results');
     }
@@ -750,12 +771,21 @@ export default function QuizPage() {
               </p>
             </div>
 
-            <div className="pt-4 flex items-center justify-center gap-3">
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
+              {(courseProgress?.isEligibleForCertificate || courseProgress?.percentage === 100 || courseProgress?.certificateCode) && (
+                <Button
+                  variant="primary"
+                  onClick={() => setCompletionModalOpen(true)}
+                  leftIcon={<Sparkles size={14} />}
+                >
+                  {courseProgress?.certificateCode ? 'View Certificate' : 'Claim Certificate'}
+                </Button>
+              )}
               <Button variant="secondary" onClick={() => navigate(-1)}>
                 Back to course
               </Button>
               <Button
-                variant="primary"
+                variant="outline"
                 onClick={() => {
                   if (quiz?.isProctored || quiz?.requireCamera) {
                     setPhase('preflight');
@@ -813,6 +843,17 @@ export default function QuizPage() {
           )}
         </Modal>
 
+        {/* Course Completion & Certificate Modal */}
+        {quiz?.courseId && (
+          <CourseCompletionModal
+            isOpen={completionModalOpen}
+            onClose={() => setCompletionModalOpen(false)}
+            courseId={quiz.courseId}
+            courseTitle={quiz.course?.title || quiz.title}
+            studentName={user?.name || 'Scholar'}
+            existingCertificateCode={courseProgress?.certificateCode}
+          />
+        )}
       </div>
     </div>
   );

@@ -11,57 +11,39 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
+  Award,
 } from 'lucide-react';
 import api from '../api/axios';
+import useAuthStore from '../store/authStore';
+import toast from 'react-hot-toast';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
+import { CourseCompletionModal } from '../components/common/CourseCompletionModal';
 import { getMediaUrl } from '../utils/media';
 import { getVideoInfo } from '../utils/videoUrl';
-import { setToRanges, rangesToSet } from '../utils/playbackTracker';
 import type { Lesson, LessonProgress } from '../types/course';
 
 interface VideoLessonProps {
   lesson: Lesson;
   progress: LessonProgress | null;
   onProgress: (prog: LessonProgress) => void;
-  onDurationChange?: (duration: number) => void;
+  onComplete: () => void;
 }
 
 function YouTubePlayer({
   lesson,
   videoId,
   embedUrl,
-  progress,
-  onProgress,
-  onDurationChange,
+  onCompleted,
 }: {
   lesson: Lesson;
   videoId?: string;
   embedUrl: string;
-  progress: LessonProgress | null;
-  onProgress: (p: LessonProgress) => void;
-  onDurationChange?: (duration: number) => void;
+  onCompleted: () => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const playerRef = useRef<any>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [playerError, setPlayerError] = useState<string | null>(null);
-  const [playerDuration, setPlayerDuration] = useState<number>(0);
-
-  // Set of verified uniquely traversed seconds
-  const watchedSecondsSet = useRef<Set<number>>(new Set());
-  const lastPositionRef = useRef<number>(-1);
-  const lastWallTimeRef = useRef<number>(-1);
-  const playbackRateRef = useRef<number>(1);
-  const samplingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const syncCounterRef = useRef<number>(0);
-  const activeRequestIdRef = useRef<number>(0);
-  const latestResolvedRequestIdRef = useRef<number>(0);
-  const initialPositionRef = useRef<number>(
-    progress?.completed ? 0 : progress?.lastPosition || 0
-  );
-  const hasSeekedInitialRef = useRef<boolean>(false);
 
   // Resolve video ID from prop or embedUrl
   const resolvedVideoId =
@@ -77,255 +59,13 @@ function YouTubePlayer({
     ? `https://www.youtube.com/embed/${resolvedVideoId}?enablejsapi=1${originParam}&rel=0`
     : embedUrl;
 
-  // Initialize and preserve verified progress whenever progress updates
-  useEffect(() => {
-    if (progress?.watchedRanges && progress.watchedRanges.length > 0) {
-      const restored = rangesToSet(progress.watchedRanges);
-      restored.forEach((s) => watchedSecondsSet.current.add(s));
-    } else {
-      const prev = progress?.watchedSeconds || 0;
-      if (prev > 0) {
-        for (let i = 0; i <= prev; i++) {
-          watchedSecondsSet.current.add(i);
-        }
-      }
-    }
-    if (progress && progress.lastPosition > 0 && lastPositionRef.current < 0) {
-      lastPositionRef.current = progress.lastPosition;
-    }
-  }, [progress?.watchedSeconds, progress?.lastPosition, progress?.watchedRanges]);
+  const onCompletedRef = useRef(onCompleted);
+  onCompletedRef.current = onCompleted;
 
-  // Stable ref for onProgress to prevent player teardowns on progress updates
-  const onProgressRef = useRef(onProgress);
-  onProgressRef.current = onProgress;
-
-  // Server synchronization helper with out-of-order response protection
-  const syncProgress = useCallback(
-    async (lastPos?: number) => {
-      try {
-        const requiredDuration = (playerDuration > 0 ? playerDuration : lesson.durationSeconds) || 1;
-        // Clamp verified seconds so it never exceeds authoritative media duration
-        const eligibleSeconds = Math.min(requiredDuration, watchedSecondsSet.current.size);
-        const pos = typeof lastPos === 'number' ? lastPos : Math.max(0, lastPositionRef.current);
-        const currentRanges = setToRanges(watchedSecondsSet.current);
-
-        activeRequestIdRef.current += 1;
-        const reqId = activeRequestIdRef.current;
-
-        const { data } = await api.post(`/lessons/${lesson._id}/progress`, {
-          watchedSeconds: eligibleSeconds,
-          lastPosition: Math.round(pos * 10) / 10,
-          mediaDuration: playerDuration > 0 ? playerDuration : undefined,
-          watchedRanges: currentRanges,
-        });
-
-        // Monotonic guard against out-of-order network responses
-        if (reqId >= latestResolvedRequestIdRef.current) {
-          latestResolvedRequestIdRef.current = reqId;
-          onProgressRef.current(data.progress);
-        }
-      } catch {}
-    },
-    [lesson._id, lesson.durationSeconds, playerDuration]
-  );
-
-  // Wall-clock traversal sampling: compares media advance against real elapsed time
-  const samplePlayback = useCallback((currentPos: number) => {
-    if (typeof currentPos !== 'number' || isNaN(currentPos) || currentPos < 0) return;
-
-    const now = performance.now();
-    const lastWallTime = lastWallTimeRef.current;
-    lastWallTimeRef.current = now;
-
-    const lastPos = lastPositionRef.current;
-    lastPositionRef.current = currentPos;
-
-    if (lastWallTime > 0 && lastPos >= 0) {
-      const wallElapsedSec = (now - lastWallTime) / 1000;
-      const mediaDelta = currentPos - lastPos;
-      const rate = playbackRateRef.current || 1;
-
-      // Generous jitter buffer: allows normal browser GC, background tab throttling, or decoder pauses
-      const maxAllowedDelta = Math.max(3.5, wallElapsedSec * rate * 1.5 + 1.5);
-
-      if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
-        // Legitimate continuous playback: credit all traversed integer seconds
-        const startSec = Math.floor(lastPos);
-        const endSec = Math.floor(currentPos);
-        for (let s = startSec; s <= endSec; s++) {
-          watchedSecondsSet.current.add(s);
-        }
-      } else {
-        // Seeking forward or backward: credit only the landing position second
-        watchedSecondsSet.current.add(Math.floor(currentPos));
-      }
-    } else {
-      // First tick or resumed from pause
-      watchedSecondsSet.current.add(Math.floor(currentPos));
-    }
-  }, []);
-
-  const startSampling = useCallback(() => {
-    if (samplingIntervalRef.current) clearInterval(samplingIntervalRef.current);
-    lastWallTimeRef.current = performance.now();
-
-    samplingIntervalRef.current = setInterval(() => {
-      try {
-        if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-          const state = playerRef.current.getPlayerState?.();
-          // YT.PlayerState.PLAYING = 1
-          if (state === 1) {
-            const curr = playerRef.current.getCurrentTime();
-            samplePlayback(curr);
-
-            // Periodically sync every 10 seconds of active playback
-            syncCounterRef.current += 1;
-            if (syncCounterRef.current >= 10) {
-              syncCounterRef.current = 0;
-              syncProgress(curr);
-            }
-          }
-        }
-      } catch {}
-    }, 1000);
-  }, [samplePlayback, syncProgress]);
-
-  const stopSampling = useCallback(() => {
-    if (samplingIntervalRef.current) {
-      clearInterval(samplingIntervalRef.current);
-      samplingIntervalRef.current = null;
-    }
-    lastWallTimeRef.current = -1;
-  }, []);
-
-  // 1. YouTube IFrame API Initialization — attaches cleanly to the existing iframe
   useEffect(() => {
     let isMounted = true;
 
-    const attachYTPlayer = () => {
-      if (!isMounted || !iframeRef.current || playerRef.current) return;
-      try {
-        if ((window as any).YT && (window as any).YT.Player) {
-          playerRef.current = new (window as any).YT.Player(iframeRef.current, {
-            events: {
-              onReady: (event: any) => {
-                const dur = Math.round(event.target?.getDuration?.() || 0);
-                if (dur > 0) {
-                  setPlayerDuration(dur);
-                  onDurationChange?.(dur);
-                }
-              },
-              onStateChange: (event: any) => {
-                if (!isMounted) return;
-                const dur = Math.round(event.target?.getDuration?.() || 0);
-                if (dur > 0 && dur !== playerDuration) {
-                  setPlayerDuration(dur);
-                  onDurationChange?.(dur);
-                }
-                const state = event.data;
-                // 1: PLAYING, 2: PAUSED, 3: BUFFERING, 0: ENDED
-                if (state === 1) {
-                  setIsPlaying(true);
-                  lastWallTimeRef.current = performance.now();
-                  if (!hasSeekedInitialRef.current && initialPositionRef.current > 0) {
-                    hasSeekedInitialRef.current = true;
-                    const seekPos = initialPositionRef.current;
-                    const duration = (dur > 0 ? dur : lesson.durationSeconds) || 300;
-                    if (seekPos < duration - 3) {
-                      try {
-                        event.target.seekTo(seekPos, true);
-                      } catch {}
-                    }
-                  }
-                  try {
-                    const curr = event.target.getCurrentTime();
-                    samplePlayback(curr);
-                  } catch {}
-                  startSampling();
-                } else if (state === 2) {
-                  setIsPlaying(false);
-                  stopSampling();
-                  try {
-                    const curr = event.target.getCurrentTime();
-                    samplePlayback(curr);
-                    syncProgress(curr);
-                  } catch {
-                    syncProgress();
-                  }
-                } else if (state === 3) {
-                  // Buffering time is NOT counted as watched
-                  setIsPlaying(false);
-                  stopSampling();
-                } else if (state === 0) {
-                  // ENDED — student watched to completion
-                  setIsPlaying(false);
-                  stopSampling();
-                  const duration = (dur > 0 ? dur : (playerDuration > 0 ? playerDuration : lesson.durationSeconds)) || 300;
-                  try {
-                    const curr = event.target.getCurrentTime();
-                    samplePlayback(curr);
-                    watchedSecondsSet.current.add(Math.floor(duration));
-                    syncProgress(duration);
-                  } catch {
-                    watchedSecondsSet.current.add(Math.floor(duration));
-                    syncProgress(duration);
-                  }
-                }
-              },
-              onPlaybackRateChange: (event: any) => {
-                playbackRateRef.current = Number(event.data) || 1;
-              },
-              onError: (event: any) => {
-                if (!isMounted) return;
-                const code = event?.data;
-                let msg = 'YouTube video playback encountered an issue.';
-                if (code === 101 || code === 150) {
-                  msg = 'The video owner restricts playback in embedded players.';
-                } else if (code === 100) {
-                  msg = 'This YouTube video is unavailable or has been removed.';
-                } else if (code === 5) {
-                  msg = 'HTML5 player error. Please try opening directly on YouTube.';
-                } else if (code === 2) {
-                  msg = 'Invalid YouTube video ID or parameter.';
-                }
-                setPlayerError(msg);
-              },
-            },
-          });
-        }
-      } catch {}
-    };
-
-    if ((window as any).YT && (window as any).YT.Player) {
-      attachYTPlayer();
-    } else {
-      if (!document.getElementById('youtube-iframe-api')) {
-        const tag = document.createElement('script');
-        tag.id = 'youtube-iframe-api';
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-      }
-      const prevOnReady = (window as any).onYouTubeIframeAPIReady;
-      (window as any).onYouTubeIframeAPIReady = () => {
-        if (typeof prevOnReady === 'function') prevOnReady();
-        attachYTPlayer();
-      };
-    }
-
-    return () => {
-      isMounted = false;
-      stopSampling();
-      if (playerRef.current) {
-        try {
-          playerRef.current.destroy();
-        } catch {}
-        playerRef.current = null;
-      }
-    };
-  }, [lesson._id, lesson.durationSeconds, samplePlayback, startSampling, stopSampling, syncProgress]);
-
-  // 2. PostMessage Fallback Listener (works concurrently with or without YT.Player)
-  useEffect(() => {
+    // Attach message listener for YouTube postMessage API to detect when video finishes
     const handleMessage = (event: MessageEvent) => {
       try {
         let msg = event.data;
@@ -338,82 +78,22 @@ function YouTubePlayer({
         }
         if (!msg || typeof msg !== 'object') return;
 
-        if (msg.event === 'infoDelivery' && msg.info) {
-          if (typeof msg.info.duration === 'number' && msg.info.duration > 0) {
-            const d = Math.round(msg.info.duration);
-            setPlayerDuration(d);
-            onDurationChange?.(d);
-          }
-          if (typeof msg.info.currentTime === 'number') {
-            samplePlayback(msg.info.currentTime);
-          }
-          if (msg.info.playerState === 1) {
-            setIsPlaying(true);
-            startSampling();
-          } else if (msg.info.playerState === 2) {
-            setIsPlaying(false);
-            stopSampling();
-            syncProgress(lastPositionRef.current);
-          } else if (msg.info.playerState === 0) {
-            setIsPlaying(false);
-            stopSampling();
-            const duration = (playerDuration > 0 ? playerDuration : lesson.durationSeconds) || 300;
-            watchedSecondsSet.current.add(Math.floor(duration));
-            syncProgress(duration);
-          } else if (msg.info.playerState === 3) {
-            setIsPlaying(false);
-            stopSampling();
-          }
+        // Player state 0 indicates playback has ended
+        if (msg.event === 'infoDelivery' && msg.info && msg.info.playerState === 0) {
+          if (isMounted) onCompletedRef.current();
         }
-
-        if (msg.event === 'onStateChange') {
-          if (msg.info === 1) {
-            setIsPlaying(true);
-            startSampling();
-          } else if (msg.info === 2) {
-            setIsPlaying(false);
-            stopSampling();
-            syncProgress(lastPositionRef.current);
-          } else if (msg.info === 0) {
-            setIsPlaying(false);
-            stopSampling();
-            const duration = (playerDuration > 0 ? playerDuration : lesson.durationSeconds) || 300;
-            watchedSecondsSet.current.add(Math.floor(duration));
-            syncProgress(duration);
-          } else if (msg.info === 3) {
-            setIsPlaying(false);
-            stopSampling();
-          }
+        if (msg.event === 'onStateChange' && (msg.info === 0 || msg.data === 0)) {
+          if (isMounted) onCompletedRef.current();
         }
       } catch {}
     };
 
     window.addEventListener('message', handleMessage);
     return () => {
+      isMounted = false;
       window.removeEventListener('message', handleMessage);
     };
-  }, [lesson.durationSeconds, samplePlayback, startSampling, stopSampling, syncProgress]);
-
-  // Lifecycle flush: page unload, tab switch (hidden), and component unmount
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      syncProgress(lastPositionRef.current);
-    };
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        syncProgress(lastPositionRef.current);
-      } else {
-        lastWallTimeRef.current = performance.now();
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      syncProgress(lastPositionRef.current);
-    };
-  }, [syncProgress]);
+  }, []);
 
   return (
     <div className="absolute inset-0 w-full h-full">
@@ -465,36 +145,10 @@ function YouTubePlayer({
   );
 }
 
-function VideoLesson({ lesson, progress, onProgress, onDurationChange }: VideoLessonProps) {
+function VideoLesson({ lesson, progress, onProgress, onComplete }: VideoLessonProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const watchedRef = useRef<Set<number>>(new Set());
-  const lastPosRef = useRef<number>(-1);
-  const lastWallTimeRef = useRef<number>(-1);
-  const [playerDuration, setPlayerDuration] = useState<number>(0);
-  const activeReqRef = useRef<number>(0);
-  const latestResolvedReqRef = useRef<number>(0);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playbackError, setPlaybackError] = useState(false);
 
-  // Initialize and preserve verified watch seconds
-  useEffect(() => {
-    if (progress?.watchedRanges && progress.watchedRanges.length > 0) {
-      const restored = rangesToSet(progress.watchedRanges);
-      restored.forEach((s) => watchedRef.current.add(s));
-    } else {
-      const prev = progress?.watchedSeconds || 0;
-      if (prev > 0) {
-        for (let i = 0; i <= prev; i++) {
-          watchedRef.current.add(i);
-        }
-      }
-    }
-    if (progress && progress.lastPosition > 0 && lastPosRef.current < 0) {
-      lastPosRef.current = progress.lastPosition;
-    }
-  }, [progress?.watchedSeconds, progress?.lastPosition, progress?.watchedRanges]);
-
-  // Check all potential video property keys: videoUrl, contentUrl, videoURL, video
   const rawVideoUrl =
     lesson.videoUrl ||
     lesson.contentUrl ||
@@ -503,141 +157,6 @@ function VideoLesson({ lesson, progress, onProgress, onDurationChange }: VideoLe
     '';
 
   const videoInfo = getVideoInfo(rawVideoUrl);
-
-  const onProgressRef = useRef(onProgress);
-  onProgressRef.current = onProgress;
-
-  const save = useCallback(
-    async (lastPos: number) => {
-      try {
-        const requiredDuration = (playerDuration > 0 ? playerDuration : lesson.durationSeconds) || 1;
-        const eligibleSeconds = Math.min(requiredDuration, watchedRef.current.size);
-        const currentRanges = setToRanges(watchedRef.current);
-
-        activeReqRef.current += 1;
-        const reqId = activeReqRef.current;
-
-        const { data } = await api.post(`/lessons/${lesson._id}/progress`, {
-          watchedSeconds: eligibleSeconds,
-          lastPosition: Math.round(lastPos * 10) / 10,
-          mediaDuration: playerDuration > 0 ? playerDuration : undefined,
-          watchedRanges: currentRanges,
-        });
-
-        if (reqId >= latestResolvedReqRef.current) {
-          latestResolvedReqRef.current = reqId;
-          onProgressRef.current(data.progress);
-        }
-      } catch {}
-    },
-    [lesson._id, lesson.durationSeconds, playerDuration]
-  );
-
-  useEffect(() => {
-    if (videoInfo.provider !== 'direct' && videoInfo.provider !== 'local') return;
-
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (progress && progress.lastPosition > 0 && lastPosRef.current < 0) {
-      video.currentTime = progress.lastPosition;
-      lastPosRef.current = progress.lastPosition;
-    }
-
-    const onLoadedMetadata = () => {
-      if (video) {
-        const dur = Math.round(video.duration);
-        if (dur > 0) {
-          setPlayerDuration(dur);
-          onDurationChange?.(dur);
-        }
-      }
-    };
-
-    const onPlay = () => {
-      lastWallTimeRef.current = performance.now();
-    };
-
-    const onTimeUpdate = () => {
-      const currentPos = video.currentTime;
-      const now = performance.now();
-      const lastWallTime = lastWallTimeRef.current;
-      lastWallTimeRef.current = now;
-
-      const lastPos = lastPosRef.current;
-      lastPosRef.current = currentPos;
-
-      if (lastWallTime > 0 && lastPos >= 0) {
-        const wallElapsedSec = (now - lastWallTime) / 1000;
-        const mediaDelta = currentPos - lastPos;
-        const rate = video.playbackRate || 1;
-        const maxAllowedDelta = Math.max(3.5, wallElapsedSec * rate * 1.5 + 1.5);
-
-        if (mediaDelta >= 0 && mediaDelta <= maxAllowedDelta) {
-          const startSec = Math.floor(lastPos);
-          const endSec = Math.floor(currentPos);
-          for (let s = startSec; s <= endSec; s++) {
-            watchedRef.current.add(s);
-          }
-        } else {
-          watchedRef.current.add(Math.floor(currentPos));
-        }
-      } else {
-        watchedRef.current.add(Math.floor(currentPos));
-      }
-
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => save(video.currentTime), 10000);
-    };
-
-    const onPause = () => {
-      lastWallTimeRef.current = -1;
-      save(video.currentTime);
-    };
-
-    const onEnded = () => {
-      lastWallTimeRef.current = -1;
-      const duration = (playerDuration > 0 ? playerDuration : lesson.durationSeconds) || Math.round(video.duration) || 300;
-      watchedRef.current.add(Math.floor(duration));
-      save(duration);
-    };
-
-    video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('play', onPlay);
-    video.addEventListener('timeupdate', onTimeUpdate);
-    video.addEventListener('pause', onPause);
-    video.addEventListener('ended', onEnded);
-
-    return () => {
-      video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('play', onPlay);
-      video.removeEventListener('timeupdate', onTimeUpdate);
-      video.removeEventListener('pause', onPause);
-      video.removeEventListener('ended', onEnded);
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [lesson._id, lesson.durationSeconds, onDurationChange, playerDuration, save, videoInfo.provider]);
-
-  // Lifecycle flush on unload & tab switch
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (videoRef.current) save(videoRef.current.currentTime);
-    };
-    const handleVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        if (videoRef.current) save(videoRef.current.currentTime);
-      } else {
-        lastWallTimeRef.current = performance.now();
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibility);
-      if (videoRef.current) save(videoRef.current.currentTime);
-    };
-  }, [save]);
 
   return (
     <div
@@ -654,9 +173,7 @@ function VideoLesson({ lesson, progress, onProgress, onDurationChange }: VideoLe
           lesson={lesson}
           videoId={videoInfo.videoId}
           embedUrl={videoInfo.embedUrl}
-          progress={progress}
-          onProgress={onProgress}
-          onDurationChange={onDurationChange}
+          onCompleted={onComplete}
         />
       )}
 
@@ -675,6 +192,7 @@ function VideoLesson({ lesson, progress, onProgress, onDurationChange }: VideoLe
             controls
             src={videoInfo.embedUrl}
             onError={() => setPlaybackError(true)}
+            onEnded={onComplete}
             className="w-full h-full object-contain"
           />
         ))}
@@ -701,7 +219,7 @@ function VideoLesson({ lesson, progress, onProgress, onDurationChange }: VideoLe
 
 function PdfLesson({ lesson, onProgress }: { lesson: Lesson; onProgress: (p: any) => void }) {
   useEffect(() => {
-    api.post(`/lessons/${lesson._id}/progress`, { watchedSeconds: 1, lastPosition: 0 })
+    api.post(`/lessons/${lesson._id}/progress`, { completed: true })
       .then(({ data }) => onProgress(data.progress))
       .catch(() => {});
   }, [lesson._id, onProgress]);
@@ -732,7 +250,7 @@ function PdfLesson({ lesson, onProgress }: { lesson: Lesson; onProgress: (p: any
 
 function TextLesson({ lesson, onProgress }: { lesson: Lesson; onProgress: (p: any) => void }) {
   useEffect(() => {
-    api.post(`/lessons/${lesson._id}/progress`, { watchedSeconds: 1, lastPosition: 0 })
+    api.post(`/lessons/${lesson._id}/progress`, { completed: true })
       .then(({ data }) => onProgress(data.progress))
       .catch(() => {});
   }, [lesson._id, onProgress]);
@@ -754,38 +272,80 @@ function TextLesson({ lesson, onProgress }: { lesson: Lesson; onProgress: (p: an
 export default function LessonViewerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
 
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [progress, setProgress] = useState<LessonProgress | null>(null);
-  const [mediaDuration, setMediaDuration] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [markingComplete, setMarkingComplete] = useState(false);
+
+  // Completion popup state
+  const [completionModalOpen, setCompletionModalOpen] = useState(false);
+  const [courseProgress, setCourseProgress] = useState<any>(null);
+
+  const checkCourseCompletion = useCallback(async (courseId: string) => {
+    if (!courseId) return;
+    try {
+      const { data } = await api.get(`/courses/${courseId}/progress`);
+      setCourseProgress(data);
+      const isDismissed = localStorage.getItem(`veyro_completion_dismissed_${courseId}`);
+      if ((data.isEligibleForCertificate || data.percentage === 100) && !isDismissed) {
+        setCompletionModalOpen(true);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     api.get(`/lessons/${id}`)
       .then(({ data }) => {
         setLesson(data.lesson);
         setProgress(data.progress || null);
-        if (data.lesson?.durationSeconds > 0) {
-          setMediaDuration(data.lesson.durationSeconds);
+
+        const courseId =
+          (typeof data.lesson?.courseId === 'string'
+            ? data.lesson.courseId
+            : data.lesson?.courseId?._id) || data.lesson?.course?._id;
+        if (courseId) {
+          checkCourseCompletion(courseId);
         }
       })
       .catch(() => navigate('/courses'))
       .finally(() => setLoading(false));
-  }, [id, navigate]);
+  }, [id, navigate, checkCourseCompletion]);
 
   const handleProgress = useCallback((newProg: LessonProgress) => {
-    setProgress((prev) => {
-      if (!prev) return newProg;
-      // Monotonic guard: never regress watchedSeconds or completed status from delayed or out-of-order network responses
-      const updatedWatched = Math.max(prev.watchedSeconds, newProg.watchedSeconds);
-      const isCompleted = prev.completed || newProg.completed;
-      return {
-        ...newProg,
-        watchedSeconds: updatedWatched,
-        completed: isCompleted,
-      };
-    });
+    setProgress((prev) => ({
+      ...(prev || {}),
+      ...newProg,
+      completed: (prev?.completed || newProg.completed),
+    }));
   }, []);
+
+  const handleCompleteLesson = useCallback(async () => {
+    if (!lesson) return;
+    setMarkingComplete(true);
+    try {
+      const { data } = await api.post(`/lessons/${lesson._id}/progress`, {
+        completed: true,
+      });
+      if (data.progress) {
+        setProgress(data.progress);
+      }
+      toast.success('Lesson marked as completed!');
+
+      const courseId =
+        (typeof lesson.courseId === 'string'
+          ? lesson.courseId
+          : lesson.courseId?._id) || lesson.course?._id;
+      if (courseId) {
+        await checkCourseCompletion(courseId);
+      }
+    } catch {
+      toast.error('Failed to update lesson progress.');
+    } finally {
+      setMarkingComplete(false);
+    }
+  }, [lesson, checkCourseCompletion]);
 
   if (loading) {
     return (
@@ -797,19 +357,27 @@ export default function LessonViewerPage() {
 
   if (!lesson) return null;
 
-  const duration = mediaDuration > 0
-    ? mediaDuration
-    : (lesson.durationSeconds && lesson.durationSeconds > 0 ? lesson.durationSeconds : 1);
-  const watched = Math.min(duration, Math.max(0, progress?.watchedSeconds || 0));
-  const rawPercentage = Math.min(100, Math.max(0, Math.round((watched / duration) * 100)));
-  const watchPercentage = progress?.completed ? 100 : rawPercentage;
+  const rawVideoUrl =
+    lesson.videoUrl ||
+    lesson.contentUrl ||
+    (lesson as any).videoURL ||
+    (lesson as any).video ||
+    '';
+  const videoInfo = getVideoInfo(rawVideoUrl);
+  const isDirectVideo = videoInfo.provider === 'direct' || videoInfo.provider === 'local';
+
+  const courseId =
+    (typeof lesson.courseId === 'string'
+      ? lesson.courseId
+      : lesson.courseId?._id) || lesson.course?._id || '';
+  const courseTitle = lesson.course?.title || 'Curriculum';
 
   return (
     <div className="min-h-screen bg-[#FAF8F4] text-[#202020] py-6 sm:py-10 font-sans">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 animate-fade-in">
         
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between bg-white rounded-2xl p-4 sm:p-5 border border-[#E7E2DA] shadow-subtle">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl p-4 sm:p-5 border border-[#E7E2DA] shadow-subtle">
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
@@ -823,10 +391,12 @@ export default function LessonViewerPage() {
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <Badge variant="neutral">{lesson.type} unit</Badge>
-                {progress?.completed && (
+                {progress?.completed ? (
                   <Badge variant="published" icon={<CheckCircle size={11} />}>
                     Completed
                   </Badge>
+                ) : (
+                  <Badge variant="draft">In progress</Badge>
                 )}
               </div>
               <h1 className="font-serif text-lg sm:text-xl text-[#171717] leading-tight">
@@ -835,10 +405,27 @@ export default function LessonViewerPage() {
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2">
-            <Badge variant="verified" icon={<ShieldCheck size={12} />}>
-              Audited session
-            </Badge>
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            {progress?.completed ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled
+                leftIcon={<CheckCircle size={14} className="text-emerald-600" />}
+              >
+                Lesson Completed
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleCompleteLesson}
+                isLoading={markingComplete}
+                leftIcon={<CheckCircle size={14} />}
+              >
+                Mark as Complete
+              </Button>
+            )}
           </div>
         </div>
 
@@ -848,7 +435,7 @@ export default function LessonViewerPage() {
             lesson={lesson}
             progress={progress}
             onProgress={handleProgress}
-            onDurationChange={setMediaDuration}
+            onComplete={handleCompleteLesson}
           />
         )}
         {lesson.type === 'pdf' && (
@@ -858,35 +445,40 @@ export default function LessonViewerPage() {
           <TextLesson lesson={lesson} onProgress={handleProgress} />
         )}
 
-        {/* Video Watch Progress Tracker */}
-        {lesson.type === 'video' && (duration > 0 || (lesson.durationSeconds && lesson.durationSeconds > 0)) && (
+        {/* Direct Video Progress Tracker (Only for Direct HTTPS MP4/WebM with duration) */}
+        {lesson.type === 'video' && isDirectVideo && (lesson.durationSeconds || 0) > 0 && (
           <Card>
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-[#77736D] flex items-center gap-1.5 font-medium">
                   <Clock size={13} className="text-[#6F8FA8]" />
-                  <span>Audited Watch Time Progress</span>
+                  <span>Playback Status</span>
                 </span>
                 <span className="font-mono font-bold text-sm text-[#171717]">
-                  {watchPercentage}%
+                  {progress?.completed ? '100%' : 'In Progress'}
                 </span>
               </div>
 
               <div className="w-full bg-[#E7E2DA] rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-[#171717] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${watchPercentage}%` }}
+                  style={{ width: progress?.completed ? '100%' : '50%' }}
                 />
-              </div>
-
-              <div className="flex justify-between items-center text-xs text-[#77736D]">
-                <span>90% required for automatic verified module accreditation.</span>
-                {watchPercentage >= 90 && (
-                  <span className="font-semibold text-[#556943]">✓ Requirement Met</span>
-                )}
               </div>
             </div>
           </Card>
+        )}
+
+        {/* Course Completion & Certificate Modal */}
+        {courseId && (
+          <CourseCompletionModal
+            isOpen={completionModalOpen}
+            onClose={() => setCompletionModalOpen(false)}
+            courseId={courseId}
+            courseTitle={courseTitle}
+            studentName={user?.name || 'Scholar'}
+            existingCertificateCode={courseProgress?.certificateCode}
+          />
         )}
 
       </div>

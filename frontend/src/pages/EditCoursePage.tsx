@@ -77,222 +77,6 @@ export default function EditCoursePage() {
     return `${m} min ${s} sec`;
   };
 
-  // YouTube duration detection state for lesson creation forms (keyed by moduleId)
-  const [ytDetectionCreate, setYtDetectionCreate] = useState<
-    Record<string, { loading: boolean; duration?: number; formatted?: string; error?: string; url?: string }>
-  >({});
-
-  // YouTube duration detection state for editing modal
-  const [ytDetectionEdit, setYtDetectionEdit] = useState<{
-    loading: boolean;
-    duration?: number;
-    formatted?: string;
-    error?: string;
-    url?: string;
-  }>({ loading: false });
-
-  /**
-   * Helper to detect YouTube video duration directly in the instructor's browser via an invisible iframe.
-   * Leverages the official YouTube IFrame API to bypass server-side cloud datacenter IP blocks.
-   */
-  const getYouTubeDurationInBrowser = (videoId: string): Promise<number | null> => {
-    return new Promise((resolve) => {
-      if (!videoId || typeof window === 'undefined') return resolve(null);
-
-      let resolved = false;
-      let timer: any = null;
-      let iframe: HTMLIFrameElement | null = null;
-
-      const cleanup = () => {
-        window.removeEventListener('message', handleMessage);
-        if (timer) clearTimeout(timer);
-        if (iframe && iframe.parentNode) {
-          iframe.parentNode.removeChild(iframe);
-        }
-      };
-
-      const handleMessage = (event: MessageEvent) => {
-        try {
-          if (!event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com')) return;
-          let data = event.data;
-          if (typeof data === 'string') {
-            try {
-              data = JSON.parse(data);
-            } catch {
-              return;
-            }
-          }
-          if (!data || typeof data !== 'object') return;
-
-          const rawDur =
-            data.info?.duration ||
-            (data.event === 'infoDelivery' && data.info?.duration) ||
-            (data.event === 'initialDelivery' && data.info?.duration) ||
-            data.duration;
-
-          const durNum = Number(rawDur);
-          if (durNum && durNum > 0 && !resolved) {
-            resolved = true;
-            cleanup();
-            resolve(Math.round(durNum));
-          }
-        } catch {}
-      };
-
-      window.addEventListener('message', handleMessage);
-
-      iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.opacity = '0';
-      iframe.style.pointerEvents = 'none';
-      iframe.style.top = '-9999px';
-      iframe.style.left = '-9999px';
-      iframe.setAttribute('tabindex', '-1');
-      iframe.setAttribute('aria-hidden', 'true');
-      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
-
-      iframe.onload = () => {
-        try {
-          iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
-        } catch {}
-      };
-
-      timer = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          resolve(null);
-        }
-      }, 4000);
-
-      document.body.appendChild(iframe);
-    });
-  };
-
-  const detectYouTubeDurationForModule = async (moduleId: string, rawUrl: string) => {
-    const trimmed = rawUrl.trim();
-    if (!trimmed) {
-      setYtDetectionCreate((prev) => ({
-        ...prev,
-        [moduleId]: { loading: false, url: '' },
-      }));
-      return;
-    }
-
-    const val = validateVideoUrl(trimmed);
-    if (!val.valid || val.provider !== 'youtube' || !val.videoId) {
-      setYtDetectionCreate((prev) => ({
-        ...prev,
-        [moduleId]: { loading: false, url: trimmed },
-      }));
-      return;
-    }
-
-    setYtDetectionCreate((prev) => ({
-      ...prev,
-      [moduleId]: { loading: true, url: trimmed },
-    }));
-
-    try {
-      // Step 1: Direct backend detection (uses server cache, InnerTube MWEB, or YouTube Data API)
-      const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
-      setYtDetectionCreate((prev) => ({
-        ...prev,
-        [moduleId]: {
-          loading: false,
-          duration: data.durationSeconds,
-          formatted: data.formattedDuration,
-          url: trimmed,
-        },
-      }));
-    } catch (err: any) {
-      // Step 2: If server direct fetch is restricted/blocked by cloud datacenter IP limits, verify via client + oEmbed
-      try {
-        const clientDur = await getYouTubeDurationInBrowser(val.videoId);
-        if (clientDur && clientDur > 0) {
-          const { data } = await api.post('/lessons/detect-youtube-duration', {
-            url: trimmed,
-            clientDuration: clientDur,
-          });
-          setYtDetectionCreate((prev) => ({
-            ...prev,
-            [moduleId]: {
-              loading: false,
-              duration: data.durationSeconds,
-              formatted: data.formattedDuration,
-              url: trimmed,
-            },
-          }));
-          return;
-        }
-      } catch {}
-
-      const backendErr = err.response?.data?.error;
-      setYtDetectionCreate((prev) => ({
-        ...prev,
-        [moduleId]: {
-          loading: false,
-          error: backendErr || 'Could not verify YouTube video duration. Please ensure the video is public.',
-          url: trimmed,
-        },
-      }));
-    }
-  };
-
-  const detectYouTubeDurationForEdit = async (rawUrl: string) => {
-    const trimmed = rawUrl.trim();
-    if (!trimmed) {
-      setYtDetectionEdit({ loading: false, url: '' });
-      return;
-    }
-
-    const val = validateVideoUrl(trimmed);
-    if (!val.valid || val.provider !== 'youtube' || !val.videoId) {
-      setYtDetectionEdit({ loading: false, url: trimmed });
-      return;
-    }
-
-    setYtDetectionEdit({ loading: true, url: trimmed });
-
-    try {
-      // Step 1: Direct backend detection
-      const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
-      setYtDetectionEdit({
-        loading: false,
-        duration: data.durationSeconds,
-        formatted: data.formattedDuration,
-        url: trimmed,
-      });
-    } catch (err: any) {
-      // Step 2: Client assisted fallback with oEmbed validation
-      try {
-        const clientDur = await getYouTubeDurationInBrowser(val.videoId);
-        if (clientDur && clientDur > 0) {
-          const { data } = await api.post('/lessons/detect-youtube-duration', {
-            url: trimmed,
-            clientDuration: clientDur,
-          });
-          setYtDetectionEdit({
-            loading: false,
-            duration: data.durationSeconds,
-            formatted: data.formattedDuration,
-            url: trimmed,
-          });
-          return;
-        }
-      } catch {}
-
-      const backendErr = err.response?.data?.error;
-      setYtDetectionEdit({
-        loading: false,
-        error: backendErr || 'Could not verify YouTube video duration. Please ensure the video is public.',
-        url: trimmed,
-      });
-    }
-  };
-
   const openEditLesson = (les: Lesson) => {
     const vUrl = les.videoUrl || les.contentUrl || '';
     setEditingLesson({
@@ -301,25 +85,6 @@ export default function EditCoursePage() {
       contentUrl: vUrl,
     });
     setEditingLessonFile(null);
-    if (les.type === 'video') {
-      const val = validateVideoUrl(vUrl);
-      if (val.valid && val.provider === 'youtube') {
-        if (les.durationSeconds && les.durationSeconds > 0) {
-          setYtDetectionEdit({
-            loading: false,
-            duration: les.durationSeconds,
-            formatted: formatDuration(les.durationSeconds),
-            url: vUrl,
-          });
-        } else {
-          detectYouTubeDurationForEdit(vUrl);
-        }
-      } else {
-        setYtDetectionEdit({ loading: false, url: '' });
-      }
-    } else {
-      setYtDetectionEdit({ loading: false, url: '' });
-    }
   };
 
   // Active sub-tab inside module ('lessons' | 'quiz')
@@ -448,15 +213,7 @@ export default function EditCoursePage() {
         return;
       }
       if (val.provider === 'youtube') {
-        const detect = ytDetectionCreate[moduleId];
-        if (detect?.loading) {
-          toast.error('Please wait while YouTube duration is being detected.');
-          return;
-        }
-        if (!detect?.duration || detect.duration <= 0 || detect.error) {
-          toast.error(detect?.error || 'Cannot add lesson: YouTube video duration could not be verified.');
-          return;
-        }
+        // Valid YouTube URL accepted directly
       }
     }
 
@@ -485,9 +242,7 @@ export default function EditCoursePage() {
         headers = { 'Content-Type': 'multipart/form-data' };
       } else {
         const vUrl = (form.videoUrl || form.contentUrl || '').trim();
-        const val = validateVideoUrl(vUrl);
-        const isYt = val.valid && val.provider === 'youtube';
-        const verifiedDuration = isYt ? ytDetectionCreate[moduleId]?.duration : (form.durationSeconds ? Number(form.durationSeconds) : 0);
+        const durationSec = form.durationSeconds ? Math.max(0, Number(form.durationSeconds)) : 0;
 
         payload = {
           title: form.title.trim(),
@@ -495,7 +250,7 @@ export default function EditCoursePage() {
           videoUrl: type === 'video' ? vUrl : undefined,
           contentUrl: type === 'video' ? vUrl : undefined,
           textContent: type === 'text' ? form.textContent || '' : undefined,
-          durationSeconds: verifiedDuration,
+          durationSeconds: durationSec,
           isPreview: Boolean(form.isPreview),
         };
       }
@@ -507,11 +262,6 @@ export default function EditCoursePage() {
         )
       );
       setLessonForms((f) => ({ ...f, [moduleId]: {} }));
-      setYtDetectionCreate((prev) => {
-        const nextState = { ...prev };
-        delete nextState[moduleId];
-        return nextState;
-      });
       toast.success('Lesson attached to module successfully');
     } catch (err: any) {
       const errorMsg =
@@ -540,14 +290,7 @@ export default function EditCoursePage() {
         return;
       }
       if (val.provider === 'youtube') {
-        if (ytDetectionEdit.loading) {
-          toast.error('Please wait while YouTube duration is being detected.');
-          return;
-        }
-        if (!ytDetectionEdit.duration || ytDetectionEdit.duration <= 0 || ytDetectionEdit.error) {
-          toast.error(ytDetectionEdit.error || 'Cannot update lesson: YouTube video duration could not be verified.');
-          return;
-        }
+        // Valid YouTube URL accepted immediately
       }
     }
 
@@ -565,16 +308,14 @@ export default function EditCoursePage() {
         payload = fd;
         headers = { 'Content-Type': 'multipart/form-data' };
       } else {
-        const val = validateVideoUrl(vUrl);
-        const isYt = val.valid && val.provider === 'youtube';
-        const verifiedDuration = isYt ? ytDetectionEdit.duration : (editingLesson.durationSeconds ? Number(editingLesson.durationSeconds) : 0);
+        const durationSec = editingLesson.durationSeconds ? Math.max(0, Number(editingLesson.durationSeconds)) : 0;
 
         payload = {
           title: editingLesson.title.trim(),
           contentUrl: editingLesson.type === 'video' ? vUrl : editingLesson.contentUrl?.trim(),
           videoUrl: editingLesson.type === 'video' ? vUrl : undefined,
           textContent: editingLesson.textContent || '',
-          durationSeconds: verifiedDuration,
+          durationSeconds: durationSec,
           isPreview: Boolean(editingLesson.isPreview),
         };
       }
@@ -1327,9 +1068,7 @@ export default function EditCoursePage() {
                               {(!lForm.type || lForm.type === 'video') && (() => {
                                 const currentUrl = (lForm.videoUrl || lForm.contentUrl || '').trim();
                                 const val = validateVideoUrl(currentUrl);
-                                const isYt = val.valid && val.provider === 'youtube';
                                 const isDirect = val.valid && val.provider === 'direct';
-                                const detect = ytDetectionCreate[mod._id];
 
                                 return (
                                   <div className="space-y-2.5">
@@ -1345,12 +1084,6 @@ export default function EditCoursePage() {
                                                 ...f,
                                                 [mod._id]: { ...lForm, videoUrl: newUrl, contentUrl: newUrl },
                                               }));
-                                              const v = validateVideoUrl(newUrl.trim());
-                                              if (v.valid && v.provider === 'youtube') {
-                                                detectYouTubeDurationForModule(mod._id, newUrl);
-                                              } else {
-                                                setYtDetectionCreate((prev) => ({ ...prev, [mod._id]: { loading: false, url: newUrl } }));
-                                              }
                                             }}
                                           />
                                         </div>
@@ -1376,42 +1109,12 @@ export default function EditCoursePage() {
                                             ...f,
                                             [mod._id]: { ...lForm, videoUrl: newUrl, contentUrl: newUrl },
                                           }));
-                                          const v = validateVideoUrl(newUrl.trim());
-                                          if (v.valid && v.provider === 'youtube') {
-                                            detectYouTubeDurationForModule(mod._id, newUrl);
-                                          } else {
-                                            setYtDetectionCreate((prev) => ({ ...prev, [mod._id]: { loading: false, url: newUrl } }));
-                                          }
                                         }}
                                       />
                                     )}
 
-                                    {/* Automatic YouTube Duration Indicator */}
-                                    {isYt && (
-                                      <div>
-                                        {detect?.loading && (
-                                          <div className="flex items-center gap-2 text-xs text-[#77736D] bg-[#F3F0EB] px-3 py-2 rounded-md border border-[#E6E2DA]">
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#171717]" />
-                                            <span>Detecting YouTube duration...</span>
-                                          </div>
-                                        )}
-                                        {!detect?.loading && detect?.duration && (
-                                          <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-200">
-                                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                            <span>Detected duration: <strong>{detect.formatted || formatDuration(detect.duration)}</strong></span>
-                                          </div>
-                                        )}
-                                        {!detect?.loading && detect?.error && (
-                                          <div className="flex items-center gap-2 text-xs text-rose-800 bg-rose-50 px-3 py-2 rounded-md border border-rose-200">
-                                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
-                                            <span>{detect.error}</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-
                                     <p className="text-[11px] text-[#77736D]">
-                                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4/WebM URLs. YouTube video duration is detected automatically.
+                                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4/WebM URLs.
                                     </p>
                                   </div>
                                 );
@@ -1467,8 +1170,8 @@ export default function EditCoursePage() {
                                   size="sm"
                                   disabled={
                                     submittingModuleId === mod._id ||
-                                    (validateVideoUrl((lForm.videoUrl || lForm.contentUrl || '').trim()).provider === 'youtube' &&
-                                      (!ytDetectionCreate[mod._id]?.duration || ytDetectionCreate[mod._id]?.loading))
+                                    !lForm.title?.trim() ||
+                                    ((!lForm.type || lForm.type === 'video') && !validateVideoUrl((lForm.videoUrl || lForm.contentUrl || '').trim()).valid)
                                   }
                                   onClick={() => addLesson(mod._id)}
                                 >
@@ -1913,7 +1616,6 @@ export default function EditCoursePage() {
 
             {editingLesson.type === 'video' && (() => {
               const val = validateVideoUrl(editingLesson.videoUrl || editingLesson.contentUrl || '');
-              const isYt = val.valid && val.provider === 'youtube';
               const isDirect = val.valid && val.provider === 'direct';
 
               return (
@@ -1930,41 +1632,12 @@ export default function EditCoursePage() {
                           videoUrl: newUrl,
                           contentUrl: newUrl,
                         });
-                        const v = validateVideoUrl(newUrl.trim());
-                        if (v.valid && v.provider === 'youtube') {
-                          detectYouTubeDurationForEdit(newUrl);
-                        } else {
-                          setYtDetectionEdit({ loading: false, url: newUrl });
-                        }
                       }}
                     />
                     <p className="text-[11px] text-[#77736D] mt-1">
-                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4 URLs. YouTube video duration is detected automatically.
+                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4 URLs.
                     </p>
                   </div>
-
-                  {isYt && (
-                    <div>
-                      {ytDetectionEdit.loading && (
-                        <div className="flex items-center gap-2 text-xs text-[#77736D] bg-[#F3F0EB] px-3 py-2 rounded-md border border-[#E6E2DA]">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#171717]" />
-                          <span>Detecting YouTube duration...</span>
-                        </div>
-                      )}
-                      {!ytDetectionEdit.loading && ytDetectionEdit.duration && (
-                        <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-200">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                          <span>Detected duration: <strong>{ytDetectionEdit.formatted || formatDuration(ytDetectionEdit.duration)}</strong></span>
-                        </div>
-                      )}
-                      {!ytDetectionEdit.loading && ytDetectionEdit.error && (
-                        <div className="flex items-center gap-2 text-xs text-rose-800 bg-rose-50 px-3 py-2 rounded-md border border-rose-200">
-                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
-                          <span>{ytDetectionEdit.error}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   {isDirect && (
                     <div>
@@ -2035,9 +1708,9 @@ export default function EditCoursePage() {
                 type="submit"
                 disabled={
                   isUpdatingLesson ||
+                  !editingLesson.title?.trim() ||
                   (editingLesson.type === 'video' &&
-                    validateVideoUrl(editingLesson.videoUrl || editingLesson.contentUrl || '').provider === 'youtube' &&
-                    (!ytDetectionEdit.duration || ytDetectionEdit.loading))
+                    !validateVideoUrl(editingLesson.videoUrl || editingLesson.contentUrl || '').valid)
                 }
               >
                 {isUpdatingLesson ? 'Saving...' : 'Save changes'}

@@ -98,7 +98,10 @@ const getQuiz = async (req, res, next) => {
       (req.user.role === 'instructor' && course.instructorId.toString() === req.user.userId);
 
     if (isManager) {
-      return res.json({ quiz });
+      const qObj = quiz.toObject ? quiz.toObject() : quiz;
+      qObj.courseId = course._id;
+      qObj.course = { _id: course._id, title: course.title };
+      return res.json({ quiz: qObj });
     }
 
     if (req.user.role === 'student') {
@@ -116,6 +119,8 @@ const getQuiz = async (req, res, next) => {
     const safeQuiz = {
       _id: quiz._id,
       moduleId: quiz.moduleId,
+      courseId: course._id,
+      course: { _id: course._id, title: course.title },
       title: quiz.title,
       timeLimitSeconds: quiz.timeLimitSeconds,
       passingScore: quiz.passingScore,

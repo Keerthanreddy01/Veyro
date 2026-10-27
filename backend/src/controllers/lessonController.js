@@ -96,27 +96,7 @@ const createLesson = async (req, res, next) => {
     }
 
     const count = await Lesson.countDocuments({ moduleId: mod._id });
-
-    let finalDuration = durationSeconds ? Math.max(0, Number(durationSeconds)) : 0;
-    if (lessonType === 'video' && contentUrl) {
-      const val = validateVideoUrl(contentUrl);
-      if (val.valid && val.provider === 'youtube' && val.videoId) {
-        try {
-          const ytDur = await fetchYouTubeDuration(val.videoId, finalDuration);
-          if (ytDur && ytDur > 0) {
-            finalDuration = ytDur;
-          } else {
-            return res.status(400).json({
-              error: 'Unable to verify YouTube video duration. Please ensure the video is public and accessible.',
-            });
-          }
-        } catch {
-          return res.status(400).json({
-            error: 'Failed to connect to YouTube to detect video duration.',
-          });
-        }
-      }
-    }
+    const finalDuration = durationSeconds ? Math.max(0, Number(durationSeconds)) : 0;
 
     const lesson = await Lesson.create({
       moduleId: mod._id,
@@ -193,37 +173,13 @@ const updateLesson = async (req, res, next) => {
       lesson.contentUrl = normalized;
       lesson.videoUrl = normalized;
 
-      if (val.provider === 'youtube' && val.videoId) {
-        try {
-          const clientDur = req.body.durationSeconds ? Number(req.body.durationSeconds) : null;
-          const ytDur = await fetchYouTubeDuration(val.videoId, clientDur);
-          if (ytDur && ytDur > 0) {
-            lesson.durationSeconds = ytDur;
-          } else {
-            return res.status(400).json({
-              error: 'Unable to verify YouTube video duration. Please ensure the video is public and accessible.',
-            });
-          }
-        } catch {
-          return res.status(400).json({
-            error: 'Failed to connect to YouTube to detect video duration.',
-          });
-        }
+      if (req.body.durationSeconds !== undefined) {
+        lesson.durationSeconds = Math.max(0, Number(req.body.durationSeconds) || 0);
       }
     } else if (req.file) {
       const path = getRelativePath(req.file);
       lesson.contentUrl = path;
       lesson.videoUrl = path;
-    } else if (lesson.type === 'video' && (!lesson.durationSeconds || lesson.durationSeconds === 360)) {
-      const val = validateVideoUrl(lesson.videoUrl || lesson.contentUrl || '');
-      if (val.valid && val.provider === 'youtube' && val.videoId) {
-        try {
-          const ytDur = await fetchYouTubeDuration(val.videoId);
-          if (ytDur && ytDur > 0) {
-            lesson.durationSeconds = ytDur;
-          }
-        } catch {}
-      }
     }
 
     await lesson.save();
@@ -274,26 +230,14 @@ const getLessonById = async (req, res, next) => {
       const resolvedUrl = lessonObj.videoUrl || lessonObj.contentUrl || lessonObj.videoURL || lessonObj.video || null;
       lessonObj.videoUrl = resolvedUrl;
       lessonObj.contentUrl = resolvedUrl;
-
-      // Auto-reconcile video duration if missing or at placeholder 360
-      const val = validateVideoUrl(resolvedUrl || '');
-      if (val.valid && val.provider === 'youtube' && val.videoId) {
-        if (!lesson.durationSeconds || lesson.durationSeconds === 360) {
-          try {
-            const ytDur = await fetchYouTubeDuration(val.videoId);
-            if (ytDur && ytDur > 0 && lesson.durationSeconds !== ytDur) {
-              lesson.durationSeconds = ytDur;
-              await lesson.save();
-              lessonObj.durationSeconds = ytDur;
-            }
-          } catch {}
-        }
-      }
     }
 
     // Instructors/admins always have access
     if (['instructor', 'admin'].includes(req.user.role)) {
-      return res.json({ lesson: lessonObj });
+      return res.json({
+        lesson: lessonObj,
+        course: { _id: course._id, title: course.title },
+      });
     }
 
     // For students: check enrollment unless it's a preview lesson
@@ -316,7 +260,11 @@ const getLessonById = async (req, res, next) => {
       await progress.save();
     }
 
-    res.json({ lesson: lessonObj, progress: progress || null });
+    res.json({
+      lesson: lessonObj,
+      progress: progress || null,
+      course: { _id: course._id, title: course.title },
+    });
   } catch (err) { next(err); }
 };
 
@@ -347,51 +295,11 @@ const updateProgress = async (req, res, next) => {
       return res.status(403).json({ error: 'You must be enrolled in this course to record progress.' });
     }
 
-    let { watchedSeconds, lastPosition, mediaDuration, watchedRanges } = req.body;
+    let { watchedSeconds, lastPosition, completed, watchedRanges } = req.body;
     watchedSeconds = Math.max(0, Number(watchedSeconds) || 0);
     lastPosition = Math.max(0, Number(lastPosition) || 0);
-    const clientReportedDuration = Math.max(0, Number(mediaDuration) || 0);
 
-    // Reconcile video duration
-    let authoritativeDuration = lesson.durationSeconds || 0;
-
-    if (lesson.type === 'video') {
-      const val = validateVideoUrl(lesson.videoUrl || lesson.contentUrl || '');
-      if (val.valid && val.provider === 'youtube' && val.videoId) {
-        const needsCheck =
-          authoritativeDuration === 0 ||
-          authoritativeDuration === 360 ||
-          (clientReportedDuration > 0 && Math.abs(authoritativeDuration - clientReportedDuration) > 3);
-
-        if (needsCheck) {
-          try {
-            const ytDuration = await fetchYouTubeDuration(val.videoId);
-            if (ytDuration && ytDuration > 0) {
-              authoritativeDuration = ytDuration;
-              lesson.durationSeconds = ytDuration;
-              await lesson.save();
-            } else if (clientReportedDuration > 0 && (authoritativeDuration === 0 || authoritativeDuration > clientReportedDuration)) {
-              authoritativeDuration = clientReportedDuration;
-              lesson.durationSeconds = clientReportedDuration;
-              await lesson.save();
-            }
-          } catch {}
-        }
-      } else if (authoritativeDuration === 0 && clientReportedDuration > 0) {
-        authoritativeDuration = clientReportedDuration;
-        lesson.durationSeconds = clientReportedDuration;
-        await lesson.save();
-      }
-    }
-
-    if (authoritativeDuration === 0 && clientReportedDuration > 0) {
-      authoritativeDuration = clientReportedDuration;
-    }
-
-    // Clamp watchedSeconds to authoritative duration
-    if (authoritativeDuration > 0) {
-      watchedSeconds = Math.min(watchedSeconds, authoritativeDuration);
-    }
+    const authoritativeDuration = lesson.durationSeconds || 0;
 
     // Find or create progress record
     let progress = await Progress.findOne({ studentId: req.user.userId, lessonId: lesson._id });
@@ -403,91 +311,37 @@ const updateProgress = async (req, res, next) => {
       });
     }
 
-    // Continuous ranges merging and coverage calculation
     if (Array.isArray(watchedRanges) && watchedRanges.length > 0) {
       progress.watchedRanges = mergeRanges(progress.watchedRanges, watchedRanges);
       const rangeCount = countUniqueSeconds(progress.watchedRanges);
-      if (authoritativeDuration > 0) {
-        progress.watchedSeconds = Math.min(
-          authoritativeDuration,
-          Math.max(progress.watchedSeconds || 0, watchedSeconds, rangeCount)
-        );
-      } else {
-        progress.watchedSeconds = Math.max(progress.watchedSeconds || 0, watchedSeconds, rangeCount);
-      }
-    } else {
-      if (watchedSeconds > (progress.watchedSeconds || 0)) {
-        progress.watchedSeconds = watchedSeconds;
-      }
+      progress.watchedSeconds = Math.max(progress.watchedSeconds || 0, watchedSeconds, rangeCount);
+    } else if (watchedSeconds > (progress.watchedSeconds || 0)) {
+      progress.watchedSeconds = watchedSeconds;
     }
 
-    // Monotonic guard: position should never jump backwards on stale out-of-order calls
     if (lastPosition > (progress.lastPosition || 0)) {
       progress.lastPosition = lastPosition;
     }
 
-    // Server-side completion check: >= 90% of authoritative duration
-    const threshold = authoritativeDuration > 0 ? authoritativeDuration * 0.9 : 0;
-    if (!progress.completed && authoritativeDuration > 0 && progress.watchedSeconds >= threshold) {
+    // Completion checks:
+    // 1. Explicitly requested (video ended or student clicked Complete)
+    // 2. Non-video lessons (PDF / text) completed on view
+    // 3. Lessons with 0 duration: completed on view/playback
+    // 4. Lessons with duration > 0: completed if watchedSeconds >= 90%
+    if (completed === true || (!progress.completed && lesson.type !== 'video')) {
       progress.completed = true;
-      progress.completedAt = new Date();
-    }
-    // PDF / text lessons OR video lessons with 0 duration: completed on first view
-    if (!progress.completed && (lesson.type !== 'video' || authoritativeDuration <= 0)) {
+      if (!progress.completedAt) progress.completedAt = new Date();
+    } else if (!progress.completed && authoritativeDuration > 0 && progress.watchedSeconds >= authoritativeDuration * 0.9) {
       progress.completed = true;
-      progress.completedAt = new Date();
+      if (!progress.completedAt) progress.completedAt = new Date();
+    } else if (!progress.completed && (lesson.type === 'video' && authoritativeDuration <= 0)) {
+      progress.completed = true;
+      if (!progress.completedAt) progress.completedAt = new Date();
     }
 
     await progress.save();
     res.json({ progress });
   } catch (err) { next(err); }
-};
-
-/**
- * POST /api/lessons/detect-youtube-duration
- * Lightweight endpoint for detecting and verifying YouTube duration on-the-fly.
- */
-const detectYouTubeDuration = async (req, res, next) => {
-  try {
-    const { url, videoUrl, clientDuration } = req.body;
-    const targetUrl = (url || videoUrl || '').trim();
-    if (!targetUrl) {
-      return res.status(400).json({ error: 'Video URL is required.' });
-    }
-
-    const val = validateVideoUrl(targetUrl);
-    if (!val.valid) {
-      return res.status(400).json({ error: val.error || 'Invalid video URL.' });
-    }
-
-    if (val.provider !== 'youtube' || !val.videoId) {
-      return res.status(400).json({ error: 'URL is not a recognized YouTube link.' });
-    }
-
-    const parsedClientDur = clientDuration !== undefined && clientDuration !== null ? Number(clientDuration) : null;
-    const meta = await fetchYouTubeMetadata(val.videoId, parsedClientDur);
-    if (!meta || !meta.duration || meta.duration <= 0) {
-      const errorMsg =
-        meta?.error ||
-        'Unable to detect duration. Video may be private, unlisted, region-locked, or unavailable on YouTube.';
-      return res.status(400).json({ error: errorMsg });
-    }
-
-    const duration = meta.duration;
-    const mins = Math.floor(duration / 60);
-    const secs = duration % 60;
-    const formattedDuration = mins === 0 ? `${secs} sec` : secs === 0 ? `${mins} min` : `${mins} min ${secs} sec`;
-
-    return res.json({
-      videoId: val.videoId,
-      durationSeconds: duration,
-      title: meta.title || undefined,
-      formattedDuration,
-      normalizedUrl: val.normalizedUrl,
-    });
-  } catch (err) {
-    next(err);
-  }
 };
 
 module.exports = {
@@ -496,5 +350,4 @@ module.exports = {
   deleteLesson,
   getLessonById,
   updateProgress,
-  detectYouTubeDuration,
 };

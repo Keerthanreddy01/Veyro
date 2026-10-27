@@ -6,6 +6,8 @@ export type EnrollmentStatus = 'active' | 'completed' | 'dropped';
 export interface Lesson {
   _id: string;
   moduleId: string;
+  courseId?: string | { _id: string; title: string };
+  course?: { _id: string; title: string };
   title: string;
   type: LessonType;
   contentUrl?: string;
@@ -30,6 +32,8 @@ export interface QuizQuestion {
 export interface Quiz {
   _id: string;
   moduleId: string;
+  courseId?: string;
+  course?: { _id: string; title: string };
   title: string;
   passingScore?: number;
   timeLimitSeconds?: number;
