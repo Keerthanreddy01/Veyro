@@ -6,6 +6,8 @@ const Progress = require('../models/Progress');
 const Enrollment = require('../models/Enrollment');
 const { getRelativePath, validateFileHeader } = require('../utils/fileUpload');
 const { validateVideoUrl } = require('../utils/videoUrlValidator');
+const { fetchYouTubeDuration } = require('../utils/youtubeDuration');
+const { mergeRanges, countUniqueSeconds } = require('../utils/playbackTracker');
 
 /** POST /api/modules/:moduleId/lessons */
 const createLesson = async (req, res, next) => {
@@ -95,6 +97,17 @@ const createLesson = async (req, res, next) => {
 
     const count = await Lesson.countDocuments({ moduleId: mod._id });
 
+    let finalDuration = durationSeconds ? Math.max(0, Number(durationSeconds)) : 0;
+    if (lessonType === 'video' && contentUrl && finalDuration === 0) {
+      const val = validateVideoUrl(contentUrl);
+      if (val.valid && val.provider === 'youtube' && val.videoId) {
+        try {
+          const ytDur = await fetchYouTubeDuration(val.videoId);
+          if (ytDur && ytDur > 0) finalDuration = ytDur;
+        } catch {}
+      }
+    }
+
     const lesson = await Lesson.create({
       moduleId: mod._id,
       title: title.trim(),
@@ -102,7 +115,7 @@ const createLesson = async (req, res, next) => {
       contentUrl,
       videoUrl: lessonType === 'video' ? contentUrl : null,
       textContent: lessonType === 'text' ? textContent.trim() : null,
-      durationSeconds: durationSeconds ? Math.max(0, Number(durationSeconds)) : 0,
+      durationSeconds: finalDuration,
       isPreview: isPreview === 'true' || isPreview === true,
       order: req.body.order !== undefined ? Number(req.body.order) : count,
     });
@@ -223,6 +236,21 @@ const getLessonById = async (req, res, next) => {
       const resolvedUrl = lessonObj.videoUrl || lessonObj.contentUrl || lessonObj.videoURL || lessonObj.video || null;
       lessonObj.videoUrl = resolvedUrl;
       lessonObj.contentUrl = resolvedUrl;
+
+      // Auto-reconcile video duration if missing or at placeholder 360
+      const val = validateVideoUrl(resolvedUrl || '');
+      if (val.valid && val.provider === 'youtube' && val.videoId) {
+        if (!lesson.durationSeconds || lesson.durationSeconds === 360) {
+          try {
+            const ytDur = await fetchYouTubeDuration(val.videoId);
+            if (ytDur && ytDur > 0 && lesson.durationSeconds !== ytDur) {
+              lesson.durationSeconds = ytDur;
+              await lesson.save();
+              lessonObj.durationSeconds = ytDur;
+            }
+          } catch {}
+        }
+      }
     }
 
     // Instructors/admins always have access
@@ -241,7 +269,15 @@ const getLessonById = async (req, res, next) => {
     }
 
     // Attach progress for the student
-    const progress = await Progress.findOne({ studentId: req.user.userId, lessonId: lesson._id });
+    let progress = await Progress.findOne({ studentId: req.user.userId, lessonId: lesson._id });
+
+    // Auto-complete if existing progress already meets 90% threshold for reconciled duration
+    if (progress && !progress.completed && lesson.durationSeconds > 0 && progress.watchedSeconds >= lesson.durationSeconds * 0.9) {
+      progress.completed = true;
+      progress.completedAt = progress.completedAt || new Date();
+      await progress.save();
+    }
+
     res.json({ lesson: lessonObj, progress: progress || null });
   } catch (err) { next(err); }
 };
@@ -250,10 +286,10 @@ const getLessonById = async (req, res, next) => {
  * POST /api/lessons/:id/progress
  * Student updates their progress for a video lesson.
  *
- * Design Decision: The client sends { watchedSeconds, lastPosition } periodically
- * (e.g. every 10s via timeupdate). The server COMPUTES completion status by checking
- * if watchedSeconds >= 90% of lesson.durationSeconds — we never trust a client-sent
- * 'completed' flag. This prevents students from marking lessons complete without watching.
+ * Design Decision: The client sends { watchedSeconds, lastPosition, mediaDuration, watchedRanges }
+ * periodically. The server reconciles media duration against YouTube's authoritative length,
+ * merges verified continuous playback ranges, and COMPUTES completion status by checking
+ * if watchedSeconds >= 90% of duration — we never trust a client-sent 'completed' flag.
  */
 const updateProgress = async (req, res, next) => {
   try {
@@ -273,13 +309,50 @@ const updateProgress = async (req, res, next) => {
       return res.status(403).json({ error: 'You must be enrolled in this course to record progress.' });
     }
 
-    let { watchedSeconds, lastPosition } = req.body;
+    let { watchedSeconds, lastPosition, mediaDuration, watchedRanges } = req.body;
     watchedSeconds = Math.max(0, Number(watchedSeconds) || 0);
     lastPosition = Math.max(0, Number(lastPosition) || 0);
+    const clientReportedDuration = Math.max(0, Number(mediaDuration) || 0);
 
-    // Prevent impossible values: clamp watchedSeconds to configured lesson duration
-    if (lesson.durationSeconds > 0) {
-      watchedSeconds = Math.min(watchedSeconds, lesson.durationSeconds);
+    // Reconcile video duration
+    let authoritativeDuration = lesson.durationSeconds || 0;
+
+    if (lesson.type === 'video') {
+      const val = validateVideoUrl(lesson.videoUrl || lesson.contentUrl || '');
+      if (val.valid && val.provider === 'youtube' && val.videoId) {
+        const needsCheck =
+          authoritativeDuration === 0 ||
+          authoritativeDuration === 360 ||
+          (clientReportedDuration > 0 && Math.abs(authoritativeDuration - clientReportedDuration) > 3);
+
+        if (needsCheck) {
+          try {
+            const ytDuration = await fetchYouTubeDuration(val.videoId);
+            if (ytDuration && ytDuration > 0) {
+              authoritativeDuration = ytDuration;
+              lesson.durationSeconds = ytDuration;
+              await lesson.save();
+            } else if (clientReportedDuration > 0 && (authoritativeDuration === 0 || authoritativeDuration > clientReportedDuration)) {
+              authoritativeDuration = clientReportedDuration;
+              lesson.durationSeconds = clientReportedDuration;
+              await lesson.save();
+            }
+          } catch {}
+        }
+      } else if (authoritativeDuration === 0 && clientReportedDuration > 0) {
+        authoritativeDuration = clientReportedDuration;
+        lesson.durationSeconds = clientReportedDuration;
+        await lesson.save();
+      }
+    }
+
+    if (authoritativeDuration === 0 && clientReportedDuration > 0) {
+      authoritativeDuration = clientReportedDuration;
+    }
+
+    // Clamp watchedSeconds to authoritative duration
+    if (authoritativeDuration > 0) {
+      watchedSeconds = Math.min(watchedSeconds, authoritativeDuration);
     }
 
     // Find or create progress record
@@ -292,20 +365,37 @@ const updateProgress = async (req, res, next) => {
       });
     }
 
-    // Only update watched seconds if higher (can't go backwards)
-    if (watchedSeconds > progress.watchedSeconds) {
-      progress.watchedSeconds = watchedSeconds;
+    // Continuous ranges merging and coverage calculation
+    if (Array.isArray(watchedRanges) && watchedRanges.length > 0) {
+      progress.watchedRanges = mergeRanges(progress.watchedRanges, watchedRanges);
+      const rangeCount = countUniqueSeconds(progress.watchedRanges);
+      if (authoritativeDuration > 0) {
+        progress.watchedSeconds = Math.min(
+          authoritativeDuration,
+          Math.max(progress.watchedSeconds || 0, watchedSeconds, rangeCount)
+        );
+      } else {
+        progress.watchedSeconds = Math.max(progress.watchedSeconds || 0, watchedSeconds, rangeCount);
+      }
+    } else {
+      if (watchedSeconds > (progress.watchedSeconds || 0)) {
+        progress.watchedSeconds = watchedSeconds;
+      }
     }
-    progress.lastPosition = lastPosition;
 
-    // Server-side completion check: >= 90% of duration
-    const threshold = lesson.durationSeconds * 0.9;
-    if (!progress.completed && lesson.durationSeconds > 0 && progress.watchedSeconds >= threshold) {
+    // Monotonic guard: position should never jump backwards on stale out-of-order calls
+    if (lastPosition > (progress.lastPosition || 0)) {
+      progress.lastPosition = lastPosition;
+    }
+
+    // Server-side completion check: >= 90% of authoritative duration
+    const threshold = authoritativeDuration > 0 ? authoritativeDuration * 0.9 : 0;
+    if (!progress.completed && authoritativeDuration > 0 && progress.watchedSeconds >= threshold) {
       progress.completed = true;
       progress.completedAt = new Date();
     }
     // PDF / text lessons OR video lessons with 0 duration: completed on first view
-    if (!progress.completed && (lesson.type !== 'video' || !lesson.durationSeconds || lesson.durationSeconds <= 0)) {
+    if (!progress.completed && (lesson.type !== 'video' || authoritativeDuration <= 0)) {
       progress.completed = true;
       progress.completedAt = new Date();
     }

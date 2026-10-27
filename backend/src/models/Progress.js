@@ -35,6 +35,14 @@ const progressSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    // Traversed continuous ranges to reconstruct verified coverage across refreshes
+    watchedRanges: [
+      {
+        start: { type: Number, required: true },
+        end: { type: Number, required: true },
+        _id: false,
+      },
+    ],
     // Where to resume playback (in seconds)
     lastPosition: {
       type: Number,

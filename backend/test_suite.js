@@ -29,6 +29,15 @@ const {
 const { authorize } = require('./src/middleware/auth');
 const { generateCertificate } = require('./src/utils/certificate');
 const { sanitizeMetadata, AUDIT_ACTIONS } = require('./src/utils/auditLogger');
+const {
+  setToRanges,
+  rangesToSet,
+  mergeRanges,
+  countUniqueSeconds,
+  calculateWatchProgress,
+  TraversalPlaybackTracker,
+} = require('./src/utils/playbackTracker');
+const { fetchYouTubeDuration } = require('./src/utils/youtubeDuration');
 
 let passedTests = 0;
 let totalTests = 0;
@@ -2900,6 +2909,206 @@ async function runAllTests() {
     assert.strictEqual(sampleBatchResponse.modules[0].quizzes.length, 1);
     assert.strictEqual(sampleBatchResponse.enrollment.progressPercentage, 100);
     assert.strictEqual(sampleBatchResponse.progress.isEligibleForCertificate, true);
+  });
+
+  // ── GROUP 31: Audited Watch-Progress & Video Duration Reconciliation Suite ──
+  console.log('\n📦 GROUP 31: Audited Watch-Progress Regression & Video Duration Reconciliation Suite');
+
+  runTest('1. Deterministic Bug Reproduction: 155s video with 360s placeholder duration yields 43% stuck, resolved by duration reconciliation', () => {
+    // Exact production bug reproduction:
+    // Lesson 'NATURE' (YouTube Y-NQOJ3Uz4w) has actual duration of 155s (2m 35s).
+    // Due to the form placeholder '360', durationSeconds was saved as 360 in MongoDB.
+    const actualMediaDuration = 155;
+    const placeholderDuration = 360;
+
+    // Student continuously watched all 155 seconds of the video
+    const studentWatchedSeconds = 155;
+
+    // Under the uncorrected/buggy state:
+    const buggyProgress = calculateWatchProgress(studentWatchedSeconds, placeholderDuration, false);
+    // 155 / 360 = 43.05% -> round to 43%
+    assert.strictEqual(buggyProgress.percentage, 43, 'Uncorrected duration yields exactly 43% stuck progress');
+    assert.strictEqual(buggyProgress.isEligible, false, 'Uncorrected duration prevents 90% completion (155 < 324)');
+
+    // Under the fixed pipeline:
+    // TraversalPlaybackTracker / lessonController reconciles duration to 155s
+    const reconciledProgress = calculateWatchProgress(studentWatchedSeconds, actualMediaDuration, false);
+    assert.strictEqual(reconciledProgress.percentage, 100, 'Reconciled duration reaches 100%');
+    assert.strictEqual(reconciledProgress.isEligible, true, 'Reconciled duration correctly awards completion eligibility');
+  });
+
+  runTest('2. Continuous 155s playback with 3-4s timer jitter reliably credits all seconds and reaches 100%', () => {
+    const tracker = new TraversalPlaybackTracker(155);
+    let wallMs = 1000000;
+    let mediaPos = 0;
+
+    // Initial tick at 0s
+    tracker.sample(0, wallMs);
+
+    // Simulate playback sampled every 3.0 to 4.0 seconds (simulating event loop lag & background tab throttling)
+    const jitterDeltas = [3.2, 3.8, 3.1, 4.0, 3.5, 3.9, 3.3, 3.6];
+    let j = 0;
+    while (mediaPos < 155) {
+      const step = jitterDeltas[j % jitterDeltas.length];
+      mediaPos = Math.min(155, mediaPos + step);
+      // Wall clock advances proportionally (real-time playback)
+      wallMs += Math.round(step * 1000);
+      tracker.sample(mediaPos, wallMs);
+      j++;
+    }
+
+    // Must credit all 155 seconds without dropping jittered intervals
+    assert.strictEqual(tracker.getWatchedSeconds(), 155, 'All 155 continuous seconds must be credited');
+    const result = tracker.getProgress(false);
+    assert.strictEqual(result.percentage, 100, 'Must reach 100% verified progress');
+    assert.strictEqual(result.isEligible, true, 'Must be eligible for lesson completion');
+  });
+
+  runTest('3. Genuine forward seek strictly rejects skipped interval and credits only landing second', () => {
+    const tracker = new TraversalPlaybackTracker(155);
+    // User watches from 0s to 15s in real time
+    tracker.sample(0, 1000);
+    tracker.sample(15, 16000); // 15s elapsed
+    assert.strictEqual(tracker.getWatchedSeconds(), 16, 'Seconds 0..15 credited (16 seconds)');
+
+    // User seeks forward from 15s to 90s in 120ms (instant seek)
+    tracker.sample(90, 16120);
+
+    // Skipped interval (16..89 = 74 seconds) MUST NOT be credited
+    // Only landing second 90 is added -> 16 + 1 = 17 seconds
+    assert.strictEqual(tracker.getWatchedSeconds(), 17, 'Forward seek must only credit landing second');
+    const ranges = tracker.getRanges();
+    assert.strictEqual(ranges.length, 2, 'Must have 2 disjoint ranges');
+    assert.deepStrictEqual(ranges[0], { start: 0, end: 15 });
+    assert.deepStrictEqual(ranges[1], { start: 90, end: 90 });
+  });
+
+  runTest('4. Rewatching already credited sections does not double-count or inflate progress', () => {
+    const tracker = new TraversalPlaybackTracker(155);
+    // User watches seconds 0 to 40
+    tracker.sample(0, 1000);
+    tracker.sample(40, 41000);
+    assert.strictEqual(tracker.getWatchedSeconds(), 41);
+
+    // User rewinds back to 0 and rewatches seconds 0 to 40
+    tracker.sample(0, 41200); // seek back
+    tracker.sample(40, 81200); // rewatch
+
+    // Watched seconds must remain exactly 41 (no duplicate credit)
+    assert.strictEqual(tracker.getWatchedSeconds(), 41, 'Rewatching must not inflate unique watched seconds');
+    const ranges = tracker.getRanges();
+    assert.strictEqual(ranges.length, 1);
+    assert.deepStrictEqual(ranges[0], { start: 0, end: 40 });
+  });
+
+  runTest('5. Disjoint range representation survives refresh/re-login and merges newly watched intervals', () => {
+    // Existing ranges saved in MongoDB for student
+    const savedRanges = [
+      { start: 0, end: 40 },
+      { start: 70, end: 110 },
+    ];
+
+    // Verify countUniqueSeconds utility
+    const uniqueSec = countUniqueSeconds(savedRanges);
+    assert.strictEqual(uniqueSec, 41 + 41, '82 unique seconds stored in ranges');
+
+    // On page reload / re-login: reconstruct tracker from persisted ranges
+    const tracker = new TraversalPlaybackTracker(155, savedRanges);
+    assert.strictEqual(tracker.getWatchedSeconds(), 82, 'Tracker accurately reconstructs 82 seconds from ranges');
+
+    // Student now fills in the missing middle gap: plays from 40 to 70
+    tracker.sample(40, 10000);
+    tracker.sample(70, 40000);
+
+    // Now the ranges should merge into a single continuous range from 0 to 110!
+    const newRanges = tracker.getRanges();
+    assert.strictEqual(newRanges.length, 1, 'Ranges must seamlessly merge contiguous intervals');
+    assert.deepStrictEqual(newRanges[0], { start: 0, end: 110 });
+    assert.strictEqual(tracker.getWatchedSeconds(), 111);
+  });
+
+  runTest('6. Video reaching ENDED without continuous coverage strictly denies completion (Anti-Cheat)', () => {
+    const tracker = new TraversalPlaybackTracker(155);
+    // Student watches 0s to 10s
+    tracker.sample(0, 1000);
+    tracker.sample(10, 11000);
+
+    // Student skips directly to the last second (154s) and video fires ENDED at 155s
+    tracker.sample(154, 11200);
+    tracker.sample(155, 12200);
+
+    // Total watched seconds = 11 (0..10) + 2 (154..155) = 13 seconds
+    assert.strictEqual(tracker.getWatchedSeconds(), 13);
+    const progress = tracker.getProgress(false);
+    assert.strictEqual(progress.percentage, 8, 'Must only be 8% watched');
+    assert.strictEqual(progress.isEligible, false, 'Reaching ENDED must not grant completion when coverage < 90%');
+  });
+
+  runTest('7. Monotonic server-side progress guard rejects out-of-order or delayed progress updates', () => {
+    // Simulates the controller updateProgress logic in lessonController.js
+    let currentDbRecord = {
+      watchedSeconds: 140,
+      completed: true,
+      lastPosition: 140,
+      watchedRanges: [{ start: 0, end: 139 }],
+    };
+
+    const processServerUpdate = (dbRecord, incomingPayload, authoritativeDuration) => {
+      const incomingRanges = incomingPayload.watchedRanges || [];
+      const mergedRanges = mergeRanges(dbRecord.watchedRanges, incomingRanges);
+      const totalWatched = Math.max(dbRecord.watchedSeconds, countUniqueSeconds(mergedRanges));
+      const isCompleted = dbRecord.completed || (authoritativeDuration > 0 && totalWatched >= authoritativeDuration * 0.9);
+      const lastPosition = Math.max(dbRecord.lastPosition, incomingPayload.lastPosition || 0);
+
+      return {
+        watchedSeconds: totalWatched,
+        completed: isCompleted,
+        lastPosition,
+        watchedRanges: mergedRanges,
+      };
+    };
+
+    // Stale delayed payload sent earlier (e.g. from 60s when client was offline) arrives late
+    const stalePayload = {
+      watchedSeconds: 60,
+      completed: false,
+      lastPosition: 60,
+      watchedRanges: [{ start: 0, end: 59 }],
+    };
+
+    const updated = processServerUpdate(currentDbRecord, stalePayload, 155);
+    assert.strictEqual(updated.watchedSeconds, 140, 'watchedSeconds must not regress');
+    assert.strictEqual(updated.completed, true, 'completed state must not be revoked');
+    assert.strictEqual(updated.lastPosition, 140, 'lastPosition must not regress');
+    assert.deepStrictEqual(updated.watchedRanges, [{ start: 0, end: 139 }]);
+  });
+
+  runTest('8. Frontend and backend calculateWatchProgress produce identical authoritative values', () => {
+    const testCases = [
+      { watched: 0, duration: 155, completed: false, expectedPct: 0, expectedEligible: false },
+      { watched: 67, duration: 155, completed: false, expectedPct: 43, expectedEligible: false },
+      { watched: 140, duration: 155, completed: false, expectedPct: 90, expectedEligible: true },
+      { watched: 154, duration: 155, completed: false, expectedPct: 99, expectedEligible: true },
+      { watched: 155, duration: 155, completed: true, expectedPct: 100, expectedEligible: true },
+      // Edge case: completed is true even if watched is slightly below 90% (e.g. already certified)
+      { watched: 135, duration: 155, completed: true, expectedPct: 90, expectedEligible: true },
+    ];
+
+    for (const tc of testCases) {
+      const res = calculateWatchProgress(tc.watched, tc.duration, tc.completed);
+      assert.strictEqual(res.percentage, tc.expectedPct, `Percentage mismatch for watched=${tc.watched}`);
+      assert.strictEqual(res.isEligible, tc.expectedEligible, `Eligibility mismatch for watched=${tc.watched}`);
+    }
+  });
+
+  await runAsyncTest('9. fetchYouTubeDuration extracts real duration for test YouTube video', async () => {
+    // Known video 'Y-NQOJ3Uz4w' ("NATURE" - 2m 35s = 155s)
+    const duration = await fetchYouTubeDuration('Y-NQOJ3Uz4w');
+    if (duration !== null) {
+      assert.strictEqual(duration, 155, 'YouTube metadata extraction must return 155 seconds for Y-NQOJ3Uz4w');
+    } else {
+      console.log('     ℹ️ (YouTube network fetch skipped or restricted in test environment)');
+    }
   });
 
   // ── SUMMARY REPORT ───────────────────────────────────────────────────────

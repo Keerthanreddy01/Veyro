@@ -119,6 +119,7 @@ export interface LessonProgress {
   completed: boolean;
   watchedSeconds: number;
   lastPosition: number;
+  watchedRanges?: Array<{ start: number; end: number }>;
 }
 
 export interface IntegrityEvent {
