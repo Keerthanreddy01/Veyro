@@ -12,7 +12,7 @@ import Footer from '@/components/sections/Footer';
 
 export default function LandingPage() {
   useEffect(() => {
-    document.title = 'Veyro — Next-Generation Learning Management System';
+    document.title = 'Veyro';
   }, []);
 
   return (

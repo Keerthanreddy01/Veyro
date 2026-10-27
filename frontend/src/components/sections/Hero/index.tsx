@@ -3,13 +3,6 @@ import { ArrowUpRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Hero() {
-  const partners = [
-    { name: "Headway", font: "font-black tracking-tight" },
-    { name: "brightline", font: "font-semibold tracking-normal lowercase" },
-    { name: "hazel", font: "font-medium tracking-tight lowercase" },
-    { name: "G&STC", font: "font-bold tracking-widest uppercase" },
-  ];
-
   return (
     <section
       id="hero"
@@ -68,7 +61,7 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Bottom Caption & Partner Logos */}
+            {/* Bottom Caption */}
             <div className="mt-14 lg:mt-20 pt-4">
               <p
                 className="text-[13.5px] sm:text-[14px] leading-relaxed text-[#666666] max-w-[420px] font-normal"
@@ -76,14 +69,6 @@ export default function Hero() {
               >
                 Veyro brings courses, personalized learning paths, and AI-powered guidance together to help every learner make meaningful progress.
               </p>
-
-              <div className="mt-6 flex flex-wrap items-center gap-8 sm:gap-10 text-[#111111] opacity-90 select-none">
-                {partners.map((p) => (
-                  <span key={p.name} className={`text-[19px] sm:text-[21px] ${p.font}`}>
-                    {p.name}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
 
