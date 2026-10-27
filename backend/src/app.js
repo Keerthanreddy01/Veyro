@@ -44,9 +44,11 @@ const allowedOrigins = rawClientUrl
   .map((u) => u.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
-// Always ensure default local dev origin is allowed when not in strict production
-if (process.env.NODE_ENV !== 'production' && !allowedOrigins.includes('http://localhost:5173')) {
-  allowedOrigins.push('http://localhost:5173');
+// Always ensure default local dev origins are allowed when not in strict production
+if (process.env.NODE_ENV !== 'production') {
+  ['http://localhost:5173', 'http://localhost:5174'].forEach((origin) => {
+    if (!allowedOrigins.includes(origin)) allowedOrigins.push(origin);
+  });
 }
 
 app.use(

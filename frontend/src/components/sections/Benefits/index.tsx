@@ -1,32 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Section from "@/components/Section";
 import SectionHeader from "@/components/SectionHeader";
 import "./mosaic.css";
 
 export default function Benefits() {
   const [entranceRun, setEntranceRun] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
     const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (isReduced) {
-      setEntranceRun(false);
-      return;
-    }
-    const t = setTimeout(() => {
-      setEntranceRun(true);
-    }, 100);
-    const cleanup = setTimeout(() => {
-      setEntranceRun(false);
-    }, 2200);
-    return () => {
-      clearTimeout(t);
-      clearTimeout(cleanup);
-    };
+    if (isReduced) return;
+
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          observer.disconnect();
+          setEntranceRun(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <Section id="benefits">
-      <div className="py-6 sm:py-10 flex flex-col items-center">
+      <div ref={sectionRef} className="py-6 sm:py-10 flex flex-col items-center">
         {/* Section Header */}
         <SectionHeader className="mb-8">
           <SectionHeader.Label>Capabilities</SectionHeader.Label>
