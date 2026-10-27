@@ -6,7 +6,7 @@ const Progress = require('../models/Progress');
 const Enrollment = require('../models/Enrollment');
 const { getRelativePath, validateFileHeader } = require('../utils/fileUpload');
 const { validateVideoUrl } = require('../utils/videoUrlValidator');
-const { fetchYouTubeDuration } = require('../utils/youtubeDuration');
+const { fetchYouTubeDuration, fetchYouTubeMetadata } = require('../utils/youtubeDuration');
 const { mergeRanges, countUniqueSeconds } = require('../utils/playbackTracker');
 
 /** POST /api/modules/:moduleId/lessons */
@@ -463,13 +463,15 @@ const detectYouTubeDuration = async (req, res, next) => {
       return res.status(400).json({ error: 'URL is not a recognized YouTube link.' });
     }
 
-    const duration = await fetchYouTubeDuration(val.videoId);
-    if (!duration || duration <= 0) {
-      return res.status(400).json({
-        error: 'Unable to detect duration. Video may be private, unlisted, region-locked, or unavailable on YouTube.',
-      });
+    const meta = await fetchYouTubeMetadata(val.videoId);
+    if (!meta || !meta.duration || meta.duration <= 0) {
+      const errorMsg =
+        meta?.error ||
+        'Unable to detect duration. Video may be private, unlisted, region-locked, or unavailable on YouTube.';
+      return res.status(400).json({ error: errorMsg });
     }
 
+    const duration = meta.duration;
     const mins = Math.floor(duration / 60);
     const secs = duration % 60;
     const formattedDuration = mins === 0 ? `${secs} sec` : secs === 0 ? `${mins} min` : `${mins} min ${secs} sec`;
@@ -477,6 +479,7 @@ const detectYouTubeDuration = async (req, res, next) => {
     return res.json({
       videoId: val.videoId,
       durationSeconds: duration,
+      title: meta.title || undefined,
       formattedDuration,
       normalizedUrl: val.normalizedUrl,
     });
