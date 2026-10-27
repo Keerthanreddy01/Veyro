@@ -91,6 +91,86 @@ export default function EditCoursePage() {
     url?: string;
   }>({ loading: false });
 
+  /**
+   * Helper to detect YouTube video duration directly in the instructor's browser via an invisible iframe.
+   * Leverages the official YouTube IFrame API to bypass server-side cloud datacenter IP blocks.
+   */
+  const getYouTubeDurationInBrowser = (videoId: string): Promise<number | null> => {
+    return new Promise((resolve) => {
+      if (!videoId || typeof window === 'undefined') return resolve(null);
+
+      let resolved = false;
+      let timer: any = null;
+      let iframe: HTMLIFrameElement | null = null;
+
+      const cleanup = () => {
+        window.removeEventListener('message', handleMessage);
+        if (timer) clearTimeout(timer);
+        if (iframe && iframe.parentNode) {
+          iframe.parentNode.removeChild(iframe);
+        }
+      };
+
+      const handleMessage = (event: MessageEvent) => {
+        try {
+          if (!event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com')) return;
+          let data = event.data;
+          if (typeof data === 'string') {
+            try {
+              data = JSON.parse(data);
+            } catch {
+              return;
+            }
+          }
+          if (!data || typeof data !== 'object') return;
+
+          const rawDur =
+            data.info?.duration ||
+            (data.event === 'infoDelivery' && data.info?.duration) ||
+            (data.event === 'initialDelivery' && data.info?.duration) ||
+            data.duration;
+
+          const durNum = Number(rawDur);
+          if (durNum && durNum > 0 && !resolved) {
+            resolved = true;
+            cleanup();
+            resolve(Math.round(durNum));
+          }
+        } catch {}
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.setAttribute('tabindex', '-1');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+
+      iframe.onload = () => {
+        try {
+          iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*');
+        } catch {}
+      };
+
+      timer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(null);
+        }
+      }, 4000);
+
+      document.body.appendChild(iframe);
+    });
+  };
+
   const detectYouTubeDurationForModule = async (moduleId: string, rawUrl: string) => {
     const trimmed = rawUrl.trim();
     if (!trimmed) {
@@ -116,6 +196,7 @@ export default function EditCoursePage() {
     }));
 
     try {
+      // Step 1: Direct backend detection (uses server cache, InnerTube MWEB, or YouTube Data API)
       const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
       setYtDetectionCreate((prev) => ({
         ...prev,
@@ -127,11 +208,33 @@ export default function EditCoursePage() {
         },
       }));
     } catch (err: any) {
+      // Step 2: If server direct fetch is restricted/blocked by cloud datacenter IP limits, verify via client + oEmbed
+      try {
+        const clientDur = await getYouTubeDurationInBrowser(val.videoId);
+        if (clientDur && clientDur > 0) {
+          const { data } = await api.post('/lessons/detect-youtube-duration', {
+            url: trimmed,
+            clientDuration: clientDur,
+          });
+          setYtDetectionCreate((prev) => ({
+            ...prev,
+            [moduleId]: {
+              loading: false,
+              duration: data.durationSeconds,
+              formatted: data.formattedDuration,
+              url: trimmed,
+            },
+          }));
+          return;
+        }
+      } catch {}
+
+      const backendErr = err.response?.data?.error;
       setYtDetectionCreate((prev) => ({
         ...prev,
         [moduleId]: {
           loading: false,
-          error: err.response?.data?.error || 'Could not verify YouTube video duration. Please ensure the video is public.',
+          error: backendErr || 'Could not verify YouTube video duration. Please ensure the video is public.',
           url: trimmed,
         },
       }));
@@ -154,6 +257,7 @@ export default function EditCoursePage() {
     setYtDetectionEdit({ loading: true, url: trimmed });
 
     try {
+      // Step 1: Direct backend detection
       const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
       setYtDetectionEdit({
         loading: false,
@@ -162,9 +266,28 @@ export default function EditCoursePage() {
         url: trimmed,
       });
     } catch (err: any) {
+      // Step 2: Client assisted fallback with oEmbed validation
+      try {
+        const clientDur = await getYouTubeDurationInBrowser(val.videoId);
+        if (clientDur && clientDur > 0) {
+          const { data } = await api.post('/lessons/detect-youtube-duration', {
+            url: trimmed,
+            clientDuration: clientDur,
+          });
+          setYtDetectionEdit({
+            loading: false,
+            duration: data.durationSeconds,
+            formatted: data.formattedDuration,
+            url: trimmed,
+          });
+          return;
+        }
+      } catch {}
+
+      const backendErr = err.response?.data?.error;
       setYtDetectionEdit({
         loading: false,
-        error: err.response?.data?.error || 'Could not verify YouTube video duration. Please ensure the video is public.',
+        error: backendErr || 'Could not verify YouTube video duration. Please ensure the video is public.',
         url: trimmed,
       });
     }

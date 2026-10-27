@@ -102,7 +102,7 @@ const createLesson = async (req, res, next) => {
       const val = validateVideoUrl(contentUrl);
       if (val.valid && val.provider === 'youtube' && val.videoId) {
         try {
-          const ytDur = await fetchYouTubeDuration(val.videoId);
+          const ytDur = await fetchYouTubeDuration(val.videoId, finalDuration);
           if (ytDur && ytDur > 0) {
             finalDuration = ytDur;
           } else {
@@ -195,7 +195,8 @@ const updateLesson = async (req, res, next) => {
 
       if (val.provider === 'youtube' && val.videoId) {
         try {
-          const ytDur = await fetchYouTubeDuration(val.videoId);
+          const clientDur = req.body.durationSeconds ? Number(req.body.durationSeconds) : null;
+          const ytDur = await fetchYouTubeDuration(val.videoId, clientDur);
           if (ytDur && ytDur > 0) {
             lesson.durationSeconds = ytDur;
           } else {
@@ -448,7 +449,7 @@ const updateProgress = async (req, res, next) => {
  */
 const detectYouTubeDuration = async (req, res, next) => {
   try {
-    const { url, videoUrl } = req.body;
+    const { url, videoUrl, clientDuration } = req.body;
     const targetUrl = (url || videoUrl || '').trim();
     if (!targetUrl) {
       return res.status(400).json({ error: 'Video URL is required.' });
@@ -463,7 +464,8 @@ const detectYouTubeDuration = async (req, res, next) => {
       return res.status(400).json({ error: 'URL is not a recognized YouTube link.' });
     }
 
-    const meta = await fetchYouTubeMetadata(val.videoId);
+    const parsedClientDur = clientDuration !== undefined && clientDuration !== null ? Number(clientDuration) : null;
+    const meta = await fetchYouTubeMetadata(val.videoId, parsedClientDur);
     if (!meta || !meta.duration || meta.duration <= 0) {
       const errorMsg =
         meta?.error ||

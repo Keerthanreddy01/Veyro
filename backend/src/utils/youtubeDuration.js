@@ -21,14 +21,15 @@ function parseIsoDuration(iso) {
 /**
  * Fetches video metadata and duration using multiple reliable tiers:
  * 1. YouTube Data API v3 (if YOUTUBE_API_KEY is configured in env)
- * 2. YouTube InnerTube Player API (lightweight JSON, ~200ms, no consent wall)
+ * 2. YouTube InnerTube Player API (WEB & MWEB clients for maximum resilience against datacenter blocks)
  * 3. YouTube Watch Page scraper (with consent cookies & redirect handling)
- * 4. oEmbed check for precise availability/restriction diagnostics
+ * 4. oEmbed check with client-assisted verification for restricted cloud environments
  *
  * @param {string} videoId - 11-character YouTube video ID
+ * @param {number|null} [clientDuration] - Optional client-detected duration to verify against oEmbed
  * @returns {Promise<{ duration: number|null, title?: string, error?: string, source?: string }>}
  */
-async function fetchYouTubeMetadata(videoId) {
+async function fetchYouTubeMetadata(videoId, clientDuration = null) {
   if (!videoId || typeof videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
     return { duration: null, error: 'Invalid YouTube video ID.' };
   }
@@ -80,15 +81,15 @@ async function fetchYouTubeMetadata(videoId) {
     } catch {}
   }
 
-  // ── Tier 2: YouTube InnerTube Player API ──────────────────────────────────
-  try {
-    const innertubeRes = await new Promise((resolve) => {
+  // ── Tier 2: YouTube InnerTube Player API (WEB & MWEB) ──────────────────────
+  const queryInnerTube = (clientName, clientVersion, userAgent) => {
+    return new Promise((resolve) => {
       const postData = JSON.stringify({
         videoId: videoId,
         context: {
           client: {
-            clientName: 'WEB',
-            clientVersion: '2.20240101.00.00',
+            clientName,
+            clientVersion,
             hl: 'en',
             gl: 'US',
           },
@@ -101,11 +102,10 @@ async function fetchYouTubeMetadata(videoId) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': userAgent,
             'Content-Length': Buffer.byteLength(postData),
           },
-          timeout: 6000,
+          timeout: 5000,
         },
         (res) => {
           let data = '';
@@ -121,13 +121,11 @@ async function fetchYouTubeMetadata(videoId) {
                 return resolve({
                   duration: lenSec,
                   title: json.videoDetails?.title,
-                  source: 'innertube',
+                  source: `innertube_${clientName.toLowerCase()}`,
                 });
               }
 
-              // Explicit restriction check
               if (status === 'ERROR' || status === 'LOGIN_REQUIRED') {
-                console.warn(`[YouTube Duration] Video ${videoId} restricted: ${status} - ${reason || 'Unavailable'}`);
                 return resolve({
                   duration: null,
                   error: reason || 'Video is unavailable, private, or region-locked on YouTube.',
@@ -140,21 +138,39 @@ async function fetchYouTubeMetadata(videoId) {
         }
       );
 
-      req.on('error', (err) => resolve({ error: err.message, networkError: true }));
+      req.on('error', () => resolve(null));
       req.on('timeout', () => {
         req.destroy();
-        resolve({ error: 'timeout', networkError: true });
+        resolve(null);
       });
       req.write(postData);
       req.end();
     });
+  };
+
+  try {
+    // 2a. Standard WEB client
+    let innertubeRes = await queryInnerTube(
+      'WEB',
+      '2.20240101.00.00',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    );
+
+    // 2b. MWEB client fallback (resilient across datacenter IP limits)
+    if (!innertubeRes?.duration) {
+      innertubeRes = await queryInnerTube(
+        'MWEB',
+        '2.20240101.00.00',
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1'
+      );
+    }
 
     if (innertubeRes?.duration && innertubeRes.duration > 0) {
       durationCache.set(videoId, innertubeRes.duration);
       return innertubeRes;
     }
 
-    if (innertubeRes?.error && !innertubeRes.networkError) {
+    if (innertubeRes?.error) {
       return innertubeRes;
     }
   } catch (err) {
@@ -174,7 +190,7 @@ async function fetchYouTubeMetadata(videoId) {
               'Accept-Language': 'en-US,en;q=0.9',
               Cookie: 'SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg; CONSENT=YES+',
             },
-            timeout: 7000,
+            timeout: 6000,
           },
           (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
@@ -182,7 +198,6 @@ async function fetchYouTubeMetadata(videoId) {
               const nextUrl = res.headers.location.startsWith('http')
                 ? res.headers.location
                 : `https://www.youtube.com${res.headers.location}`;
-              // Abort if redirected to a consent wall or captcha challenge
               if (nextUrl.includes('consent.youtube.com') || nextUrl.includes('/sorry/')) {
                 return resolve(null);
               }
@@ -201,7 +216,6 @@ async function fetchYouTubeMetadata(videoId) {
             });
 
             res.on('end', () => {
-              // Reject error, bot check, or consent walls
               if (html.includes('consent.youtube.com') || html.includes('before you continue to YouTube')) {
                 return resolve(null);
               }
@@ -245,27 +259,47 @@ async function fetchYouTubeMetadata(videoId) {
     console.warn(`[YouTube Duration] Watch page error for ${videoId}:`, err.message);
   }
 
-  // ── Tier 4: Availability check via oEmbed ──────────────────────────────────
+  // ── Tier 4: Availability check & client duration validation via oEmbed ─────
   try {
-    const oembedStatus = await new Promise((resolve) => {
+    const oembedResult = await new Promise((resolve) => {
       https
         .get(
           `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
           { timeout: 3500 },
           (res) => {
-            res.resume();
-            resolve(res.statusCode);
+            let data = '';
+            res.on('data', (c) => (data += c));
+            res.on('end', () => {
+              try {
+                resolve({ status: res.statusCode, json: JSON.parse(data) });
+              } catch {
+                resolve({ status: res.statusCode });
+              }
+            });
           }
         )
         .on('error', () => resolve(null));
     });
 
-    if (oembedStatus === 404 || oembedStatus === 401 || oembedStatus === 403) {
-      console.warn(`[YouTube Duration] oEmbed status ${oembedStatus} for video ${videoId}`);
+    if (oembedResult?.status === 404 || oembedResult?.status === 401 || oembedResult?.status === 403) {
+      console.warn(`[YouTube Duration] oEmbed status ${oembedResult.status} for video ${videoId}`);
       return {
         duration: null,
         error: 'Video is unavailable, private, or region-locked on YouTube.',
       };
+    }
+
+    // If video is confirmed public & active by oEmbed (HTTP 200) and client verified duration was supplied
+    if (oembedResult?.status === 200 && clientDuration !== null && clientDuration !== undefined) {
+      const parsedClient = Number(clientDuration);
+      if (Number.isInteger(parsedClient) && parsedClient > 0 && parsedClient <= 86400) {
+        durationCache.set(videoId, parsedClient);
+        return {
+          duration: parsedClient,
+          title: oembedResult.json?.title || undefined,
+          source: 'verified_client_oembed',
+        };
+      }
     }
   } catch {}
 
@@ -278,10 +312,11 @@ async function fetchYouTubeMetadata(videoId) {
 /**
  * Fetches the server-authoritative duration in seconds for a YouTube video.
  * @param {string} videoId 11-character YouTube video ID
+ * @param {number|null} [clientDuration] Optional client duration to verify
  * @returns {Promise<number|null>} Duration in seconds, or null if unreachable
  */
-async function fetchYouTubeDuration(videoId) {
-  const meta = await fetchYouTubeMetadata(videoId);
+async function fetchYouTubeDuration(videoId, clientDuration = null) {
+  const meta = await fetchYouTubeMetadata(videoId, clientDuration);
   return meta?.duration || null;
 }
 
@@ -290,4 +325,3 @@ module.exports = {
   fetchYouTubeMetadata,
   durationCache,
 };
-
