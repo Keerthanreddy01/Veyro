@@ -92,33 +92,35 @@ const NavBar = () => {
           <button
             aria-label="Open sidebar"
             onClick={() => setOpenSideBar((prev) => !prev)}
-            className="lg:hidden size-4 space-y-1"
+            className="lg:hidden p-1 -mr-1 flex flex-col justify-center items-center cursor-pointer"
           >
-            <MotionConfig transition={{ ease: "linear" }}>
-              <motion.div
-                initial={{ rotate: "0deg", y: "0px" }}
-                animate={
-                  openSideBar
-                    ? { rotate: "45deg", y: "6px" }
-                    : { rotate: "0deg", y: "0px" }
-                }
-                className="py-px bg-black rounded-full"
-              />
-              <motion.div
-                initial={{ opacity: 1 }}
-                animate={{ opacity: openSideBar ? 0 : 1 }}
-                className="py-px bg-black rounded-full"
-              />
-              <motion.div
-                initial={{ rotate: "0deg" }}
-                animate={
-                  openSideBar
-                    ? { rotate: "-45deg", y: "-6px" }
-                    : { rotate: "0deg", y: "0px" }
-                }
-                className="py-px bg-black rounded-full"
-              />
-            </MotionConfig>
+            <div className="w-4 space-y-1">
+              <MotionConfig transition={{ ease: "linear" }}>
+                <motion.div
+                  initial={{ rotate: "0deg", y: "0px" }}
+                  animate={
+                    openSideBar
+                      ? { rotate: "45deg", y: "6px" }
+                      : { rotate: "0deg", y: "0px" }
+                  }
+                  className="py-px bg-black rounded-full"
+                />
+                <motion.div
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: openSideBar ? 0 : 1 }}
+                  className="py-px bg-black rounded-full"
+                />
+                <motion.div
+                  initial={{ rotate: "0deg" }}
+                  animate={
+                    openSideBar
+                      ? { rotate: "-45deg", y: "-6px" }
+                      : { rotate: "0deg", y: "0px" }
+                  }
+                  className="py-px bg-black rounded-full"
+                />
+              </MotionConfig>
+            </div>
           </button>
           <ol className="hidden lg:flex font-matter text-[14px] text-[#141414] gap-8 [&>li]:cursor-pointer items-center">
             <li>
@@ -146,7 +148,7 @@ const NavBar = () => {
             </StyledLink>
           </div>
         </motion.div>
-        <AnimatePresence>{openSideBar && <SideBar />}</AnimatePresence>
+        <AnimatePresence>{openSideBar && <SideBar onClose={() => setOpenSideBar(false)} />}</AnimatePresence>
       </div>
     </div>
   );

@@ -1,55 +1,80 @@
-import * as motion from "motion/react-client";
+import { motion } from "motion/react";
 import Link from "next/link";
 
-const SideBar = () => {
+interface SideBarProps {
+  onClose?: () => void;
+}
+
+const navItems = [
+  { label: "Courses", href: "/courses" },
+  { label: "Learning Paths", href: "/courses" },
+  { label: "For Instructors", href: "/instructor/courses/new" },
+  { label: "About Veyro", href: "#benefits" },
+  { label: "How It Works", href: "#how-it-works" },
+];
+
+const SideBar = ({ onClose }: SideBarProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="border-t-2 border-black fixed top-12 inset-x-0 bottom-0 bg-[#f4f4f4] flex flex-col justify-center font-cal text-[22px]"
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="fixed top-[57px] inset-x-0 bottom-0 bg-[#f4f4f4] z-50 flex flex-col overflow-y-auto font-matter border-t border-black/10"
     >
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, transition: { delay: 0.2 } }}
-        exit={{ opacity: 0 }}
-        className="flex-1 overflow-y-scroll tracking-wide pb-[55px]"
-      >
-        {[
-          { label: "Courses", href: "/courses" },
-          { label: "Learning Paths", href: "/courses" },
-          { label: "For Instructors", href: "/instructor/courses/new" },
-          { label: "About Veyro", href: "#benefits" },
-          { label: "How It Works", href: "#how-it-works" },
-        ].map((eachTab) => (
+      <div className="w-full max-w-md mx-auto px-5 py-3 sm:px-8 sm:py-5 flex flex-col">
+        {/* Navigation list with thin, subtle solid dividers */}
+        <nav className="flex flex-col" aria-label="Mobile Navigation">
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={onClose}
+              className="flex items-center justify-between py-3.5 text-[17px] sm:text-[18px] font-semibold text-[#141414] hover:text-black border-b border-black/[0.08] active:bg-black/[0.03] px-1 rounded-sm transition-colors"
+            >
+              <span>{item.label}</span>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-black/30"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Compact Auth & CTA Section directly beneath navigation */}
+        <div className="pt-6 pb-8 flex flex-col gap-3.5 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+          <div className="text-center text-[14px] text-[#666]">
+            <span className="opacity-70 mr-1.5">Existing student or instructor?</span>
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="font-bold text-[#141414] underline underline-offset-2 hover:opacity-80 py-1 inline-block"
+            >
+              Sign In
+            </Link>
+          </div>
+
           <Link
-            key={eachTab.label}
-            href={eachTab.href}
-            className="block p-4 md:px-[34px] font-bold border-b-2 border-dashed border-black hover:bg-black/5"
+            href="/register"
+            onClick={onClose}
+            className="w-full h-12 text-[15px] font-semibold bg-[#151819] hover:bg-[#25282a] active:scale-[0.99] transition-all rounded-xl flex items-center justify-center text-white shadow-sm"
           >
-            {eachTab.label}
-          </Link>
-        ))}
-      </motion.div>
-      <li
-        className="flex flex-col items-center px-4 pb-6 pt-12 gap-4 bg-transparent list-none"
-        style={{ boxShadow: "0px -10px 30px 20px #f4f4f4" }}
-      >
-        <div className="">
-          <span className="opacity-40 mr-2">Existing student or instructor?</span>
-          <Link href="/login" className="font-bold underline">
-            Sign In
+            Get Started
           </Link>
         </div>
-        <Link
-          href="/register"
-          className="font-cal w-full min-h-16 text-lg bg-gradient-to-b from-[#2c2c30] to-[#1d1d20] hover:opacity-90 rounded-xl grid place-items-center text-white max-w-lg"
-        >
-          Get Started
-        </Link>
-      </li>
+      </div>
     </motion.div>
   );
 };
 
 export default SideBar;
+
