@@ -68,6 +68,137 @@ export default function EditCoursePage() {
   const [submittingModuleId, setSubmittingModuleId] = useState<string | null>(null);
   const [isUpdatingLesson, setIsUpdatingLesson] = useState(false);
 
+  // Helper to format seconds nicely
+  const formatDuration = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) return `${s} sec`;
+    if (s === 0) return `${m} min`;
+    return `${m} min ${s} sec`;
+  };
+
+  // YouTube duration detection state for lesson creation forms (keyed by moduleId)
+  const [ytDetectionCreate, setYtDetectionCreate] = useState<
+    Record<string, { loading: boolean; duration?: number; formatted?: string; error?: string; url?: string }>
+  >({});
+
+  // YouTube duration detection state for editing modal
+  const [ytDetectionEdit, setYtDetectionEdit] = useState<{
+    loading: boolean;
+    duration?: number;
+    formatted?: string;
+    error?: string;
+    url?: string;
+  }>({ loading: false });
+
+  const detectYouTubeDurationForModule = async (moduleId: string, rawUrl: string) => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) {
+      setYtDetectionCreate((prev) => ({
+        ...prev,
+        [moduleId]: { loading: false, url: '' },
+      }));
+      return;
+    }
+
+    const val = validateVideoUrl(trimmed);
+    if (!val.valid || val.provider !== 'youtube' || !val.videoId) {
+      setYtDetectionCreate((prev) => ({
+        ...prev,
+        [moduleId]: { loading: false, url: trimmed },
+      }));
+      return;
+    }
+
+    setYtDetectionCreate((prev) => ({
+      ...prev,
+      [moduleId]: { loading: true, url: trimmed },
+    }));
+
+    try {
+      const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
+      setYtDetectionCreate((prev) => ({
+        ...prev,
+        [moduleId]: {
+          loading: false,
+          duration: data.durationSeconds,
+          formatted: data.formattedDuration,
+          url: trimmed,
+        },
+      }));
+    } catch (err: any) {
+      setYtDetectionCreate((prev) => ({
+        ...prev,
+        [moduleId]: {
+          loading: false,
+          error: err.response?.data?.error || 'Could not verify YouTube video duration. Please ensure the video is public.',
+          url: trimmed,
+        },
+      }));
+    }
+  };
+
+  const detectYouTubeDurationForEdit = async (rawUrl: string) => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) {
+      setYtDetectionEdit({ loading: false, url: '' });
+      return;
+    }
+
+    const val = validateVideoUrl(trimmed);
+    if (!val.valid || val.provider !== 'youtube' || !val.videoId) {
+      setYtDetectionEdit({ loading: false, url: trimmed });
+      return;
+    }
+
+    setYtDetectionEdit({ loading: true, url: trimmed });
+
+    try {
+      const { data } = await api.post('/lessons/detect-youtube-duration', { url: trimmed });
+      setYtDetectionEdit({
+        loading: false,
+        duration: data.durationSeconds,
+        formatted: data.formattedDuration,
+        url: trimmed,
+      });
+    } catch (err: any) {
+      setYtDetectionEdit({
+        loading: false,
+        error: err.response?.data?.error || 'Could not verify YouTube video duration. Please ensure the video is public.',
+        url: trimmed,
+      });
+    }
+  };
+
+  const openEditLesson = (les: Lesson) => {
+    const vUrl = les.videoUrl || les.contentUrl || '';
+    setEditingLesson({
+      ...les,
+      videoUrl: vUrl,
+      contentUrl: vUrl,
+    });
+    setEditingLessonFile(null);
+    if (les.type === 'video') {
+      const val = validateVideoUrl(vUrl);
+      if (val.valid && val.provider === 'youtube') {
+        if (les.durationSeconds && les.durationSeconds > 0) {
+          setYtDetectionEdit({
+            loading: false,
+            duration: les.durationSeconds,
+            formatted: formatDuration(les.durationSeconds),
+            url: vUrl,
+          });
+        } else {
+          detectYouTubeDurationForEdit(vUrl);
+        }
+      } else {
+        setYtDetectionEdit({ loading: false, url: '' });
+      }
+    } else {
+      setYtDetectionEdit({ loading: false, url: '' });
+    }
+  };
+
   // Active sub-tab inside module ('lessons' | 'quiz')
   const [moduleTab, setModuleTab] = useState<Record<string, 'lessons' | 'quiz'>>({});
 
@@ -193,6 +324,17 @@ export default function EditCoursePage() {
         toast.error(val.error || 'Invalid video URL. Supported: YouTube or direct HTTPS MP4 link.');
         return;
       }
+      if (val.provider === 'youtube') {
+        const detect = ytDetectionCreate[moduleId];
+        if (detect?.loading) {
+          toast.error('Please wait while YouTube duration is being detected.');
+          return;
+        }
+        if (!detect?.duration || detect.duration <= 0 || detect.error) {
+          toast.error(detect?.error || 'Cannot add lesson: YouTube video duration could not be verified.');
+          return;
+        }
+      }
     }
 
     if (type === 'pdf' && !form.file) {
@@ -220,13 +362,17 @@ export default function EditCoursePage() {
         headers = { 'Content-Type': 'multipart/form-data' };
       } else {
         const vUrl = (form.videoUrl || form.contentUrl || '').trim();
+        const val = validateVideoUrl(vUrl);
+        const isYt = val.valid && val.provider === 'youtube';
+        const verifiedDuration = isYt ? ytDetectionCreate[moduleId]?.duration : (form.durationSeconds ? Number(form.durationSeconds) : 0);
+
         payload = {
           title: form.title.trim(),
           type,
           videoUrl: type === 'video' ? vUrl : undefined,
           contentUrl: type === 'video' ? vUrl : undefined,
           textContent: type === 'text' ? form.textContent || '' : undefined,
-          durationSeconds: form.durationSeconds ? Number(form.durationSeconds) : 0,
+          durationSeconds: verifiedDuration,
           isPreview: Boolean(form.isPreview),
         };
       }
@@ -238,6 +384,11 @@ export default function EditCoursePage() {
         )
       );
       setLessonForms((f) => ({ ...f, [moduleId]: {} }));
+      setYtDetectionCreate((prev) => {
+        const nextState = { ...prev };
+        delete nextState[moduleId];
+        return nextState;
+      });
       toast.success('Lesson attached to module successfully');
     } catch (err: any) {
       const errorMsg =
@@ -265,6 +416,16 @@ export default function EditCoursePage() {
         toast.error(val.error || 'Invalid video URL. Supported: YouTube or direct HTTPS MP4 link.');
         return;
       }
+      if (val.provider === 'youtube') {
+        if (ytDetectionEdit.loading) {
+          toast.error('Please wait while YouTube duration is being detected.');
+          return;
+        }
+        if (!ytDetectionEdit.duration || ytDetectionEdit.duration <= 0 || ytDetectionEdit.error) {
+          toast.error(ytDetectionEdit.error || 'Cannot update lesson: YouTube video duration could not be verified.');
+          return;
+        }
+      }
     }
 
     try {
@@ -281,12 +442,16 @@ export default function EditCoursePage() {
         payload = fd;
         headers = { 'Content-Type': 'multipart/form-data' };
       } else {
+        const val = validateVideoUrl(vUrl);
+        const isYt = val.valid && val.provider === 'youtube';
+        const verifiedDuration = isYt ? ytDetectionEdit.duration : (editingLesson.durationSeconds ? Number(editingLesson.durationSeconds) : 0);
+
         payload = {
           title: editingLesson.title.trim(),
           contentUrl: editingLesson.type === 'video' ? vUrl : editingLesson.contentUrl?.trim(),
           videoUrl: editingLesson.type === 'video' ? vUrl : undefined,
           textContent: editingLesson.textContent || '',
-          durationSeconds: editingLesson.durationSeconds ? Number(editingLesson.durationSeconds) : 0,
+          durationSeconds: verifiedDuration,
           isPreview: Boolean(editingLesson.isPreview),
         };
       }
@@ -982,13 +1147,7 @@ export default function EditCoursePage() {
                                 <div className="flex items-center gap-1">
                                   {isEditable && (
                                     <button
-                                      onClick={() =>
-                                        setEditingLesson({
-                                          ...les,
-                                          videoUrl: les.videoUrl || les.contentUrl || '',
-                                          contentUrl: les.contentUrl || les.videoUrl || '',
-                                        })
-                                      }
+                                      onClick={() => openEditLesson(les)}
                                       className="p-1 text-[#77736D] hover:text-[#171717] rounded hover:bg-[#F6F2EC]"
                                       title="Edit lesson"
                                     >
@@ -1042,38 +1201,98 @@ export default function EditCoursePage() {
                                 </select>
                               </div>
 
-                              {(!lForm.type || lForm.type === 'video') && (
-                                <div className="space-y-2.5">
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="sm:col-span-2">
+                              {(!lForm.type || lForm.type === 'video') && (() => {
+                                const currentUrl = (lForm.videoUrl || lForm.contentUrl || '').trim();
+                                const val = validateVideoUrl(currentUrl);
+                                const isYt = val.valid && val.provider === 'youtube';
+                                const isDirect = val.valid && val.provider === 'direct';
+                                const detect = ytDetectionCreate[mod._id];
+
+                                return (
+                                  <div className="space-y-2.5">
+                                    {isDirect ? (
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="sm:col-span-2">
+                                          <Input
+                                            placeholder="Direct Video URL (e.g. https://.../video.mp4)"
+                                            value={lForm.videoUrl || lForm.contentUrl || ''}
+                                            onChange={(e) => {
+                                              const newUrl = e.target.value;
+                                              setLessonForms((f) => ({
+                                                ...f,
+                                                [mod._id]: { ...lForm, videoUrl: newUrl, contentUrl: newUrl },
+                                              }));
+                                              const v = validateVideoUrl(newUrl.trim());
+                                              if (v.valid && v.provider === 'youtube') {
+                                                detectYouTubeDurationForModule(mod._id, newUrl);
+                                              } else {
+                                                setYtDetectionCreate((prev) => ({ ...prev, [mod._id]: { loading: false, url: newUrl } }));
+                                              }
+                                            }}
+                                          />
+                                        </div>
+                                        <Input
+                                          placeholder="Duration (sec, e.g. 180)"
+                                          type="number"
+                                          value={lForm.durationSeconds || ''}
+                                          onChange={(e) =>
+                                            setLessonForms((f) => ({
+                                              ...f,
+                                              [mod._id]: { ...lForm, durationSeconds: e.target.value },
+                                            }))
+                                          }
+                                        />
+                                      </div>
+                                    ) : (
                                       <Input
                                         placeholder="Video URL (e.g. https://www.youtube.com/watch?v=... or direct MP4)"
                                         value={lForm.videoUrl || lForm.contentUrl || ''}
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                          const newUrl = e.target.value;
                                           setLessonForms((f) => ({
                                             ...f,
-                                            [mod._id]: { ...lForm, videoUrl: e.target.value, contentUrl: e.target.value },
-                                          }))
-                                        }
+                                            [mod._id]: { ...lForm, videoUrl: newUrl, contentUrl: newUrl },
+                                          }));
+                                          const v = validateVideoUrl(newUrl.trim());
+                                          if (v.valid && v.provider === 'youtube') {
+                                            detectYouTubeDurationForModule(mod._id, newUrl);
+                                          } else {
+                                            setYtDetectionCreate((prev) => ({ ...prev, [mod._id]: { loading: false, url: newUrl } }));
+                                          }
+                                        }}
                                       />
-                                    </div>
-                                    <Input
-                                      placeholder="Duration (sec, e.g. 360)"
-                                      type="number"
-                                      value={lForm.durationSeconds || ''}
-                                      onChange={(e) =>
-                                        setLessonForms((f) => ({
-                                          ...f,
-                                          [mod._id]: { ...lForm, durationSeconds: e.target.value },
-                                        }))
-                                      }
-                                    />
+                                    )}
+
+                                    {/* Automatic YouTube Duration Indicator */}
+                                    {isYt && (
+                                      <div>
+                                        {detect?.loading && (
+                                          <div className="flex items-center gap-2 text-xs text-[#77736D] bg-[#F3F0EB] px-3 py-2 rounded-md border border-[#E6E2DA]">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#171717]" />
+                                            <span>Detecting YouTube duration...</span>
+                                          </div>
+                                        )}
+                                        {!detect?.loading && detect?.duration && (
+                                          <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-200">
+                                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                            <span>Detected duration: <strong>{detect.formatted || formatDuration(detect.duration)}</strong></span>
+                                          </div>
+                                        )}
+                                        {!detect?.loading && detect?.error && (
+                                          <div className="flex items-center gap-2 text-xs text-rose-800 bg-rose-50 px-3 py-2 rounded-md border border-rose-200">
+                                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                                            <span>{detect.error}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    <p className="text-[11px] text-[#77736D]">
+                                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4/WebM URLs. YouTube video duration is detected automatically.
+                                    </p>
                                   </div>
-                                  <p className="text-[11px] text-[#77736D]">
-                                    Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4/WebM URLs.
-                                  </p>
-                                </div>
-                              )}
+                                );
+                              })()}
 
                               {lForm.type === 'pdf' && (
                                 <input
@@ -1123,7 +1342,11 @@ export default function EditCoursePage() {
                                 <Button
                                   variant="secondary"
                                   size="sm"
-                                  disabled={submittingModuleId === mod._id}
+                                  disabled={
+                                    submittingModuleId === mod._id ||
+                                    (validateVideoUrl((lForm.videoUrl || lForm.contentUrl || '').trim()).provider === 'youtube' &&
+                                      (!ytDetectionCreate[mod._id]?.duration || ytDetectionCreate[mod._id]?.loading))
+                                  }
                                   onClick={() => addLesson(mod._id)}
                                 >
                                   {submittingModuleId === mod._id ? 'Attaching...' : 'Attach lesson'}
@@ -1565,42 +1788,82 @@ export default function EditCoursePage() {
               />
             </div>
 
-            {editingLesson.type === 'video' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block font-semibold text-[#171717] mb-1">Video URL</label>
-                  <Input
-                    placeholder="https://www.youtube.com/watch?v=... or direct MP4 URL"
-                    value={editingLesson.videoUrl || editingLesson.contentUrl || ''}
-                    onChange={(e) =>
-                      setEditingLesson({
-                        ...editingLesson,
-                        videoUrl: e.target.value,
-                        contentUrl: e.target.value,
-                      })
-                    }
-                  />
-                  <p className="text-[11px] text-[#77736D] mt-1">
-                    Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4 URLs.
-                  </p>
+            {editingLesson.type === 'video' && (() => {
+              const val = validateVideoUrl(editingLesson.videoUrl || editingLesson.contentUrl || '');
+              const isYt = val.valid && val.provider === 'youtube';
+              const isDirect = val.valid && val.provider === 'direct';
+
+              return (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block font-semibold text-[#171717] mb-1">Video URL</label>
+                    <Input
+                      placeholder="https://www.youtube.com/watch?v=... or direct MP4 URL"
+                      value={editingLesson.videoUrl || editingLesson.contentUrl || ''}
+                      onChange={(e) => {
+                        const newUrl = e.target.value;
+                        setEditingLesson({
+                          ...editingLesson,
+                          videoUrl: newUrl,
+                          contentUrl: newUrl,
+                        });
+                        const v = validateVideoUrl(newUrl.trim());
+                        if (v.valid && v.provider === 'youtube') {
+                          detectYouTubeDurationForEdit(newUrl);
+                        } else {
+                          setYtDetectionEdit({ loading: false, url: newUrl });
+                        }
+                      }}
+                    />
+                    <p className="text-[11px] text-[#77736D] mt-1">
+                      Supports YouTube links (youtube.com, youtu.be) and direct HTTPS MP4 URLs. YouTube video duration is detected automatically.
+                    </p>
+                  </div>
+
+                  {isYt && (
+                    <div>
+                      {ytDetectionEdit.loading && (
+                        <div className="flex items-center gap-2 text-xs text-[#77736D] bg-[#F3F0EB] px-3 py-2 rounded-md border border-[#E6E2DA]">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#171717]" />
+                          <span>Detecting YouTube duration...</span>
+                        </div>
+                      )}
+                      {!ytDetectionEdit.loading && ytDetectionEdit.duration && (
+                        <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-200">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          <span>Detected duration: <strong>{ytDetectionEdit.formatted || formatDuration(ytDetectionEdit.duration)}</strong></span>
+                        </div>
+                      )}
+                      {!ytDetectionEdit.loading && ytDetectionEdit.error && (
+                        <div className="flex items-center gap-2 text-xs text-rose-800 bg-rose-50 px-3 py-2 rounded-md border border-rose-200">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                          <span>{ytDetectionEdit.error}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {isDirect && (
+                    <div>
+                      <label className="block font-semibold text-[#171717] mb-1">
+                        Duration (Seconds)
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 180"
+                        value={editingLesson.durationSeconds || ''}
+                        onChange={(e) =>
+                          setEditingLesson({
+                            ...editingLesson,
+                            durationSeconds: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block font-semibold text-[#171717] mb-1">
-                    Duration (Seconds)
-                  </label>
-                  <Input
-                    type="number"
-                    value={editingLesson.durationSeconds || ''}
-                    onChange={(e) =>
-                      setEditingLesson({
-                        ...editingLesson,
-                        durationSeconds: Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {editingLesson.type === 'pdf' && (
               <div>
@@ -1643,7 +1906,17 @@ export default function EditCoursePage() {
               <Button variant="outline" size="sm" type="button" disabled={isUpdatingLesson} onClick={() => setEditingLesson(null)}>
                 Cancel
               </Button>
-              <Button variant="primary" size="sm" type="submit" disabled={isUpdatingLesson}>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                disabled={
+                  isUpdatingLesson ||
+                  (editingLesson.type === 'video' &&
+                    validateVideoUrl(editingLesson.videoUrl || editingLesson.contentUrl || '').provider === 'youtube' &&
+                    (!ytDetectionEdit.duration || ytDetectionEdit.loading))
+                }
+              >
                 {isUpdatingLesson ? 'Saving...' : 'Save changes'}
               </Button>
             </div>

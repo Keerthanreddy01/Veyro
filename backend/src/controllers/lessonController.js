@@ -98,13 +98,23 @@ const createLesson = async (req, res, next) => {
     const count = await Lesson.countDocuments({ moduleId: mod._id });
 
     let finalDuration = durationSeconds ? Math.max(0, Number(durationSeconds)) : 0;
-    if (lessonType === 'video' && contentUrl && finalDuration === 0) {
+    if (lessonType === 'video' && contentUrl) {
       const val = validateVideoUrl(contentUrl);
       if (val.valid && val.provider === 'youtube' && val.videoId) {
         try {
           const ytDur = await fetchYouTubeDuration(val.videoId);
-          if (ytDur && ytDur > 0) finalDuration = ytDur;
-        } catch {}
+          if (ytDur && ytDur > 0) {
+            finalDuration = ytDur;
+          } else {
+            return res.status(400).json({
+              error: 'Unable to verify YouTube video duration. Please ensure the video is public and accessible.',
+            });
+          }
+        } catch {
+          return res.status(400).json({
+            error: 'Failed to connect to YouTube to detect video duration.',
+          });
+        }
       }
     }
 
@@ -182,10 +192,37 @@ const updateLesson = async (req, res, next) => {
       const normalized = val.normalizedUrl || rawIncomingVideoUrl;
       lesson.contentUrl = normalized;
       lesson.videoUrl = normalized;
+
+      if (val.provider === 'youtube' && val.videoId) {
+        try {
+          const ytDur = await fetchYouTubeDuration(val.videoId);
+          if (ytDur && ytDur > 0) {
+            lesson.durationSeconds = ytDur;
+          } else {
+            return res.status(400).json({
+              error: 'Unable to verify YouTube video duration. Please ensure the video is public and accessible.',
+            });
+          }
+        } catch {
+          return res.status(400).json({
+            error: 'Failed to connect to YouTube to detect video duration.',
+          });
+        }
+      }
     } else if (req.file) {
       const path = getRelativePath(req.file);
       lesson.contentUrl = path;
       lesson.videoUrl = path;
+    } else if (lesson.type === 'video' && (!lesson.durationSeconds || lesson.durationSeconds === 360)) {
+      const val = validateVideoUrl(lesson.videoUrl || lesson.contentUrl || '');
+      if (val.valid && val.provider === 'youtube' && val.videoId) {
+        try {
+          const ytDur = await fetchYouTubeDuration(val.videoId);
+          if (ytDur && ytDur > 0) {
+            lesson.durationSeconds = ytDur;
+          }
+        } catch {}
+      }
     }
 
     await lesson.save();
@@ -405,4 +442,54 @@ const updateProgress = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { createLesson, updateLesson, deleteLesson, getLessonById, updateProgress };
+/**
+ * POST /api/lessons/detect-youtube-duration
+ * Lightweight endpoint for detecting and verifying YouTube duration on-the-fly.
+ */
+const detectYouTubeDuration = async (req, res, next) => {
+  try {
+    const { url, videoUrl } = req.body;
+    const targetUrl = (url || videoUrl || '').trim();
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'Video URL is required.' });
+    }
+
+    const val = validateVideoUrl(targetUrl);
+    if (!val.valid) {
+      return res.status(400).json({ error: val.error || 'Invalid video URL.' });
+    }
+
+    if (val.provider !== 'youtube' || !val.videoId) {
+      return res.status(400).json({ error: 'URL is not a recognized YouTube link.' });
+    }
+
+    const duration = await fetchYouTubeDuration(val.videoId);
+    if (!duration || duration <= 0) {
+      return res.status(400).json({
+        error: 'Unable to detect duration. Video may be private, unlisted, region-locked, or unavailable on YouTube.',
+      });
+    }
+
+    const mins = Math.floor(duration / 60);
+    const secs = duration % 60;
+    const formattedDuration = mins === 0 ? `${secs} sec` : secs === 0 ? `${mins} min` : `${mins} min ${secs} sec`;
+
+    return res.json({
+      videoId: val.videoId,
+      durationSeconds: duration,
+      formattedDuration,
+      normalizedUrl: val.normalizedUrl,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  createLesson,
+  updateLesson,
+  deleteLesson,
+  getLessonById,
+  updateProgress,
+  detectYouTubeDuration,
+};
