@@ -59,6 +59,7 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
+import VeyroAIFloatingButton from '../components/VeyroAIFloatingButton';
 import { getMediaUrl } from '../utils/media';
 import { formatCourseTitle } from '../utils/courseFormatters';
 import type { Course, Enrollment, CourseStudent, CourseAnalyticsData, QuizSubmission, Reel } from '../types/course';
@@ -526,6 +527,9 @@ function StudentDashboard({ user }: { user: AuthUser }) {
           </Card>
         </div>
       </div>
+
+      {/* Veyro AI Assistant Floating Companion (Student Dashboard only) */}
+      <VeyroAIFloatingButton />
     </div>
   );
 }
