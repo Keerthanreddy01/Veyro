@@ -40,9 +40,10 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Generic error — sanitize 500 responses so stack traces/internals are never leaked
+  const rawStatus = err.statusCode || err.status;
   const statusCode =
-    typeof err.statusCode === 'number' && err.statusCode >= 400 && err.statusCode < 600
-      ? err.statusCode
+    typeof rawStatus === 'number' && rawStatus >= 400 && rawStatus < 600
+      ? rawStatus
       : 500;
   const message =
     statusCode === 500 ? 'An unexpected internal server error occurred.' : err.message || 'Request failed.';

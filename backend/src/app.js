@@ -19,6 +19,7 @@ const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const testimonialRoutes = require('./routes/testimonials');
 const reelRoutes = require('./routes/reels');
+const aiRoutes = require('./routes/ai');
 const { verifyCertificate } = require('./controllers/enrollmentController');
 const { getAllUsers, toggleUserStatus, reviewCourse } = require('./controllers/courseController');
 const { authenticate, authorize } = require('./middleware/auth');
@@ -83,6 +84,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/reels', reelRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Public certificate verification (no auth required)
 app.get('/api/verify/:code', verifyCertificate);
