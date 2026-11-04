@@ -1,8 +1,23 @@
+const { isOriginAllowed } = require('../config/cors');
+
+/**
+ * Ensures approved origins receive appropriate CORS headers even on error responses.
+ */
+const ensureCorsHeaders = (req, res) => {
+  const origin = req?.headers?.origin;
+  if (origin && isOriginAllowed(origin) && typeof res?.setHeader === 'function') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
+};
+
 /**
  * Global error handler — must be registered LAST in Express middleware chain.
  * Ensures all errors return a consistent { error: string } shape.
  */
 const errorHandler = (err, req, res, next) => {
+  ensureCorsHeaders(req, res);
   console.error(`[ERROR] ${req.method} ${req.path}:`, err.message);
 
   // Mongoose validation errors
@@ -54,6 +69,7 @@ const errorHandler = (err, req, res, next) => {
  * 404 handler — catches requests that didn't match any route.
  */
 const notFound = (req, res) => {
+  ensureCorsHeaders(req, res);
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found.` });
 };
 

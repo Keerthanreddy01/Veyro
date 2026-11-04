@@ -8,6 +8,11 @@ const { verifyAccessToken } = require('../utils/jwt');
  * and easy to test with tools like Postman/Thunder Client.
  */
 const authenticate = (req, res, next) => {
+  // Never block OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -35,6 +40,11 @@ const authenticate = (req, res, next) => {
  */
 const authorize = (...roles) => {
   return (req, res, next) => {
+    // Never block OPTIONS preflight requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     if (!req.user) {
       return res.status(401).json({ error: 'Not authenticated.' });
     }

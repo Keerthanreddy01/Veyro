@@ -45,6 +45,7 @@ interface ChatMessage {
   model?: string;
   sources?: SourceCitation[];
   timestamp?: string;
+  isError?: boolean;
 }
 
 interface PracticeQuestion {
@@ -91,6 +92,7 @@ export default function VeyroAIFloatingButton() {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('intermediate');
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
 
   // Practice Quiz State
   const [quizQuestions, setQuizQuestions] = useState<PracticeQuestion[]>([]);
@@ -201,20 +203,27 @@ export default function VeyroAIFloatingButton() {
   if (!mounted) return null;
 
   // Send Chat Message
-  const handleSendMessage = async (textToSend?: string) => {
-    const text = (textToSend || inputMessage).trim();
+  const handleSendMessage = async (textToSend?: string, isRetry = false) => {
+    const text = (textToSend || (isRetry ? lastFailedPrompt : inputMessage) || '').trim();
     if (!text || isThinking) return;
 
-    setInputMessage('');
+    if (!isRetry) {
+      setInputMessage('');
+    }
     setLastError(null);
 
-    const userMsg: ChatMessage = {
-      role: 'user',
-      content: text,
-      timestamp: new Date().toISOString(),
-    };
+    // If retry, remove previous error message from transcript
+    if (isRetry) {
+      setMessages((prev) => prev.filter((m) => !m.isError));
+    } else {
+      const userMsg: ChatMessage = {
+        role: 'user',
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+    }
 
-    setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
 
     try {
@@ -234,17 +243,30 @@ export default function VeyroAIFloatingButton() {
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
+      setLastFailedPrompt(null);
     } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.error ||
-        'Veyro AI is temporarily unavailable. Please try again.';
-      setLastError(errorMsg);
+      let friendlyMsg = 'Veyro AI is temporarily unavailable. Please try again.';
+      if (err.response?.status === 401) {
+        friendlyMsg = 'Your session has expired. Please refresh the page or log in again to continue.';
+      } else if (err.response?.status === 503) {
+        friendlyMsg = 'Veyro AI providers are currently experiencing high load. Please click Retry in a moment.';
+      } else if (err.response?.status === 429) {
+        friendlyMsg = 'You are sending questions too quickly. Please pause a moment before retrying.';
+      } else if (!err.response) {
+        friendlyMsg = 'Unable to connect to Veyro AI. Please check your internet connection.';
+      } else if (err.response?.data?.error) {
+        friendlyMsg = err.response.data.error;
+      }
+
+      setLastError(friendlyMsg);
+      setLastFailedPrompt(text);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: `⚠️ ${errorMsg}`,
+          content: `⚠️ ${friendlyMsg}`,
           provider: 'system',
+          isError: true,
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -266,11 +288,13 @@ export default function VeyroAIFloatingButton() {
         },
       ]);
       setLastError(null);
+      setLastFailedPrompt(null);
     } catch {}
   };
 
   // Quick Action Handler
   const handleQuickAction = (actionText: string) => {
+    if (isThinking) return;
     if (actionText === 'Generate a practice quiz') {
       setActiveTab('quiz');
       return;
@@ -607,10 +631,27 @@ export default function VeyroAIFloatingButton() {
                           'max-w-[85%] rounded-2xl px-3.5 py-2.5 leading-relaxed text-xs sm:text-[13px] break-words whitespace-pre-wrap',
                           isUser
                             ? 'bg-[#171717] text-white rounded-tr-xs shadow-xs'
+                            : msg.isError
+                            ? 'bg-red-50 text-red-900 border border-red-200 rounded-tl-xs shadow-2xs'
                             : 'bg-[#FAF8F4] text-[#171717] border border-[#E7E2DA] rounded-tl-xs shadow-2xs'
                         )}
                       >
                         {msg.content}
+
+                        {/* Retry action for failed requests without creating duplicates */}
+                        {msg.isError && lastFailedPrompt && (
+                          <div className="mt-2.5 pt-2 border-t border-red-200 flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-red-600 font-medium">Failed to reach tutor</span>
+                            <button
+                              type="button"
+                              onClick={() => handleSendMessage(undefined, true)}
+                              disabled={isThinking}
+                              className="text-[11px] font-semibold text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-40 disabled:cursor-not-allowed px-2.5 py-0.5 rounded cursor-pointer transition-colors"
+                            >
+                              Retry Question
+                            </button>
+                          </div>
+                        )}
 
                         {/* Grounded RAG Citations */}
                         {!isUser && msg.sources && msg.sources.length > 0 && (
@@ -675,7 +716,8 @@ export default function VeyroAIFloatingButton() {
                     key={idx}
                     type="button"
                     onClick={() => handleQuickAction(action)}
-                    className="text-[11px] font-medium text-[#171717] bg-[#FAF8F4] hover:bg-[#F2ECE1] border border-[#E7E2DA] px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-colors cursor-pointer flex items-center gap-1"
+                    disabled={isThinking}
+                    className="text-[11px] font-medium text-[#171717] bg-[#FAF8F4] hover:bg-[#F2ECE1] disabled:opacity-40 disabled:cursor-not-allowed border border-[#E7E2DA] px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <Sparkles size={10} className="text-[#369EFF]" />
                     {action}

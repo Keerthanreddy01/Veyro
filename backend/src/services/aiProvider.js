@@ -18,8 +18,9 @@ const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const NVIDIA_DEFAULT_MODEL = 'mistralai/mistral-large-4-1t-a52b';
 
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_DEFAULT_MODEL = 'openai/gpt-oss-120b';
-const GROQ_SECONDARY_MODEL = 'qwen/qwen3.8-27b';
+const GROQ_SECONDARY_MODEL = 'openai/gpt-oss-120b';
+const GROQ_TERTIARY_MODEL = 'openai/gpt-oss-20b';
+const GROQ_DEFAULT_MODEL = GROQ_SECONDARY_MODEL;
 
 // Simulation state for testing fallback behavior in automated test suites
 let _simulationConfig = {
@@ -71,7 +72,7 @@ async function callNvidia(messages, options = {}) {
   }
 
   const model = options.model || NVIDIA_DEFAULT_MODEL;
-  const timeoutMs = options.timeoutMs || Number(process.env.NVIDIA_TIMEOUT_MS) || 12000;
+  const timeoutMs = options.timeoutMs || Number(process.env.NVIDIA_TIMEOUT_MS) || 20000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -85,9 +86,10 @@ async function callNvidia(messages, options = {}) {
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: options.maxTokens || 2048,
+        max_tokens: options.maxTokens || 1024,
         temperature: typeof options.temperature === 'number' ? options.temperature : 0.4,
         top_p: typeof options.topP === 'number' ? options.topP : 0.9,
+        reasoning_effort: options.reasoning_effort || 'low',
       }),
       signal: controller.signal,
     });
@@ -156,7 +158,7 @@ async function callGroq(messages, options = {}) {
       body: JSON.stringify({
         model,
         messages,
-        max_tokens: options.maxTokens || 2048,
+        max_tokens: options.maxTokens || 1024,
         temperature: typeof options.temperature === 'number' ? options.temperature : 0.4,
       }),
       signal: controller.signal,
@@ -166,10 +168,11 @@ async function callGroq(messages, options = {}) {
 
     if (!res.ok) {
       const errorBody = await res.text().catch(() => '');
-      // If primary Groq model failed, try secondary Groq model once
-      if (model === GROQ_DEFAULT_MODEL) {
-        console.warn(`[AI Provider] Groq model ${model} failed (${res.status}). Retrying with ${GROQ_SECONDARY_MODEL}...`);
-        return await callGroq(messages, { ...options, groqModel: GROQ_SECONDARY_MODEL });
+      // Multi-tier Groq model fallback on rate limit or outage
+      if (model === GROQ_SECONDARY_MODEL) {
+        console.warn(`[AI Provider] Secondary Groq model ${model} failed (${res.status}). Retrying with tertiary model ${GROQ_TERTIARY_MODEL}...`);
+        await sleep(300);
+        return await callGroq(messages, { ...options, groqModel: GROQ_TERTIARY_MODEL });
       }
       const err = new Error(`Groq returned status ${res.status}: ${errorBody.substring(0, 200)}`);
       err.status = res.status;

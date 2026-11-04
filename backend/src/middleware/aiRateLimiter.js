@@ -20,6 +20,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * Rate limiter middleware for AI endpoints.
  */
 function aiRateLimiter(req, res, next) {
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const userId = req.user?.userId || req.ip;
   const now = Date.now();
 

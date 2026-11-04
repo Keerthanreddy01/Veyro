@@ -22,7 +22,7 @@ const isSafeLoopback = (req) => {
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
-  skip: isSafeLoopback,
+  skip: (req) => req.method === 'OPTIONS' || isSafeLoopback(req),
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -40,7 +40,7 @@ const authLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1500,
-  skip: (req) => isSafeLoopback(req) || req.path === '/health' || req.path.startsWith('/verify'),
+  skip: (req) => req.method === 'OPTIONS' || isSafeLoopback(req) || req.path === '/health' || req.path.startsWith('/verify'),
   standardHeaders: true,
   legacyHeaders: false,
   message: {

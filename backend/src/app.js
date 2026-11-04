@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 
 const connectDB = require('./config/db');
+const { corsOptions } = require('./config/cors');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/auth');
@@ -33,35 +34,14 @@ app.set('trust proxy', 1);
 // ─── Database ────────────────────────────────────────────────────────────────
 connectDB();
 
+// ─── CORS Lockdown ───────────────────────────────────────────────────────────
+// Explicitly whitelist production origins and dev environments
+app.use(cors(corsOptions));
+
 // ─── Security Headers (Helmet) ───────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows cross-origin media embedding (videos, PDFs, images)
 }));
-
-// ─── CORS Lockdown ───────────────────────────────────────────────────────────
-const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-const allowedOrigins = rawClientUrl
-  .split(',')
-  .map((u) => u.trim().replace(/\/+$/, ''))
-  .filter(Boolean);
-
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow server-to-server, curl, mobile apps, or matching origins
-      if (!origin) return callback(null, true);
-      const normalized = origin.replace(/\/+$/, '');
-      if (allowedOrigins.includes(normalized) || allowedOrigins.includes('*')) {
-        return callback(null, true);
-      }
-      callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  })
-);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

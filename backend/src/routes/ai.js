@@ -28,6 +28,7 @@ router.get('/chat/history', getChatHistory);
 router.delete('/chat/history', clearChatHistory);
 
 // 2. Real Course Recommendations
+router.get('/recommendations', aiRateLimiter, handleRecommendations);
 router.post('/recommendations', aiRateLimiter, handleRecommendations);
 
 // 3. Practice Quiz Generator & Evaluator

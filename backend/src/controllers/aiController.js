@@ -112,11 +112,11 @@ Your goals:
       });
       await conversation.save();
 
-      return await streamCompletion(promptMessages, res, { maxTokens: 2048 });
+      return await streamCompletion(promptMessages, res, { maxTokens: 1024 });
     }
 
     // Standard completion
-    const aiResult = await generateCompletion(promptMessages, { maxTokens: 2048 });
+    const aiResult = await generateCompletion(promptMessages, { maxTokens: 1024 });
 
     // Save messages to history
     conversation.messages.push({
@@ -191,12 +191,12 @@ async function clearChatHistory(req, res, next) {
 }
 
 /**
- * POST /api/ai/recommendations
+ * GET & POST /api/ai/recommendations
  */
 async function handleRecommendations(req, res, next) {
   try {
     const studentId = req.user?.userId;
-    const { prompt } = req.body;
+    const prompt = (req.body?.prompt || req.query?.prompt || '').trim();
 
     const result = await getCourseRecommendations(studentId, prompt);
     res.json(result);
